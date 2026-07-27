@@ -26,6 +26,7 @@ const fmtDate = (ms) => {
 const DAY = 86400000;
 function fmtDuration(days) {
   if (!Number.isFinite(days)) return '—';
+  if (days < 1) return '< 1 hari (hari launch)';
   if (days < 60) return `${Math.round(days)} hari`;
   if (days < 365) return `${Math.round(days)} hari (${(days / 30.44).toFixed(1)} bulan)`;
   return `${fmtNum(Math.round(days))} hari (${(days / 365.25).toFixed(1)} tahun)`;
