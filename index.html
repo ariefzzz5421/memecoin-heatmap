@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crypto Heatmap Volume — Peta Volume Global & Jam Aktif Trading</title>
+<meta name="description" content="Peta volume kripto global interaktif, heatmap volume memecoin, dan analisa jam paling aktif untuk trading dalam WIB dan UTC. Data real dari CoinGecko, Binance, OKX, dan Kraken.">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🌐</text></svg>">
+</head>
+<body>
+
+<a class="skip" href="#peta">Lompat ke peta</a>
+
+<header class="site-head">
+  <div class="wrap head-inner">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <div>
+        <h1>Crypto Heatmap Volume</h1>
+        <p class="brand-sub">Peta volume global &middot; heatmap memecoin &middot; jam aktif trading (WIB / UTC)</p>
+      </div>
+    </div>
+    <nav class="primary-nav" aria-label="Navigasi utama">
+      <a class="is-active" href="/" aria-current="page">Overview</a>
+      <a href="/maps/">Maps</a>
+      <a href="/sentiment/">Sentiment</a>
+    </nav>
+    <div class="head-actions">
+      <div class="clock" id="clock" aria-live="off">
+        <span class="clock-wib" id="clockWib">--:--</span>
+        <span class="clock-utc" id="clockUtc">--:-- UTC</span>
+      </div>
+      <button class="btn" id="btnRefresh" type="button">
+        <span class="btn-ic" aria-hidden="true">⟳</span> Muat ulang data
+      </button>
+    </div>
+  </div>
+  <div class="status-bar wrap" id="statusBar">
+    <span class="dot" id="statusDot"></span>
+    <span id="statusText">Menyiapkan…</span>
+    <span class="status-sep">&middot;</span>
+    <span id="statusSource" class="muted"></span>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ KPI ============ -->
+  <section class="kpi-strip" aria-label="Ringkasan utama">
+    <article class="kpi">
+      <h2>Volume kripto global 24 jam</h2>
+      <p class="kpi-val" id="kpiGlobalVol">—</p>
+      <p class="kpi-sub" id="kpiGlobalSub">seluruh pasar spot</p>
+    </article>
+    <article class="kpi">
+      <h2>Pusat volume terbesar</h2>
+      <p class="kpi-val" id="kpiTopPlace">—</p>
+      <p class="kpi-sub" id="kpiTopSub">—</p>
+    </article>
+    <article class="kpi">
+      <h2>Rata-rata volume per bursa</h2>
+      <p class="kpi-val" id="kpiAvgEx">—</p>
+      <p class="kpi-sub" id="kpiAvgExSub">—</p>
+    </article>
+    <article class="kpi kpi-accent">
+      <h2>Jam paling aktif</h2>
+      <p class="kpi-val" id="kpiPeakHour">—</p>
+      <p class="kpi-sub" id="kpiPeakSub">—</p>
+    </article>
+  </section>
+
+  <!-- ============ PETA ============ -->
+  <section class="panel" id="peta">
+    <div class="panel-head">
+      <div>
+        <h2>Peta volume kripto global</h2>
+        <p class="panel-sub">
+          Ukuran &amp; warna gelembung = volume perdagangan 24 jam yang tercatat di yurisdiksi
+          badan hukum bursa. Gulir untuk zoom, seret untuk geser, klik untuk mengunci detail.
+        </p>
+      </div>
+      <div class="panel-tools">
+        <button class="btn sm" id="btnZoomIn" type="button" aria-label="Perbesar">+</button>
+        <button class="btn sm" id="btnZoomOut" type="button" aria-label="Perkecil">−</button>
+        <button class="btn sm" id="btnMapReset" type="button">Reset</button>
+        <label class="chk"><input type="checkbox" id="chkLabels" checked> Label</label>
+      </div>
+    </div>
+
+    <div class="map-layout">
+      <div class="map-holder">
+        <canvas id="mapCanvas" aria-label="Peta dunia volume kripto per yurisdiksi" role="img"></canvas>
+        <div class="tooltip" id="mapTip" hidden></div>
+        <div class="map-legend" id="mapLegend"></div>
+        <div class="map-loading" id="mapLoading"><span class="spinner"></span> Memuat geometri peta…</div>
+      </div>
+
+      <aside class="map-side">
+        <div class="side-block">
+          <h3>Peringkat yurisdiksi</h3>
+          <ol class="rank-list" id="rankList"></ol>
+        </div>
+        <div class="side-block">
+          <h3>Sebaran per kawasan</h3>
+          <div id="regionList" class="region-list"></div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="detail-card" id="detailCard" hidden></div>
+
+    <details class="disclosure">
+      <summary>Tabel lengkap yurisdiksi</summary>
+      <div class="table-scroll" id="jurTable"></div>
+    </details>
+
+    <p class="caveat">
+      <strong>Baca ini dulu.</strong> Peta ini memetakan <em>yurisdiksi badan hukum bursa</em>
+      (field <code>country</code> di CoinGecko) — bukan lokasi fisik trader. Volume Seychelles,
+      Kepulauan Cayman, dan British Virgin Islands besar karena bursa global mendaftarkan
+      entitasnya di sana, bukan karena ada trader di pulau-pulau itu. Untuk pertanyaan
+      "trader aktif jam berapa", gunakan bagian jam aktif di bawah — itu diukur dari volume
+      per jam yang sebenarnya, bukan dari lokasi.
+    </p>
+  </section>
+
+  <!-- ============ JAM AKTIF ============ -->
+  <section class="panel" id="jam">
+    <div class="panel-head">
+      <div>
+        <h2>Jam paling aktif untuk trading</h2>
+        <p class="panel-sub">
+          Rata-rata volume per jam dari candle 1 jam yang sebenarnya. Sumbu utama WIB
+          (UTC+7), sumbu pembanding UTC.
+        </p>
+      </div>
+      <div class="panel-tools">
+        <div class="seg" role="group" aria-label="Keranjang koin">
+          <button class="seg-btn is-on" data-basket="meme" type="button">Memecoin</button>
+          <button class="seg-btn" data-basket="major" type="button">Major</button>
+        </div>
+        <div class="seg" role="group" aria-label="Rentang waktu" id="tfGroup"></div>
+      </div>
+    </div>
+
+    <div class="insight-grid" id="hourInsights"></div>
+
+    <div class="chart-block">
+      <div class="chart-head">
+        <h3>Profil volume rata-rata per jam</h3>
+        <div class="legend" id="hourLegendSessions"></div>
+      </div>
+      <div class="chart-holder" id="hourProfile"></div>
+    </div>
+
+    <div class="chart-block">
+      <div class="chart-head">
+        <h3>Matriks hari &times; jam <span class="muted">(waktu WIB)</span></h3>
+        <div class="legend" id="matrixLegend"></div>
+      </div>
+      <div class="chart-holder" id="hourMatrix"></div>
+    </div>
+
+    <div class="split">
+      <div class="side-block">
+        <h3>Kontribusi per sesi pasar</h3>
+        <div class="table-scroll" id="sessionTable"></div>
+      </div>
+      <div class="side-block">
+        <h3>Jam puncak tiap koin</h3>
+        <div class="table-scroll" id="coinHourTable"></div>
+      </div>
+    </div>
+
+    <details class="disclosure">
+      <summary>Tabel rata-rata volume per jam (24 baris)</summary>
+      <div class="table-scroll" id="hourTable"></div>
+    </details>
+
+    <div class="tooltip" id="hourTip" hidden></div>
+  </section>
+
+  <!-- ============ MEMECOIN ============ -->
+  <section class="panel" id="meme">
+    <div class="panel-head">
+      <div>
+        <h2>Heatmap volume memecoin</h2>
+        <p class="panel-sub">
+          Luas ubin = pangsa volume 24 jam. Warna = perubahan harga
+          (<span class="sw up"></span> biru naik, <span class="sw down"></span> merah turun).
+        </p>
+      </div>
+      <div class="panel-tools">
+        <div class="seg" role="group" aria-label="Periode perubahan">
+          <button class="seg-btn" data-change="1h" type="button">1j</button>
+          <button class="seg-btn is-on" data-change="24h" type="button">24j</button>
+          <button class="seg-btn" data-change="7d" type="button">7h</button>
+        </div>
+        <div class="seg" role="group" aria-label="Tampilan">
+          <button class="seg-btn is-on" data-view="map" type="button">Peta ubin</button>
+          <button class="seg-btn" data-view="table" type="button">Tabel</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="legend" id="memeLegend"></div>
+    <div class="treemap-holder" id="treemap"></div>
+    <div class="table-scroll" id="memeTable" hidden></div>
+    <div class="tooltip" id="memeTip" hidden></div>
+    <div class="insight-grid" id="memeInsights"></div>
+  </section>
+
+  <!-- ============ METODOLOGI ============ -->
+  <section class="panel">
+    <h2>Metodologi &amp; sumber data</h2>
+    <div class="method-grid">
+      <div>
+        <h3>Dari mana angkanya</h3>
+        <ul>
+          <li><strong>Volume per yurisdiksi</strong> — CoinGecko <code>/exchanges</code>, 200 bursa
+            teratas. Volume dilaporkan dalam BTC lalu dikonversi ke USD memakai harga BTC saat itu.</li>
+          <li><strong>Pasar memecoin</strong> — CoinGecko <code>/coins/markets</code>,
+            kategori <code>meme-token</code>, diurutkan volume.</li>
+          <li><strong>Volume per jam</strong> — candle 1 jam dari Binance; bila diblokir jaringan,
+            otomatis beralih ke OKX lalu Kraken. Yang dipakai adalah <em>quote volume</em> (USDT),
+            dijumlahkan lintas koin dalam keranjang.</li>
+          <li><strong>Geometri peta</strong> — Natural Earth 110m via world-atlas (TopoJSON),
+            didekode di browser tanpa pustaka eksternal.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Batasan yang perlu diketahui</h3>
+        <ul>
+          <li>Negara bursa = yurisdiksi pendaftaran, <strong>bukan</strong> domisili trader.
+            Tidak ada API publik yang memetakan volume ke lokasi trader sebenarnya.</li>
+          <li>Volume bursa yang dilaporkan bisa dibesar-besarkan; CoinGecko memberi
+            <em>trust score</em> tapi tidak menyaring seluruhnya.</li>
+          <li>Analisa jam memakai keranjang koin terbatas di satu bursa, jadi ia mewakili
+            pola pasar, bukan volume total seluruh dunia.</li>
+          <li>WIB dianggap tetap UTC+7 (tidak ada DST). Sesi Eropa &amp; AS pada label bergeser
+            satu jam saat musim panas di sana.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Warna yang dipakai</h3>
+        <ul>
+          <li><strong>Magnitude</strong> (volume) — satu hue biru, gelap ke terang.</li>
+          <li><strong>Polaritas</strong> (perubahan harga) — biru naik, merah turun, abu di tengah.
+            Hijau/merah sengaja dihindari: pasangan itu menyatu pada buta warna deuteranopia
+            (ΔE 3,3), sedangkan biru/merah terpisah ΔE 15–20.</li>
+          <li>Setiap ubin dan sel membawa angka langsung, dan tersedia tampilan tabel,
+            jadi warna tidak pernah jadi satu-satunya penanda.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="caveat">
+      Halaman ini alat bantu riset, bukan nasihat keuangan. Volume tinggi berarti likuiditas
+      tinggi — bukan berarti harga akan naik.
+    </p>
+  </section>
+
+</main>
+
+<footer class="site-foot wrap">
+  <p>Data: CoinGecko &middot; Binance / OKX / Kraken &middot; Natural Earth.
+     Diperbarui <span id="footUpdated">—</span>.</p>
+  <p class="muted">Cache lokal 3–20 menit agar hemat kuota API. Tekan “Muat ulang data” untuk memaksa ambil baru.</p>
+</footer>
+
+<div class="toast" id="toast" hidden></div>
+
+<script type="module" src="assets/js/app.js"></script>
+</body>
+</html>

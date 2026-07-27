@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sentiment — Volume & Revenue Platform Kripto</title>
+<meta name="description" content="Pantau volume 24 jam, revenue 24 jam, momentum aktivitas, dan chain terpanas untuk Pump.fun, Fomo, GMGN, Pons Launchpad, dan Virtuals Protocol.">
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+
+<a class="skip" href="#platforms">Lompat ke data platform</a>
+
+<header class="site-head">
+  <div class="wrap head-inner">
+    <a class="brand brand-link" href="/">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <div>
+        <h1>Crypto Heatmap Volume</h1>
+        <p class="brand-sub">Volume, revenue & momentum platform</p>
+      </div>
+    </a>
+    <nav class="primary-nav" aria-label="Navigasi utama">
+      <a href="/">Overview</a>
+      <a href="/maps/">Maps</a>
+      <a class="is-active" href="/sentiment/" aria-current="page">Sentiment</a>
+    </nav>
+    <div class="head-actions">
+      <button class="btn" id="btnRefresh" type="button">Muat ulang data</button>
+    </div>
+  </div>
+  <div class="status-bar wrap">
+    <span class="dot busy" id="statusDot"></span>
+    <span id="statusText">Mengambil metrik platform…</span>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="route-hero sentiment-hero">
+    <div>
+      <p class="eyebrow">Platform activity pulse · 24 jam</p>
+      <h2>Sentiment berbasis arus volume & revenue</h2>
+      <p>Halaman ini membaca momentum aktivitas ekonomi—bukan opini media sosial. Angka diambil langsung dari indeks protokol dan tidak diisi dengan estimasi ketika sumber belum tersedia.</p>
+    </div>
+    <div class="source-chip">
+      <span class="dot ok"></span>
+      DeFiLlama · <span id="cacheState">data baru</span>
+    </div>
+  </section>
+
+  <section class="kpi-strip sentiment-kpis" aria-label="Ringkasan metrik platform">
+    <article class="kpi">
+      <h2>Volume platform 24 jam</h2>
+      <p class="kpi-val" id="totalVolume">—</p>
+      <p class="kpi-sub" id="totalVolumeSub">—</p>
+    </article>
+    <article class="kpi">
+      <h2>Revenue platform 24 jam</h2>
+      <p class="kpi-val" id="totalRevenue">—</p>
+      <p class="kpi-sub" id="totalRevenueSub">—</p>
+    </article>
+    <article class="kpi kpi-accent">
+      <h2>Most heated chain</h2>
+      <p class="kpi-val" id="hotChain">—</p>
+      <p class="kpi-sub" id="hotChainSub">—</p>
+    </article>
+    <article class="kpi">
+      <h2>Cakupan sumber</h2>
+      <p class="kpi-val" id="coverage">—</p>
+      <p class="kpi-sub">Metrik tersedia dari 5 platform</p>
+    </article>
+  </section>
+
+  <section id="platforms">
+    <div class="section-intro">
+      <div>
+        <p class="eyebrow">Platform monitor</p>
+        <h2>Volume & revenue per platform</h2>
+      </div>
+      <p>Perubahan dibandingkan 24 jam sebelumnya.</p>
+    </div>
+    <div class="platform-grid" id="platformGrid">
+      <div class="panel-loading"><span class="spinner"></span> Memuat data platform…</div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div>
+        <h2>Most heated chain</h2>
+        <p class="panel-sub">Ranking berdasarkan total volume 24 jam yang bisa diatribusikan ke chain dari platform terpilih. Revenue menjadi pembanding kedua.</p>
+      </div>
+    </div>
+    <div class="table-scroll" id="chainTable">
+      <div class="panel-loading"><span class="spinner"></span> Menghitung chain…</div>
+    </div>
+  </section>
+
+  <section class="panel methodology-compact">
+    <h2>Cara membaca data</h2>
+    <div class="method-grid">
+      <div>
+        <h3>Volume</h3>
+        <p>Nilai transaksi spot/swap yang diindeks untuk protokol tersebut selama 24 jam. Ini bukan volume seluruh token yang pernah diluncurkan platform. Penjumlahan antar-platform dapat overlap saat satu transaksi melewati lebih dari satu protokol.</p>
+      </div>
+      <div>
+        <h3>Revenue</h3>
+        <p>Pendapatan yang menjadi milik protokol setelah pembagian insentif, sesuai metodologi sumber. Revenue berbeda dari total fees.</p>
+      </div>
+      <div>
+        <h3>Momentum</h3>
+        <p>Label memanas atau mendingin dihitung dari rata-rata perubahan volume dan revenue 24 jam—bukan sinyal beli atau prediksi harga.</p>
+      </div>
+    </div>
+    <p class="note warn" id="coverageNote">Memeriksa cakupan data…</p>
+    <p class="caveat"><strong>⚠️ Risk:</strong> Volume tinggi tidak berarti harga akan naik. Token launchpad sangat volatil dan likuiditas bisa hilang cepat. Gunakan position sizing kecil; hindari leverage untuk aset baru.</p>
+  </section>
+</main>
+
+<footer class="site-foot wrap">
+  <p>Sumber: DeFiLlama protocol metrics. Diperbarui <span id="updatedAt">—</span>.</p>
+</footer>
+
+<script type="module" src="/assets/js/sentiment-page.js"></script>
+</body>
+</html>

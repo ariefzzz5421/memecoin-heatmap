@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maps — Lokasi Volume Kripto Terbesar</title>
+<meta name="description" content="Peta khusus untuk melihat yurisdiksi bursa dengan volume kripto 24 jam terbesar, lengkap dengan marker peringkat dan detail bursa.">
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+
+<a class="skip" href="#peta">Lompat ke peta</a>
+
+<header class="site-head">
+  <div class="wrap head-inner">
+    <a class="brand brand-link" href="/">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <div>
+        <h1>Crypto Heatmap Volume</h1>
+        <p class="brand-sub">Peta khusus konsentrasi volume 24 jam</p>
+      </div>
+    </a>
+    <nav class="primary-nav" aria-label="Navigasi utama">
+      <a href="/">Overview</a>
+      <a class="is-active" href="/maps/" aria-current="page">Maps</a>
+      <a href="/sentiment/">Sentiment</a>
+    </nav>
+    <div class="head-actions">
+      <button class="btn" id="btnRefresh" type="button">Muat ulang data</button>
+    </div>
+  </div>
+  <div class="status-bar wrap">
+    <span class="dot busy" id="statusDot"></span>
+    <span id="statusText">Menyiapkan peta…</span>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="route-hero maps-hero">
+    <div>
+      <p class="eyebrow">Global exchange jurisdiction map</p>
+      <h2>Di mana volume kripto terbesar tercatat?</h2>
+      <p>Marker kuning <strong>#1</strong> menunjukkan yurisdiksi dengan volume 24 jam terbesar dari 200 bursa teratas yang dilacak.</p>
+    </div>
+    <div class="hero-kpis">
+      <article>
+        <span>Lokasi terbesar</span>
+        <strong id="topLocation">—</strong>
+        <small id="topShare">—</small>
+      </article>
+      <article>
+        <span>Volume 24 jam</span>
+        <strong id="topVolume">—</strong>
+        <small id="mapCoverage">—</small>
+      </article>
+    </div>
+  </section>
+
+  <section class="panel map-route-panel" id="peta">
+    <div class="panel-head">
+      <div>
+        <h2>Peta volume per yurisdiksi bursa</h2>
+        <p class="panel-sub">Klik marker untuk melihat bursa penyumbang volume. Ukuran marker menunjukkan besar volume; marker kuning menunjukkan peringkat pertama.</p>
+      </div>
+      <div class="panel-tools">
+        <button class="btn sm" id="btnZoomIn" type="button" aria-label="Perbesar">+</button>
+        <button class="btn sm" id="btnZoomOut" type="button" aria-label="Perkecil">−</button>
+        <button class="btn sm" id="btnMapReset" type="button">Reset</button>
+        <label class="chk"><input type="checkbox" id="chkLabels" checked> Label</label>
+      </div>
+    </div>
+
+    <div class="map-layout">
+      <div class="map-holder">
+        <canvas id="mapCanvas" aria-label="Peta dunia volume kripto per yurisdiksi" role="img"></canvas>
+        <div class="tooltip" id="mapTip" hidden></div>
+        <div class="map-legend" id="mapLegend"></div>
+        <div class="top-marker-legend"><span>#1</span> volume terbesar</div>
+        <div class="map-loading" id="mapLoading"><span class="spinner"></span> Memuat geometri peta…</div>
+      </div>
+      <aside class="map-side">
+        <div class="side-block">
+          <h3>Peringkat yurisdiksi</h3>
+          <ol class="rank-list" id="rankList"></ol>
+        </div>
+      </aside>
+    </div>
+
+    <div class="detail-card" id="detailCard" hidden></div>
+
+    <details class="disclosure">
+      <summary>Tabel lengkap yurisdiksi</summary>
+      <div class="table-scroll" id="jurTable"></div>
+    </details>
+
+    <p class="caveat">
+      <strong>⚠️ Batas data:</strong> Lokasi ini adalah yurisdiksi badan hukum bursa, bukan domisili trader. Negara offshore dapat terlihat besar karena banyak bursa global terdaftar di sana.
+    </p>
+  </section>
+</main>
+
+<footer class="site-foot wrap">
+  <p>Data: CoinGecko Exchanges · Natural Earth. Diperbarui <span id="updatedAt">—</span>.</p>
+</footer>
+
+<script type="module" src="/assets/js/maps-page.js"></script>
+</body>
+</html>
