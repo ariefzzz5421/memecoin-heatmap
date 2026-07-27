@@ -8,7 +8,7 @@ Tanpa dependensi runtime. HTML + CSS + JavaScript modul murni.
 ## Menjalankan
 
 ```bash
-node server.js
+npm run dev
 ```
 
 Lalu buka <http://localhost:5173>.
@@ -56,7 +56,8 @@ data baru.
 |---|---|
 | `/` | Overview, jam aktif, dan heatmap memecoin |
 | `/maps/` | Peta khusus dengan marker kuning `#1` untuk lokasi volume terbesar |
-| `/sentiment/` | Volume 24 jam, revenue 24 jam, momentum aktivitas, dan chain terpanas |
+| `/sentiment/` | Volume 24 jam, revenue 24 jam, momentum aktivitas, dan chain volume tertinggi |
+| `/cases/` | Studi memecoin ≥ $100M mcap: chart mingguan listing → ATH, durasi launch → ATH, katalis terdokumentasi, dasbor volume + launchpad |
 
 Halaman Sentiment memakai metrik protokol DeFiLlama. Bila sebuah metrik belum
 diindeks (saat ini volume protokol Pons), halaman menampilkan status tidak tersedia
@@ -98,7 +99,11 @@ permukaan gelap `#14161a`:
 
 ```
 index.html
-server.js                 server statis tanpa dependensi
+maps/  sentiment/  cases/  masing-masing satu index.html per route
+scripts/
+  dev-server.cjs          server statis pengembangan (npm run dev)
+  build.cjs               salin situs statis ke dist/client (npm run build)
+vercel.json               deploy statis: build ke dist/client
 assets/css/style.css
 assets/js/
   config.js               tabel yurisdiksi, keranjang koin, timeframe
@@ -108,9 +113,19 @@ assets/js/
   worldmap.js             peta canvas interaktif
   hours.js                profil jam + matriks hari x jam
   treemap.js              heatmap memecoin
+  cases-config.js         kurasi studi kasus (launch, katalis, provider chart)
+  cases-data.js           kline mingguan + snapshot pasar + metrik launchpad
+  cases-page.js           halaman studi kasus
+  sentiment-data.js       metrik platform DeFiLlama
+  sentiment-page.js       halaman sentiment
+  maps-page.js            halaman peta khusus
   utils.js                palet, skala warna, pemformat
-  app.js                  orkestrasi halaman
+  app.js                  orkestrasi halaman utama
 ```
+
+> Catatan deploy: jangan menaruh server Node bernama `server.js` di akar repo —
+> Vercel mendeteksinya sebagai backend dan membungkusnya jadi fungsi, sehingga
+> folder `assets/` tidak terdeploy (penyebab bug produksi Jul 2026).
 
 ## Menyesuaikan
 

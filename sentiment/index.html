@@ -24,6 +24,7 @@
       <a href="/">Overview</a>
       <a href="/maps/">Maps</a>
       <a class="is-active" href="/sentiment/" aria-current="page">Sentiment</a>
+      <a href="/cases/">Cases</a>
     </nav>
     <div class="head-actions">
       <button class="btn" id="btnRefresh" type="button">Muat ulang data</button>
@@ -38,9 +39,9 @@
 <main class="wrap">
   <section class="route-hero sentiment-hero">
     <div>
-      <p class="eyebrow">Platform activity pulse · 24 jam</p>
-      <h2>Sentiment berbasis arus volume & revenue</h2>
-      <p>Halaman ini membaca momentum aktivitas ekonomi—bukan opini media sosial. Angka diambil langsung dari indeks protokol dan tidak diisi dengan estimasi ketika sumber belum tersedia.</p>
+      <p class="eyebrow">Metrik platform · 24 jam</p>
+      <h2>Volume &amp; revenue platform, 24 jam</h2>
+      <p>Angka diambil dari indeks protokol DeFiLlama. Metrik yang belum diindeks ditampilkan sebagai tidak tersedia, tanpa estimasi. Bukan analisis opini media sosial.</p>
     </div>
     <div class="source-chip">
       <span class="dot ok"></span>
@@ -60,7 +61,7 @@
       <p class="kpi-sub" id="totalRevenueSub">—</p>
     </article>
     <article class="kpi kpi-accent">
-      <h2>Most heated chain</h2>
+      <h2>Chain volume tertinggi</h2>
       <p class="kpi-val" id="hotChain">—</p>
       <p class="kpi-sub" id="hotChainSub">—</p>
     </article>
@@ -87,8 +88,8 @@
   <section class="panel">
     <div class="panel-head">
       <div>
-        <h2>Most heated chain</h2>
-        <p class="panel-sub">Ranking berdasarkan total volume 24 jam yang bisa diatribusikan ke chain dari platform terpilih. Revenue menjadi pembanding kedua.</p>
+        <h2>Chain berdasarkan volume 24 jam</h2>
+        <p class="panel-sub">Total volume 24 jam per chain dari platform terpantau. Revenue sebagai pembanding kedua.</p>
       </div>
     </div>
     <div class="table-scroll" id="chainTable">
@@ -109,11 +110,11 @@
       </div>
       <div>
         <h3>Momentum</h3>
-        <p>Label memanas atau mendingin dihitung dari rata-rata perubahan volume dan revenue 24 jam—bukan sinyal beli atau prediksi harga.</p>
+        <p>Angka badge = rata-rata perubahan volume dan revenue vs 24 jam sebelumnya. Bukan sinyal beli atau prediksi harga.</p>
       </div>
     </div>
     <p class="note warn" id="coverageNote">Memeriksa cakupan data…</p>
-    <p class="caveat"><strong>⚠️ Risk:</strong> Volume tinggi tidak berarti harga akan naik. Token launchpad sangat volatil dan likuiditas bisa hilang cepat. Gunakan position sizing kecil; hindari leverage untuk aset baru.</p>
+    <p class="caveat"><strong>Risiko:</strong> volume tinggi bukan indikasi arah harga. Token launchpad volatil; likuiditas dapat turun cepat. Bukan nasihat keuangan.</p>
   </section>
 </main>
 

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cases — Studi Memecoin yang Menembus $100M Mcap</title>
+<meta name="description" content="Studi kasus memecoin dengan kapitalisasi di atas $100M: DOGE, SHIB, PEPE, WIF, BONK, TRUMP, FLOKI, PENGU. Chart real dari listing sampai ATH, durasi, katalis terdokumentasi, dan dasbor volume serta launchpad.">
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🌐</text></svg>">
+</head>
+<body>
+
+<a class="skip" href="#kasus">Lompat ke studi kasus</a>
+
+<header class="site-head">
+  <div class="wrap head-inner">
+    <a class="brand brand-link" href="/">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <div>
+        <h1>Crypto Heatmap Volume</h1>
+        <p class="brand-sub">Studi kasus memecoin ≥ $100M mcap</p>
+      </div>
+    </a>
+    <nav class="primary-nav" aria-label="Navigasi utama">
+      <a href="/">Overview</a>
+      <a href="/maps/">Maps</a>
+      <a href="/sentiment/">Sentiment</a>
+      <a class="is-active" href="/cases/" aria-current="page">Cases</a>
+    </nav>
+    <div class="head-actions">
+      <button class="btn" id="btnRefresh" type="button">Muat ulang data</button>
+    </div>
+  </div>
+  <div class="status-bar wrap">
+    <span class="dot busy" id="statusDot"></span>
+    <span id="statusText">Menyiapkan…</span>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="route-hero cases-hero">
+    <div>
+      <p class="eyebrow">Studi kasus · 8 koin</p>
+      <h2>Memecoin yang menembus kapitalisasi $100M</h2>
+      <p>Chart mingguan real dari listing bursa paling awal yang tersedia, durasi launch → ATH
+         terhitung dari data, dan katalis terdokumentasi dengan tanggal.</p>
+    </div>
+  </section>
+
+  <section class="kpi-strip" aria-label="Ringkasan studi kasus">
+    <article class="kpi">
+      <h2>Koin ≥ $100M</h2>
+      <p class="kpi-val" id="kpiCount">—</p>
+      <p class="kpi-sub" id="kpiCountSub">—</p>
+    </article>
+    <article class="kpi kpi-accent">
+      <h2>Tercepat ke ATH</h2>
+      <p class="kpi-val" id="kpiFast">—</p>
+      <p class="kpi-sub" id="kpiFastSub">—</p>
+    </article>
+    <article class="kpi">
+      <h2>Terlama ke ATH</h2>
+      <p class="kpi-val" id="kpiSlow">—</p>
+      <p class="kpi-sub" id="kpiSlowSub">—</p>
+    </article>
+    <article class="kpi">
+      <h2>Drawdown terdalam dari ATH</h2>
+      <p class="kpi-val" id="kpiDraw">—</p>
+      <p class="kpi-sub" id="kpiDrawSub">—</p>
+    </article>
+  </section>
+
+  <section class="panel" id="kasus">
+    <div class="panel-head">
+      <div>
+        <h2 id="caseTitle">—</h2>
+        <p class="panel-sub" id="caseLaunch">—</p>
+      </div>
+      <div class="panel-tools">
+        <div class="seg" role="group" aria-label="Pilih koin" id="caseSelector"></div>
+      </div>
+    </div>
+
+    <div class="chart-holder case-chart-holder">
+      <div id="caseChart"></div>
+      <div class="tooltip" id="caseTip" hidden></div>
+    </div>
+
+    <div class="detail-stats case-facts" id="caseFacts"></div>
+
+    <div class="split">
+      <div class="side-block">
+        <h3>Katalis terdokumentasi</h3>
+        <ul class="catalyst-list" id="caseCatalysts"></ul>
+      </div>
+      <div class="side-block">
+        <h3>Pola yang tercatat</h3>
+        <p class="thesis" id="caseThesis">—</p>
+        <p class="note">Katalis adalah peristiwa publik dengan korelasi waktu terhadap pergerakan harga —
+           bukan bukti sebab-akibat tunggal.</p>
+      </div>
+    </div>
+
+    <details class="disclosure">
+      <summary>Tabel data mingguan</summary>
+      <div class="table-scroll" id="caseWeeklyTable"></div>
+    </details>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div>
+        <h2>Dasbor volume koin studi</h2>
+        <p class="panel-sub">Snapshot 24 jam dari CoinGecko, diurutkan menurut volume. Klik baris untuk membuka studinya.</p>
+      </div>
+    </div>
+    <div class="table-scroll" id="coinDashboard">
+      <div class="panel-loading"><span class="spinner"></span> Memuat snapshot…</div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div>
+        <h2>Launchpad: volume, fees &amp; revenue 24 jam</h2>
+        <p class="panel-sub">Metrik protokol DeFiLlama, diurutkan menurut revenue 24 jam. Metrik yang belum diindeks ditandai —, tanpa estimasi.</p>
+      </div>
+    </div>
+    <div class="table-scroll" id="launchpadTable">
+      <div class="panel-loading"><span class="spinner"></span> Memuat metrik launchpad…</div>
+    </div>
+    <p class="note" id="launchpadNote"></p>
+  </section>
+
+  <section class="panel">
+    <h2>Metodologi</h2>
+    <div class="method-grid">
+      <div>
+        <h3>Yang dihitung dari data</h3>
+        <ul>
+          <li>Harga, mcap, volume, ATH, tanggal ATH — CoinGecko <code>/coins/markets</code>.</li>
+          <li>Chart — kline mingguan bursa dengan listing paling awal yang tersedia per koin
+              (Binance / Kraken / OKX, fallback otomatis).</li>
+          <li>Durasi launch → ATH — selisih tanggal ATH (API) dengan tanggal launch terdokumentasi.</li>
+          <li>Metrik launchpad — DeFiLlama <code>summary/dexs</code> dan <code>summary/fees</code> (dailyRevenue).</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Yang dikurasi manual</h3>
+        <ul>
+          <li>Tanggal launch dan daftar katalis — peristiwa publik terdokumentasi beserta tanggalnya.</li>
+          <li>Chart dimulai dari listing bursa, bukan tanggal genesis; jeda ditampilkan sebagai catatan di bawah chart.</li>
+          <li>Metrik yang tidak tersedia ditampilkan sebagai — dan tidak diestimasi.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="caveat">
+      <strong>Risiko survivorship:</strong> halaman ini hanya memuat kasus yang berhasil.
+      Mayoritas memecoin tidak pernah mencapai $100M dan kehilangan hampir seluruh nilainya.
+      Seluruh koin studi saat ini diperdagangkan di bawah ATH-nya. Bukan nasihat keuangan.
+    </p>
+  </section>
+
+</main>
+
+<footer class="site-foot wrap">
+  <p>Data: CoinGecko · Binance / Kraken / OKX · DeFiLlama. Diperbarui <span id="updatedAt">—</span>.</p>
+</footer>
+
+<script type="module" src="/assets/js/cases-page.js"></script>
+</body>
+</html>

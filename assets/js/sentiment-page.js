@@ -57,7 +57,7 @@ function renderPlatforms(data) {
     const card = el('article', { class: 'platform-card' },
       el('div', { class: 'platform-card-head' },
         el('div', {},
-          el('span', { class: 'platform-kicker' }, platform.id === 'fomo' ? 'Fomo Wallet (spot)' : platform.name),
+          el('span', { class: 'platform-kicker' }, platform.category || 'Platform'),
           el('h2', {}, platform.name),
         ),
         el('span', { class: `pulse-badge ${platform.momentum.key}` }, platform.momentum.label),
@@ -109,7 +109,7 @@ function renderChains(data) {
   data.chains.forEach((chain, index) => {
     body.append(el('tr', { class: index === 0 ? 'is-peak' : '' },
       el('td', { class: 'muted' }, String(index + 1)),
-      el('td', {}, el('strong', {}, chain.name), index === 0 ? el('span', { class: 'pill chain-hot' }, 'Paling panas') : ''),
+      el('td', {}, el('strong', {}, chain.name), index === 0 ? el('span', { class: 'pill chain-hot' }, '#1 volume') : ''),
       el('td', { class: 'r num' }, fmtUsd(chain.volume24h)),
       el('td', { class: 'r num' }, fmtUsd(chain.revenue24h)),
       el('td', { class: 'muted chain-platforms' }, chain.platforms.join(', ')),

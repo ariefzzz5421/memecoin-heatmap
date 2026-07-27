@@ -369,10 +369,10 @@ function renderHourInsights(an) {
       accent: true,
     },
     {
-      tag: 'Blok 3 jam terbaik',
+      tag: 'Blok 3 jam tertinggi',
       big: `${blockWib} WIB`,
       sub: `${blockUtc} UTC`,
-      body: `Rata-rata ${fmtUsd(an.bestBlock.avg)} per jam sepanjang blok. Ini jendela likuiditas paling tebal.`,
+      body: `Rata-rata ${fmtUsd(an.bestBlock.avg)} per jam selama 3 jam berturut-turut.`,
     },
     {
       tag: 'Rata-rata volume',
@@ -381,24 +381,24 @@ function renderHourInsights(an) {
       body: `Total ${fmtUsd(an.totalVol)} dalam ${Math.round(an.days)} hari — setara ${fmtUsd(an.avgPerHour * 24)} per hari.`,
     },
     {
-      tag: 'Jam paling sepi',
+      tag: 'Jam volume terendah',
       big: `${quietWib} WIB`,
       sub: `${hourRange(an.quiet.utc)} UTC`,
-      body: `Hanya ${fmtUsd(an.quiet.avg)} per jam. Selisih puncak ke lembah ${an.peakRatio.toFixed(1)}×  — spread biasanya melebar di sini.`,
+      body: `${fmtUsd(an.quiet.avg)} per jam. Rasio jam tertinggi : terendah = ${an.peakRatio.toFixed(1)}×.`,
     },
     {
-      tag: 'Sesi terkuat',
+      tag: 'Sesi volume tertinggi',
       big: topSession.label.replace('Sesi ', ''),
       sub: `${pad2(topSession.wibStart)}:00–${pad2(topSession.wibEnd)}:00 WIB`,
-      body: `Menyumbang ${(topSession.share * 100).toFixed(0)}% volume harian, rata-rata ${fmtUsd(topSession.avg)} per jam.`,
+      body: `${(topSession.share * 100).toFixed(0)}% volume harian, rata-rata ${fmtUsd(topSession.avg)} per jam.`,
     },
     {
-      tag: 'Hari teraktif',
+      tag: 'Hari volume tertinggi',
       big: DOW_ID[an.bestDay.dow],
       sub: `${fmtUsd(an.bestDay.avg)} / jam`,
       body: wkDelta >= 0
-        ? `Hari kerja ${fmtPct(wkDelta, 0)} lebih ramai dari akhir pekan.`
-        : `Akhir pekan justru ${fmtPct(-wkDelta, 0)} lebih ramai dari hari kerja.`,
+        ? `Rata-rata hari kerja ${fmtPct(wkDelta, 0)} vs akhir pekan.`
+        : `Rata-rata akhir pekan ${fmtPct(-wkDelta, 0)} vs hari kerja.`,
     },
   ];
 
@@ -438,8 +438,8 @@ function renderSessionTable(an) {
   t.append(tb);
   h.append(t,
     el('p', { class: 'note' },
-      'Sesi saling menumpuk (Eropa 14:00–23:00 WIB beririsan dengan AS 20:00–04:00 WIB), '
-      + 'jadi total pangsa melebihi 100%. Overlap itu justru jendela paling likuid.'));
+      'Rentang sesi saling beririsan (Eropa 14:00–23:00 WIB, AS 20:00–04:00 WIB), '
+      + 'sehingga total pangsa melebihi 100%.'));
 }
 
 function renderCoinHourTable(an) {
@@ -554,17 +554,15 @@ function renderMemeInsights(coins) {
 
   const cards = [
     { tag: 'Volume memecoin 24 jam', big: fmtUsd(totalVol), sub: `${top.length} koin teratas`,
-      body: `Setara ${(turnover * 100).toFixed(1)}% dari kapitalisasi gabungan ${fmtUsd(totalMcap)} — ukuran seberapa cepat uang berputar.` },
-    { tag: 'Penguasa likuiditas', big: leader.sym, sub: fmtUsd(leader.vol),
-      body: `${leader.name} memegang ${((leader.vol / totalVol) * 100).toFixed(1)}% volume. Tiga teratas menguasai ${(top3Share * 100).toFixed(0)}%.` },
+      body: `Rasio volume/kapitalisasi 24 jam: ${(turnover * 100).toFixed(1)}% dari ${fmtUsd(totalMcap)}.` },
+    { tag: 'Volume terbesar', big: leader.sym, sub: fmtUsd(leader.vol),
+      body: `${leader.name}: ${((leader.vol / totalVol) * 100).toFixed(1)}% volume keranjang. Tiga teratas: ${(top3Share * 100).toFixed(0)}%.` },
     { tag: `Naik terkuat ${field.label}`, big: best ? best.sym : '—', sub: best ? fmtPct(best[field.key]) : '—',
       body: best ? `${best.name} di ${fmtPrice(best.price)}, volume ${fmtUsd(best.vol)}.` : 'Data perubahan tidak tersedia.' },
     { tag: `Turun terdalam ${field.label}`, big: worst ? worst.sym : '—', sub: worst ? fmtPct(worst[field.key]) : '—',
       body: worst ? `${worst.name} di ${fmtPrice(worst.price)}, volume ${fmtUsd(worst.vol)}.` : 'Data perubahan tidak tersedia.' },
-    { tag: 'Lebar pasar', big: `${gainers}/${withCh.length}`, sub: `naik dalam ${field.label}`,
-      body: gainers > withCh.length / 2
-        ? 'Mayoritas hijau — arus risiko sedang membesar di segmen meme.'
-        : 'Mayoritas merah — arus keluar dari segmen meme.' },
+    { tag: 'Koin naik', big: `${gainers}/${withCh.length}`, sub: `dalam ${field.label}`,
+      body: `${gainers} dari ${withCh.length} koin mencatat perubahan positif ${field.label}.` },
   ];
 
   for (const c of cards) {

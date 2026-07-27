@@ -9,11 +9,11 @@ const CACHE_KEY = 'chv:platform-pulse:v2';
 const CACHE_TTL = 5 * 60 * 1000;
 
 export const PLATFORM_DEFINITIONS = [
-  { id: 'pumpfun', name: 'Pump.fun', slug: 'pump.fun', accent: '#6da7ec' },
-  { id: 'fomo', name: 'Fomo', slug: 'fomo-wallet', accent: '#b7d3f6' },
-  { id: 'gmgn', name: 'GMGN', slug: 'gmgn', accent: '#f0b429' },
-  { id: 'pons', name: 'Pons Launchpad', slug: 'pons', accent: '#ec835a' },
-  { id: 'virtuals', name: 'Virtuals Protocol', slug: 'virtuals-protocol', accent: '#d05d5d' },
+  { id: 'pumpfun', name: 'Pump.fun', slug: 'pump.fun', category: 'Launchpad', accent: '#6da7ec' },
+  { id: 'fomo', name: 'Fomo', slug: 'fomo-wallet', category: 'Wallet spot', accent: '#b7d3f6' },
+  { id: 'gmgn', name: 'GMGN', slug: 'gmgn', category: 'Trading bot', accent: '#f0b429' },
+  { id: 'pons', name: 'Pons Launchpad', slug: 'pons', category: 'Launchpad', accent: '#ec835a' },
+  { id: 'virtuals', name: 'Virtuals Protocol', slug: 'virtuals-protocol', category: 'Launchpad AI agent', accent: '#d05d5d' },
 ];
 
 function readCache() {
@@ -76,15 +76,17 @@ function metric(summary) {
   };
 }
 
+/* Label = angka perubahan itu sendiri; key hanya menentukan warna badge. */
 function momentumLabel(volume, revenue) {
   const available = [volume?.change1d, revenue?.change1d].filter(Number.isFinite);
-  if (!available.length) return { key: 'unknown', label: 'Belum ada data', score: null };
+  if (!available.length) return { key: 'unknown', label: 'Data —', score: null };
   const score = available.reduce((sum, value) => sum + value, 0) / available.length;
-  if (score >= 20) return { key: 'hot', label: 'Memanas', score };
-  if (score >= 5) return { key: 'up', label: 'Menguat', score };
-  if (score <= -20) return { key: 'cold', label: 'Mendingin', score };
-  if (score <= -5) return { key: 'down', label: 'Melemah', score };
-  return { key: 'flat', label: 'Netral', score };
+  const label = `${score >= 0 ? '+' : ''}${score.toFixed(1)}% / 24j`;
+  if (score >= 20) return { key: 'hot', label, score };
+  if (score >= 5) return { key: 'up', label, score };
+  if (score <= -20) return { key: 'cold', label, score };
+  if (score <= -5) return { key: 'down', label, score };
+  return { key: 'flat', label, score };
 }
 
 async function fetchOne(definition, signal) {

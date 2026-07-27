@@ -1,10 +1,15 @@
 /* ============================================================
-   server.js — server statis tanpa dependensi.
+   dev-server.cjs — server statis pengembangan, tanpa dependensi.
    Situs harus dilayani lewat http://localhost (bukan file://)
    karena beberapa API (OKX) memantulkan header Origin dan
    menolak origin "null".
 
-   Jalankan:  node server.js
+   Sengaja ditaruh di scripts/ — file bernama server.js di akar
+   repo membuat Vercel mendeteksinya sebagai server Node dan
+   membungkusnya jadi fungsi, sehingga folder assets/ tidak ikut
+   terdeploy (root cause bug produksi "Menyiapkan…" Jul 2026).
+
+   Jalankan:  npm run dev
    ============================================================ */
 
 const http = require('http');
@@ -12,7 +17,7 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = Number(process.env.PORT) || 5173;
-const ROOT = __dirname;
+const ROOT = path.resolve(__dirname, '..');
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
