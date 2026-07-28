@@ -35,7 +35,7 @@ const MIME = {
   '.map': 'application/json; charset=utf-8',
 };
 
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
   let urlPath;
   try {
     urlPath = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
@@ -43,6 +43,23 @@ const server = http.createServer((req, res) => {
     res.writeHead(400).end('Bad request');
     return;
   }
+
+  if (urlPath === '/api/market') {
+    try {
+      const { getMarketPayload } = await import('../server/market-service.mjs');
+      const payload = await getMarketPayload(new URL(req.url, 'http://localhost'));
+      res.writeHead(payload.status || (payload.ok === false ? 500 : 200), {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Cache-Control': 'no-store',
+      });
+      res.end(JSON.stringify(payload));
+    } catch (error) {
+      res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, error: error.message, fetchedAt: Date.now() }));
+    }
+    return;
+  }
+
   if (urlPath === '/') urlPath = '/index.html';
   else if (!path.extname(urlPath)) urlPath = `${urlPath.replace(/\/$/, '')}/index.html`;
 

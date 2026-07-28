@@ -5,7 +5,7 @@
 import { MEME_BASKET, MAJOR_BASKET, TIMEFRAMES } from './config.js';
 import {
   fetchExchanges, fetchBtcPrice, fetchMemecoins, fetchGlobal,
-  fetchCandleSet, fetchWorldTopo, clearCache,
+  fetchCandleSet, fetchWorldTopo,
 } from './datasource.js';
 import { aggregateJurisdictions, mergeHourly, analyzeHours } from './analytics.js';
 import { WorldMap, escapeHtml } from './worldmap.js';
@@ -15,7 +15,7 @@ import {
   fmtUsd, fmtUsdShort, fmtPct, fmtNum, fmtPrice, fmtClock,
   pad2, hourRange, DOW_ID, el, debounce, seqColor, perceptual,
 } from './utils.js';
-import { startAutoRefresh, mountPing } from './autorefresh.js';
+import { startAutoRefresh } from './autorefresh.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -536,6 +536,32 @@ function renderMemeSection() {
   }
 
   renderMemeInsights(coins);
+  renderPerformanceLeaderboard(coins);
+}
+
+function renderPerformanceLeaderboard(coins) {
+  const holder = $('memeLeaders');
+  if (!holder) return;
+  const rows = coins
+    .filter((coin) => Number.isFinite(coin.ch24h))
+    .sort((a, b) => b.ch24h - a.ch24h)
+    .slice(0, 10);
+  holder.replaceChildren();
+  rows.forEach((coin, index) => {
+    holder.append(el('a', {
+      class: 'leader-row',
+      href: `/cases/detail/?id=${encodeURIComponent(coin.id)}&symbol=${encodeURIComponent(coin.sym)}`,
+    },
+      el('span', { class: 'leader-rank num' }, String(index + 1).padStart(2, '0')),
+      el('img', { class: 'row-logo', src: coin.image, alt: '', width: '24', height: '24' }),
+      el('span', { class: 'leader-name' },
+        el('strong', {}, coin.sym),
+        el('small', {}, coin.name),
+      ),
+      el('span', { class: 'leader-mcap num' }, fmtUsd(coin.mcap)),
+      el('strong', { class: `leader-change num ${coin.ch24h >= 0 ? 'up' : 'down'}` }, fmtPct(coin.ch24h, 1)),
+    ));
+  });
 }
 
 function renderMemeInsights(coins) {
@@ -687,17 +713,6 @@ function wireControls() {
     });
   });
 
-  $('btnRefresh').addEventListener('click', async () => {
-    clearCache();
-    $('btnRefresh').disabled = true;
-    try {
-      await boot({ force: true });
-      toast('Data diperbarui dari sumber.', 'ok');
-    } finally {
-      $('btnRefresh').disabled = false;
-    }
-  });
-
   /* Grafik digambar ulang saat wadahnya berubah lebar. ResizeObserver dipakai
      karena perubahan bisa datang dari media query atau layout yang baru
      selesai — bukan hanya dari resize window. */
@@ -760,7 +775,7 @@ function init() {
      analisa jam memakai jendela 30 hari yang praktis tidak berubah. */
   startAutoRefresh([
     {
-      every: 60 * 1000,
+      every: 10 * 1000,
       run: async () => {
         const [g, coins] = await Promise.all([
           fetchGlobal({ force: true }),
@@ -774,7 +789,7 @@ function init() {
       },
     },
     {
-      every: 5 * 60 * 1000,
+      every: 10 * 1000,
       run: async () => {
         const [btc, exchanges] = await Promise.all([
           fetchBtcPrice({ force: true }),
@@ -786,8 +801,8 @@ function init() {
         updateTopKpi();
       },
     },
-    { every: 15 * 60 * 1000, run: () => loadHours({ force: true }) },
-  ], mountPing());
+    { every: 10 * 60 * 1000, run: () => loadHours({ force: true }) },
+  ]);
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

@@ -3,3 +3,7 @@ dist/
 .server.pid
 
 .vercel
+.playwright-cli/
+output/
+output-dev*.log
+package-lock.json

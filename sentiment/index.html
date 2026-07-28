@@ -6,6 +6,7 @@
 <title>Sentiment — Volume & Revenue Platform Kripto</title>
 <meta name="description" content="Pantau volume 24 jam, revenue 24 jam, momentum aktivitas, dan chain terpanas untuk Pump.fun, Fomo, GMGN, Pons Launchpad, dan Virtuals Protocol.">
 <link rel="stylesheet" href="/assets/css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='12' fill='%232a78d6'/></svg>">
 </head>
 <body>
 
@@ -26,9 +27,6 @@
       <a class="is-active" href="/sentiment/" aria-current="page">Sentiment</a>
       <a href="/cases/">Cases</a>
     </nav>
-    <div class="head-actions">
-      <button class="btn" id="btnRefresh" type="button">Muat ulang data</button>
-    </div>
   </div>
   <div class="status-bar wrap">
     <span class="dot busy" id="statusDot"></span>
@@ -41,7 +39,7 @@
     <div>
       <p class="eyebrow">Metrik platform · 24 jam</p>
       <h2>Volume &amp; revenue platform, 24 jam</h2>
-      <p>Angka diambil dari indeks protokol DeFiLlama. Metrik yang belum diindeks ditampilkan sebagai tidak tersedia, tanpa estimasi. Bukan analisis opini media sosial.</p>
+      <p>Aktivitas protokol dari DeFiLlama. Nilai yang tidak tersedia tetap kosong, tanpa estimasi.</p>
     </div>
     <div class="source-chip">
       <span class="dot ok"></span>
@@ -98,23 +96,13 @@
   </section>
 
   <section class="panel methodology-compact">
-    <h2>Cara membaca data</h2>
-    <div class="method-grid">
+    <div class="panel-head">
       <div>
-        <h3>Volume</h3>
-        <p>Nilai transaksi spot/swap yang diindeks untuk protokol tersebut selama 24 jam. Ini bukan volume seluruh token yang pernah diluncurkan platform. Penjumlahan antar-platform dapat overlap saat satu transaksi melewati lebih dari satu protokol.</p>
-      </div>
-      <div>
-        <h3>Revenue</h3>
-        <p>Pendapatan yang menjadi milik protokol setelah pembagian insentif, sesuai metodologi sumber. Revenue berbeda dari total fees.</p>
-      </div>
-      <div>
-        <h3>Momentum</h3>
-        <p>Angka badge = rata-rata perubahan volume dan revenue vs 24 jam sebelumnya. Bukan sinyal beli atau prediksi harga.</p>
+        <h2>Cakupan data</h2>
+        <p class="panel-sub">Volume = transaksi protokol; revenue = pendapatan protokol setelah insentif. Nilai antar-platform dapat overlap.</p>
       </div>
     </div>
     <p class="note warn" id="coverageNote">Memeriksa cakupan data…</p>
-    <p class="caveat"><strong>Risiko:</strong> volume tinggi bukan indikasi arah harga. Token launchpad volatil; likuiditas dapat turun cepat. Bukan nasihat keuangan.</p>
   </section>
 </main>
 

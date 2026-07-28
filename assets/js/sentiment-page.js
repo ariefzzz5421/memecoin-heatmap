@@ -1,6 +1,6 @@
-import { fetchPlatformPulse, clearPlatformPulseCache } from './sentiment-data.js';
+import { fetchPlatformPulse } from './sentiment-data.js';
 import { fmtUsd, fmtPct, fmtClock, el } from './utils.js';
-import { startAutoRefresh, mountPing } from './autorefresh.js';
+import { startAutoRefresh } from './autorefresh.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -74,7 +74,7 @@ function renderPlatforms(data) {
       ),
       el('div', { class: 'metric-bars', 'aria-label': `Perbandingan relatif ${platform.name}` },
         barRow('Volume', volumeWidth, platform.accent),
-        barRow('Revenue', revenueWidth, '#f0b429'),
+        barRow('Revenue', revenueWidth, 'var(--warn)'),
       ),
       el('p', { class: 'platform-chains' },
         chains.length ? `Chain: ${chains.join(' · ')}` : 'Breakdown chain belum tersedia',
@@ -139,33 +139,24 @@ function renderCoverage(data) {
 
 async function load({ force = false } = {}) {
   setStatus('Mengambil volume dan revenue platform…', 'busy');
-  $('btnRefresh').disabled = true;
-  try {
-    const data = await fetchPlatformPulse({ force });
-    renderSummary(data);
-    renderPlatforms(data);
-    renderChains(data);
-    renderCoverage(data);
-    $('updatedAt').textContent = fmtClock(data.fetchedAt);
-    $('cacheState').textContent = data.cached ? 'cache lokal' : 'data baru';
-    setStatus('Metrik platform siap', 'ok');
-  } finally {
-    $('btnRefresh').disabled = false;
-  }
+  const data = await fetchPlatformPulse({ force });
+  renderSummary(data);
+  renderPlatforms(data);
+  renderChains(data);
+  renderCoverage(data);
+  $('updatedAt').textContent = fmtClock(data.fetchedAt);
+  $('cacheState').textContent = data.cached ? 'cache backend' : 'data baru';
+  setStatus('Metrik platform siap', 'ok');
 }
 
 function init() {
-  $('btnRefresh').addEventListener('click', () => {
-    clearPlatformPulseCache();
-    load({ force: true }).catch(showError);
-  });
   load().catch(showError);
 
   /* Metrik DeFiLlama diperbarui harian di sumbernya; 60 detik sudah lebih
      dari cukup dan tidak membebani API. */
   startAutoRefresh([
     {
-      every: 60 * 1000,
+      every: 10 * 1000,
       run: async () => {
         const data = await fetchPlatformPulse({ force: true });
         renderSummary(data);
@@ -176,7 +167,7 @@ function init() {
         $('cacheState').textContent = 'data baru';
       },
     },
-  ], mountPing());
+  ]);
 }
 
 function showError(error) {

@@ -3,5 +3,10 @@
   "framework": null,
   "buildCommand": "node scripts/build.cjs",
   "outputDirectory": "dist/client",
-  "trailingSlash": true
+  "trailingSlash": true,
+  "functions": {
+    "api/market.js": {
+      "maxDuration": 30
+    }
+  }
 }

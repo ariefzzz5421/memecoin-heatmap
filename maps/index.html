@@ -6,6 +6,7 @@
 <title>Maps — Lokasi Volume Kripto Terbesar</title>
 <meta name="description" content="Peta khusus untuk melihat yurisdiksi bursa dengan volume kripto 24 jam terbesar, lengkap dengan marker peringkat dan detail bursa.">
 <link rel="stylesheet" href="/assets/css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='12' fill='%232a78d6'/></svg>">
 </head>
 <body>
 
@@ -26,9 +27,6 @@
       <a href="/sentiment/">Sentiment</a>
       <a href="/cases/">Cases</a>
     </nav>
-    <div class="head-actions">
-      <button class="btn" id="btnRefresh" type="button">Muat ulang data</button>
-    </div>
   </div>
   <div class="status-bar wrap">
     <span class="dot busy" id="statusDot"></span>
@@ -94,14 +92,12 @@
       <div class="table-scroll" id="jurTable"></div>
     </details>
 
-    <p class="caveat">
-      <strong>Batas data:</strong> lokasi adalah yurisdiksi badan hukum bursa, bukan domisili trader. Negara offshore terlihat besar karena banyak bursa global terdaftar di sana.
-    </p>
+    <p class="note"><strong>Batas data:</strong> lokasi menunjukkan yurisdiksi badan hukum bursa, bukan domisili trader.</p>
   </section>
 </main>
 
 <footer class="site-foot wrap">
-  <p>Data: CoinGecko Exchanges · Natural Earth. Diperbarui <span id="updatedAt">—</span>.</p>
+  <p>CoinGecko Exchanges · CoinPaprika volume fallback · Yahoo Finance BTC fallback · Natural Earth · <span id="updatedAt">—</span></p>
 </footer>
 
 <script type="module" src="/assets/js/maps-page.js"></script>

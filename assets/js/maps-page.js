@@ -1,9 +1,9 @@
-import { fetchExchanges, fetchBtcPrice, fetchWorldTopo, clearCache } from './datasource.js';
+import { fetchExchanges, fetchBtcPrice, fetchWorldTopo } from './datasource.js';
 import { aggregateJurisdictions } from './analytics.js';
 import { WorldMap } from './worldmap.js';
 import { renderSeqLegend } from './hours.js';
 import { fmtUsd, fmtUsdShort, fmtNum, fmtClock, el, seqColor, perceptual } from './utils.js';
-import { startAutoRefresh, mountPing } from './autorefresh.js';
+import { startAutoRefresh } from './autorefresh.js';
 
 const $ = (id) => document.getElementById(id);
 let map;
@@ -80,7 +80,7 @@ function renderRankings() {
     const intensity = perceptual(row.volUsd, top.volUsd);
     const item = el('li', { class: 'rank-item', tabindex: '0', role: 'button' },
       el('span', { class: 'rank-n' }, String(index + 1)),
-      el('span', { class: 'rank-dot', style: { background: index === 0 ? '#fab219' : seqColor(0.25 + intensity * 0.75) } }),
+      el('span', { class: 'rank-dot', style: { background: index === 0 ? 'var(--warn)' : seqColor(0.25 + intensity * 0.75) } }),
       el('span', { class: 'rank-name' }, row.name),
       el('span', { class: 'rank-val num' }, fmtUsd(row.volUsd, 1)),
       el('span', { class: 'rank-share num' }, `${(row.share * 100).toFixed(1)}%`),
@@ -149,7 +149,7 @@ async function load({ force = false } = {}) {
     ]);
   } catch (err) {
     console.error(err);
-    setStatus(`Data volume gagal dimuat (${err.message}) — coba Muat ulang data`, 'err');
+    setStatus(`Data volume belum tersedia (${err.message})`, 'err');
     return;
   }
   btcPrice = btc;
@@ -176,16 +176,6 @@ function init() {
     map.showLabels = event.target.checked;
     map.render();
   });
-  $('btnRefresh').addEventListener('click', async () => {
-    clearCache();
-    $('btnRefresh').disabled = true;
-    try {
-      await load({ force: true });
-    } finally {
-      $('btnRefresh').disabled = false;
-    }
-  });
-
   load().catch((error) => {
     console.error(error);
     $('mapLoading').innerHTML = `<span class="error">Peta gagal dimuat: ${error.message}</span>`;
@@ -196,7 +186,7 @@ function init() {
      batas rate CoinGecko gratis. Geometri peta tidak perlu diambil ulang. */
   startAutoRefresh([
     {
-      every: 5 * 60 * 1000,
+      every: 10 * 1000,
       run: async () => {
         const [btc, exchanges] = await Promise.all([
           fetchBtcPrice({ force: true }),
@@ -210,7 +200,7 @@ function init() {
         $('updatedAt').textContent = fmtClock(Date.now());
       },
     },
-  ], mountPing());
+  ]);
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

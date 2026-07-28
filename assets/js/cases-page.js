@@ -1,265 +1,158 @@
-/* ============================================================
-   cases-page.js — hub studi kasus.
-   Grid kartu token dengan filter tahun launch, dasbor volume
-   koin studi, dan ranking launchpad. Detail tiap token ada di
-   halaman sendiri (/cases/{slug}/).
-   ============================================================ */
-
-import { CASES, MCAP_THRESHOLD } from './cases-config.js';
-import { fetchCaseMarkets, fetchLaunchpads, clearCasesCache } from './cases-data.js';
-import { fmtDate, fmtDuration, DAY } from './cases-chart.js';
+import { CASES } from './cases-config.js';
 import { fmtUsd, fmtPrice, fmtPct, fmtClock, el } from './utils.js';
-import { startAutoRefresh, mountPing } from './autorefresh.js';
+import { startAutoRefresh } from './autorefresh.js';
 
 const $ = (id) => document.getElementById(id);
-
-const state = {
-  markets: {},
-  year: 'all',
-};
+const state = { overview: null, sentiment: null, sort: 'mcap' };
 
 function setStatus(text, kind = 'busy') {
   $('statusText').textContent = text;
   $('statusDot').className = `dot ${kind}`;
 }
 
-const launchYear = (c) => c.launch.slice(0, 4);
-
-function launchToAthDays(c) {
-  const m = state.markets[c.id];
-  if (!m?.athDate) return null;
-  return (Date.parse(m.athDate) - Date.parse(c.launch)) / DAY;
+async function market(resource) {
+  const response = await fetch(`/api/market?resource=${resource}&t=${Math.floor(Date.now() / 10_000)}`);
+  if (!response.ok) throw new Error(`Backend HTTP ${response.status}`);
+  const payload = await response.json();
+  if (!payload?.ok) throw new Error(payload?.error || 'Data tidak tersedia');
+  return payload;
 }
 
-/* ---------------- KPI ---------------- */
-
-function renderKpis() {
-  const rows = CASES.map((c) => ({ c, m: state.markets[c.id], days: launchToAthDays(c) }))
-    .filter((r) => r.m);
-  if (!rows.length) return;
-
-  const above = rows.filter((r) => r.m.mcap >= MCAP_THRESHOLD);
-  const totalMcap = rows.reduce((s, r) => s + (r.m.mcap || 0), 0);
-  const byDays = rows.filter((r) => Number.isFinite(r.days)).sort((a, b) => a.days - b.days);
-  const fastest = byDays[0];
-  const slowest = byDays[byDays.length - 1];
-
-  $('kpiCount').textContent = `${above.length}/${rows.length}`;
-  $('kpiCountSub').textContent = `mcap ≥ $100M saat ini · total ${fmtUsd(totalMcap)}`;
-  $('kpiFast').textContent = fastest ? fastest.c.sym : '—';
-  $('kpiFastSub').textContent = fastest ? `launch → ATH: ${fmtDuration(fastest.days)}` : '—';
-  $('kpiSlow').textContent = slowest ? slowest.c.sym : '—';
-  $('kpiSlowSub').textContent = slowest ? `launch → ATH: ${fmtDuration(slowest.days)}` : '—';
-
-  const deepest = [...rows].sort((a, b) => a.m.athPct - b.m.athPct)[0];
-  $('kpiDraw').textContent = deepest ? `${deepest.m.athPct.toFixed(0)}%` : '—';
-  $('kpiDrawSub').textContent = deepest
-    ? `${deepest.c.sym}: harga sekarang vs ATH — semua koin studi masih di bawah ATH` : '—';
+function detailHref(coin) {
+  return `/cases/detail/?id=${encodeURIComponent(coin.id)}&symbol=${encodeURIComponent(coin.sym)}`;
 }
 
-/* ---------------- Filter tahun ---------------- */
+function renderUniverse() {
+  const coins = [...(state.overview?.over100m || [])];
+  coins.sort(state.sort === 'change'
+    ? (a, b) => (b.ch24h ?? -Infinity) - (a.ch24h ?? -Infinity)
+    : (a, b) => (b.mcap || 0) - (a.mcap || 0));
 
-function renderYearFilter() {
-  const years = [...new Set(CASES.map(launchYear))].sort();
-  const holder = $('yearFilter');
-  holder.replaceChildren();
+  $('kpiCount').textContent = String(coins.length);
+  $('kpiTotal').textContent = fmtUsd(coins.reduce((sum, coin) => sum + (coin.mcap || 0), 0));
+  $('kpiUpdated').textContent =
+    `${state.overview.source?.memecoins || 'Sumber parsial'} · ${fmtClock(state.overview.fetchedAt)}`;
 
-  const mk = (value, label, count) => {
-    const b = el('button', {
-      class: `seg-btn${state.year === value ? ' is-on' : ''}`,
-      type: 'button',
-      'data-year': value,
-      onclick: () => {
-        if (state.year === value) return;
-        state.year = value;
-        holder.querySelectorAll('.seg-btn').forEach((x) => x.classList.toggle('is-on', x.dataset.year === value));
-        renderGrid();
-      },
-    }, `${label} (${count})`);
-    return b;
-  };
-
-  holder.append(mk('all', 'Semua', CASES.length));
-  for (const y of years) {
-    holder.append(mk(y, y, CASES.filter((c) => launchYear(c) === y).length));
-  }
+  const table = el('table', { class: 'data-table market-leader-table' });
+  table.append(el('thead', {}, el('tr', {},
+    el('th', {}, '#'),
+    el('th', {}, 'Koin'),
+    el('th', { class: 'r' }, 'Harga'),
+    el('th', { class: 'r' }, '24 jam'),
+    el('th', { class: 'r' }, 'Market cap'),
+    el('th', { class: 'r' }, 'Volume 24j'),
+    el('th', { class: 'r' }, ''),
+  )));
+  const body = el('tbody');
+  coins.forEach((coin, index) => {
+    const wrapped = /peg|wrapped/i.test(`${coin.id} ${coin.name}`);
+    body.append(el('tr', { class: 'clickable', onclick: () => { location.href = detailHref(coin); } },
+      el('td', { class: 'muted num' }, String(index + 1)),
+      el('td', {},
+        el('span', { class: 'coin-cell' },
+          el('img', { class: 'row-logo', src: coin.image, alt: '', width: '24', height: '24' }),
+          el('span', {},
+            el('strong', {}, coin.sym),
+            el('small', {}, coin.name),
+          ),
+          wrapped ? el('span', { class: 'pill ghost' }, 'wrapped') : null,
+        ),
+      ),
+      el('td', { class: 'r num' }, fmtPrice(coin.price)),
+      el('td', { class: `r num ${coin.ch24h >= 0 ? 'up' : 'down'}` }, fmtPct(coin.ch24h, 1)),
+      el('td', { class: 'r num' }, fmtUsd(coin.mcap)),
+      el('td', { class: 'r num' }, fmtUsd(coin.vol)),
+      el('td', { class: 'r' }, el('a', { class: 'table-link', href: detailHref(coin) }, 'Detail →')),
+    ));
+  });
+  table.append(body);
+  $('over100Table').replaceChildren(table);
 }
 
-/* ---------------- Grid kartu ---------------- */
-
-function renderGrid() {
+function renderCurated() {
+  const byId = new Map((state.overview?.memecoins || []).map((coin) => [coin.id, coin]));
   const grid = $('caseGrid');
   grid.replaceChildren();
-
-  const list = CASES
-    .filter((c) => state.year === 'all' || launchYear(c) === state.year)
-    .sort((a, b) => Date.parse(a.launch) - Date.parse(b.launch));
-
-  for (const c of list) {
-    const m = state.markets[c.id];
-    const days = launchToAthDays(c);
-
-    grid.append(el('a', { class: 'case-card', href: `/cases/${c.slug}/` },
-      el('img', {
-        class: 'case-card-logo', src: c.logo, alt: `Logo resmi ${c.name}`,
-        loading: 'lazy', width: '52', height: '52',
-      }),
+  CASES.forEach((item) => {
+    const live = byId.get(item.id);
+    grid.append(el('a', { class: 'case-card research-card', href: `/cases/${item.slug}/` },
+      el('img', { class: 'case-card-logo', src: item.logo, alt: '', width: '52', height: '52' }),
       el('div', { class: 'case-card-body' },
         el('div', { class: 'case-card-head' },
-          el('strong', {}, c.sym),
-          el('span', { class: 'case-card-year num' }, launchYear(c)),
+          el('strong', {}, item.sym),
+          el('span', { class: 'case-card-year num' }, item.launch.slice(0, 4)),
         ),
-        el('span', { class: 'case-card-name' }, c.name),
-        el('dl', { class: 'case-card-facts' },
-          el('dt', {}, 'Launch'), el('dd', { class: 'num' }, fmtDate(Date.parse(c.launch))),
-          el('dt', {}, 'Launch → ATH'), el('dd', { class: 'num' }, fmtDuration(days)),
-          el('dt', {}, 'Mcap'), el('dd', { class: 'num' }, m ? fmtUsd(m.mcap) : '—'),
-          el('dt', {}, 'Dari ATH'), el('dd', { class: 'num down' }, m ? fmtPct(m.athPct, 1) : '—'),
+        el('span', { class: 'case-card-name' }, item.name),
+        el('p', { class: 'research-summary' }, item.thesis),
+        el('div', { class: 'research-meta' },
+          el('span', {}, live ? fmtUsd(live.mcap) : 'Market cap —'),
+          el('span', { class: live?.ch24h >= 0 ? 'up' : 'down' }, live ? fmtPct(live.ch24h, 1) : '—'),
         ),
-        el('span', { class: 'case-card-cta' }, 'Baca studi kasus →'),
       ),
     ));
-  }
-
-  if (!list.length) {
-    grid.append(el('p', { class: 'note' }, 'Tidak ada token yang launch pada tahun itu.'));
-  }
+  });
 }
 
-/* ---------------- Dasbor koin studi ---------------- */
-
-function renderCoinDashboard() {
-  const rows = CASES
-    .map((c) => ({ c, m: state.markets[c.id], days: launchToAthDays(c) }))
-    .filter((r) => r.m)
-    .sort((a, b) => b.m.vol - a.m.vol);
-
-  if (!rows.length) return;
-
-  const t = el('table', { class: 'data-table' });
-  t.append(el('thead', {}, el('tr', {},
-    el('th', { scope: 'col' }, '#'),
-    el('th', { scope: 'col' }, 'Koin'),
-    el('th', { scope: 'col', class: 'r' }, 'Harga'),
-    el('th', { scope: 'col', class: 'r' }, 'Volume 24j'),
-    el('th', { scope: 'col', class: 'r' }, '24j'),
-    el('th', { scope: 'col', class: 'r' }, 'Mcap'),
-    el('th', { scope: 'col', class: 'r' }, 'ATH'),
-    el('th', { scope: 'col', class: 'r' }, 'Dari ATH'),
-    el('th', { scope: 'col', class: 'r' }, 'Launch → ATH'),
+function renderLaunchpads() {
+  const rows = [...(state.sentiment?.platforms || [])]
+    .sort((a, b) => (b.revenue?.total24h ?? -1) - (a.revenue?.total24h ?? -1));
+  const table = el('table', { class: 'data-table' });
+  table.append(el('thead', {}, el('tr', {},
+    el('th', {}, '#'),
+    el('th', {}, 'Platform'),
+    el('th', { class: 'r' }, 'Volume 24j'),
+    el('th', { class: 'r' }, 'Revenue 24j'),
+    el('th', { class: 'r' }, 'Momentum'),
   )));
-  const tb = el('tbody');
-  rows.forEach((r, i) => {
-    tb.append(el('tr', { class: 'clickable', tabindex: '0', onclick: () => { location.href = `/cases/${r.c.slug}/`; } },
-      el('td', { class: 'muted' }, String(i + 1)),
-      el('td', {},
-        el('img', { class: 'row-logo', src: r.c.logo, alt: '', loading: 'lazy', width: '18', height: '18' }),
-        el('strong', {}, r.c.sym), ' ', el('span', { class: 'muted' }, r.c.name)),
-      el('td', { class: 'r num' }, fmtPrice(r.m.price)),
-      el('td', { class: 'r num' }, fmtUsd(r.m.vol)),
-      el('td', { class: `r num ${r.m.ch24h >= 0 ? 'up' : 'down'}` }, fmtPct(r.m.ch24h, 1)),
-      el('td', { class: 'r num' }, fmtUsd(r.m.mcap)),
-      el('td', { class: 'r num' }, fmtPrice(r.m.ath)),
-      el('td', { class: 'r num down' }, fmtPct(r.m.athPct, 1)),
-      el('td', { class: 'r num' }, fmtDuration(r.days)),
-    ));
-  });
-  t.append(tb);
-  $('coinDashboard').replaceChildren(t);
-}
-
-/* ---------------- Launchpad ---------------- */
-
-function renderLaunchpads(rows) {
-  const t = el('table', { class: 'data-table' });
-  t.append(el('thead', {}, el('tr', {},
-    el('th', { scope: 'col' }, '#'),
-    el('th', { scope: 'col' }, 'Launchpad'),
-    el('th', { scope: 'col' }, 'Chain'),
-    el('th', { scope: 'col', class: 'r' }, 'Volume 24j'),
-    el('th', { scope: 'col', class: 'r' }, 'Δ volume 1h'),
-    el('th', { scope: 'col', class: 'r' }, 'Revenue 24j'),
-    el('th', { scope: 'col', class: 'r' }, 'Δ revenue 1h'),
-    el('th', { scope: 'col', class: 'r' }, 'Revenue 7h'),
+  const body = el('tbody');
+  rows.forEach((row, index) => body.append(el('tr', {},
+    el('td', { class: 'muted num' }, String(index + 1)),
+    el('td', {},
+      el('span', { class: 'coin-cell' },
+        el('img', { class: 'row-logo', src: row.logo, alt: '', width: '24', height: '24' }),
+        el('strong', {}, row.name),
+      ),
+    ),
+    el('td', { class: 'r num' }, Number.isFinite(row.volume?.total24h) ? fmtUsd(row.volume.total24h) : '—'),
+    el('td', { class: 'r num' }, Number.isFinite(row.revenue?.total24h) ? fmtUsd(row.revenue.total24h) : '—'),
+    el('td', { class: `r num ${row.momentum?.score >= 0 ? 'up' : 'down'}` }, row.momentum?.label || '—'),
   )));
-  const tb = el('tbody');
-  const val = (v, fmt) => (v == null ? '—' : fmt(v));
-  rows.forEach((lp, i) => {
-    tb.append(el('tr', { class: i === 0 ? 'is-peak' : null },
-      el('td', { class: 'muted' }, String(i + 1)),
-      el('td', {},
-        lp.logo ? el('img', { class: 'row-logo', src: lp.logo, alt: '', loading: 'lazy', width: '18', height: '18' }) : null,
-        el('strong', {}, lp.name),
-        i === 0 ? el('span', { class: 'pill chain-hot' }, '#1 revenue') : ''),
-      el('td', { class: 'muted' }, lp.chain),
-      el('td', { class: 'r num' }, val(lp.vol24h, fmtUsd)),
-      el('td', { class: `r num ${lp.volCh1d >= 0 ? 'up' : 'down'}` }, val(lp.volCh1d, (v) => fmtPct(v, 1))),
-      el('td', { class: 'r num' }, val(lp.rev24h, fmtUsd)),
-      el('td', { class: `r num ${lp.revCh1d >= 0 ? 'up' : 'down'}` }, val(lp.revCh1d, (v) => fmtPct(v, 1))),
-      el('td', { class: 'r num' }, val(lp.rev7d, fmtUsd)),
-    ));
-  });
-  t.append(tb);
-  $('launchpadTable').replaceChildren(t);
+  table.append(body);
+  $('launchpadTable').replaceChildren(table);
+}
 
-  const top = rows[0];
-  if (top?.rev24h != null) {
-    $('launchpadNote').textContent =
-      `Revenue 24 jam tertinggi: ${top.name} (${fmtUsd(top.rev24h)}). `
-      + `Total revenue 24 jam ${rows.length} launchpad terpantau: ${fmtUsd(rows.reduce((s, r) => s + (r.rev24h || 0), 0))}.`;
+async function refresh() {
+  const [overviewResult, sentimentResult] = await Promise.allSettled([
+    market('overview'),
+    market('sentiment'),
+  ]);
+  if (overviewResult.status === 'fulfilled') {
+    state.overview = overviewResult.value;
+    renderUniverse();
+    renderCurated();
+    $('updatedAt').textContent = fmtClock(state.overview.fetchedAt);
   }
-}
-
-/* ---------------- Muat ---------------- */
-
-async function refreshMarkets({ force = false } = {}) {
-  state.markets = await fetchCaseMarkets({ force });
-  renderKpis();
-  renderGrid();
-  renderCoinDashboard();
-  $('updatedAt').textContent = fmtClock(Date.now());
-}
-
-async function load({ force = false } = {}) {
-  setStatus('Memuat snapshot pasar…', 'busy');
-  renderYearFilter();
-  renderGrid();
-
-  const launchpadP = fetchLaunchpads({ force })
-    .then(renderLaunchpads)
-    .catch((e) => {
-      $('launchpadTable').replaceChildren(el('p', { class: 'error' }, `Data launchpad gagal dimuat: ${e.message}`));
-    });
-
-  const marketsP = refreshMarkets({ force }).catch((e) => {
-    $('coinDashboard').replaceChildren(el('p', { class: 'error' },
-      `Snapshot CoinGecko gagal dimuat: ${e.message}. Daftar kasus tetap bisa dibuka.`));
-  });
-
-  await Promise.allSettled([marketsP, launchpadP]);
-  setStatus(Object.keys(state.markets).length ? 'Data siap' : 'Data siap sebagian (CoinGecko tidak tersedia)', 'ok');
+  if (sentimentResult.status === 'fulfilled') {
+    state.sentiment = sentimentResult.value;
+    renderLaunchpads();
+  }
+  if (!state.overview) throw overviewResult.reason;
+  setStatus(sentimentResult.status === 'fulfilled' ? 'Data pasar siap' : 'Data pasar siap · launchpad tertunda', 'ok');
 }
 
 function init() {
-  $('btnRefresh').addEventListener('click', async () => {
-    clearCasesCache();
-    $('btnRefresh').disabled = true;
-    try {
-      await load({ force: true });
-    } finally {
-      $('btnRefresh').disabled = false;
-    }
+  document.querySelectorAll('[data-sort]').forEach((button) => {
+    button.addEventListener('click', () => {
+      state.sort = button.dataset.sort;
+      document.querySelectorAll('[data-sort]').forEach((item) => item.classList.toggle('is-on', item === button));
+      renderUniverse();
+    });
   });
-
-  load().catch((e) => {
-    console.error(e);
-    setStatus(`Gagal memuat: ${e.message}`, 'err');
+  refresh().catch((error) => {
+    console.error(error);
+    setStatus(`Data belum tersedia: ${error.message}`, 'err');
   });
-
-  startAutoRefresh([
-    { every: 60 * 1000, run: () => refreshMarkets({ force: true }) },
-    { every: 60 * 1000, run: () => fetchLaunchpads({ force: true }).then(renderLaunchpads) },
-  ], mountPing());
+  startAutoRefresh([{ every: 10_000, run: refresh }]);
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

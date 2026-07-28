@@ -27,14 +27,11 @@
       <a href="/sentiment/">Sentiment</a>
       <a href="/cases/">Cases</a>
     </nav>
-    <div class="head-actions">
+    <div class="head-actions" aria-label="Waktu pasar">
       <div class="clock" id="clock" aria-live="off">
         <span class="clock-wib" id="clockWib">--:--</span>
         <span class="clock-utc" id="clockUtc">--:-- UTC</span>
       </div>
-      <button class="btn" id="btnRefresh" type="button">
-        <span class="btn-ic" aria-hidden="true">⟳</span> Muat ulang data
-      </button>
     </div>
   </div>
   <div class="status-bar wrap" id="statusBar">
@@ -69,6 +66,20 @@
       <p class="kpi-val" id="kpiPeakHour">—</p>
       <p class="kpi-sub" id="kpiPeakSub">—</p>
     </article>
+  </section>
+
+  <section class="panel performance-panel" aria-labelledby="leadersTitle">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">Live movers · 24 jam</p>
+        <h2 id="leadersTitle">Leaderboard memecoin</h2>
+        <p class="panel-sub">Perubahan harga terbesar dari kategori memecoin CoinGecko. Klik koin untuk membuka riwayat harga dan kapitalisasi.</p>
+      </div>
+      <a class="text-link" href="/cases/">Lihat koin ≥ $100M →</a>
+    </div>
+    <div class="leaderboard-grid" id="memeLeaders">
+      <div class="panel-loading"><span class="spinner"></span> Memuat leaderboard…</div>
+    </div>
   </section>
 
   <!-- ============ PETA ============ -->
@@ -210,16 +221,11 @@
     <div class="insight-grid" id="memeInsights"></div>
   </section>
 
-  <p class="caveat">
-    Bukan nasihat keuangan. Volume tinggi = likuiditas tinggi, bukan indikasi arah harga.
-  </p>
-
 </main>
 
 <footer class="site-foot wrap">
-  <p>Data: CoinGecko &middot; Binance / OKX / Kraken &middot; Natural Earth.
-     Diperbarui <span id="footUpdated">—</span>.</p>
-  <p class="muted">Cache lokal 3–20 menit agar hemat kuota API. Tekan “Muat ulang data” untuk memaksa ambil baru.</p>
+  <p>CoinGecko · Yahoo Finance · CoinPaprika fallback · Binance / OKX / Kraken · Natural Earth · <span id="footUpdated">—</span></p>
+  <p class="muted">⚠️ Volume dan momentum bukan sinyal beli. Hindari leverage; batasi ukuran posisi.</p>
 </footer>
 
 <div class="toast" id="toast" hidden></div>

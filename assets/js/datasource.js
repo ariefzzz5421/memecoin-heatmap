@@ -7,8 +7,31 @@
 
 import { TTL } from './config.js';
 
-const CG = 'https://api.coingecko.com/api/v3';
-const CACHE_PREFIX = 'chv:';
+const CACHE_PREFIX = 'chv:v2:';
+let backendSnapshot = null;
+let backendSavedAt = 0;
+let backendPromise = null;
+
+async function fetchBackendSnapshot({ force = false } = {}) {
+  if (!force && backendSnapshot && Date.now() - backendSavedAt < 8_000) {
+    return backendSnapshot;
+  }
+  if (backendPromise) return backendPromise;
+  backendPromise = getJSON(`/api/market?resource=overview&t=${Math.floor(Date.now() / 10_000)}`, {
+    retries: 0,
+    timeout: 25_000,
+  })
+    .then((payload) => {
+      if (!payload?.ok) throw new Error(payload?.error || 'backend market data unavailable');
+      backendSnapshot = payload;
+      backendSavedAt = Date.now();
+      return payload;
+    })
+    .finally(() => {
+      backendPromise = null;
+    });
+  return backendPromise;
+}
 
 /* ---------------- cache helper ---------------- */
 
@@ -121,27 +144,13 @@ export async function fetchExchanges({ pages = 2, force = false } = {}) {
     if (hit) return hit;
   }
   return withStaleFallback(key, async () => {
-    const out = [];
-    for (let p = 1; p <= pages; p++) {
-      const rows = await getJSON(`${CG}/exchanges?per_page=100&page=${p}`);
-      if (!Array.isArray(rows) || rows.length === 0) break;
-      out.push(...rows);
-      if (p < pages) await sleep(400);
+    const snapshot = await fetchBackendSnapshot({ force });
+    if (snapshot.exchanges?.length) {
+      const rows = snapshot.exchanges.slice(0, pages * 100);
+      cacheSet(key, rows);
+      return rows;
     }
-    const slim = out.map((r) => ({
-      id: r.id,
-      name: r.name,
-      country: r.country,
-      year: r.year_established,
-      url: r.url,
-      image: r.image,
-      trust: r.trust_score,
-      rank: r.trust_score_rank,
-      volBtc: r.trade_volume_24h_btc || 0,
-    }));
-    if (!slim.length) throw new Error('daftar bursa kosong');
-    cacheSet(key, slim);
-    return slim;
+    throw new Error('backend exchange data unavailable');
   });
 }
 
@@ -153,11 +162,12 @@ export async function fetchBtcPrice({ force = false } = {}) {
     if (hit) return hit;
   }
   return withStaleFallback(key, async () => {
-    const j = await getJSON(`${CG}/simple/price?ids=bitcoin&vs_currencies=usd`);
-    const p = j?.bitcoin?.usd;
-    if (!p) throw new Error('harga BTC tidak tersedia');
-    cacheSet(key, p);
-    return p;
+    const snapshot = await fetchBackendSnapshot({ force });
+    if (Number.isFinite(snapshot.btcUsd)) {
+      cacheSet(key, snapshot.btcUsd);
+      return snapshot.btcUsd;
+    }
+    throw new Error('backend BTC data unavailable');
   });
 }
 
@@ -172,27 +182,13 @@ export async function fetchMemecoins({ limit = 100, force = false } = {}) {
     if (hit) return hit;
   }
   return withStaleFallback(key, async () => {
-  const url =
-    `${CG}/coins/markets?vs_currency=usd&category=meme-token&order=volume_desc` +
-    `&per_page=${limit}&page=1&price_change_percentage=1h,24h,7d`;
-  const rows = await getJSON(url);
-  const slim = (rows || []).map((r) => ({
-    id: r.id,
-    sym: (r.symbol || '').toUpperCase(),
-    name: r.name,
-    image: r.image,
-    price: r.current_price,
-    mcap: r.market_cap,
-    rank: r.market_cap_rank,
-    vol: r.total_volume || 0,
-    ch1h: r.price_change_percentage_1h_in_currency,
-    ch24h: r.price_change_percentage_24h_in_currency ?? r.price_change_percentage_24h,
-    ch7d: r.price_change_percentage_7d_in_currency,
-    high24: r.high_24h,
-    low24: r.low_24h,
-  }));
-  cacheSet(key, slim);
-  return slim;
+    const snapshot = await fetchBackendSnapshot({ force });
+    if (snapshot.memecoins?.length) {
+      const rows = snapshot.memecoins.slice(0, limit);
+      cacheSet(key, rows);
+      return rows;
+    }
+    throw new Error('backend memecoin data unavailable');
   });
 }
 
@@ -204,18 +200,12 @@ export async function fetchGlobal({ force = false } = {}) {
     if (hit) return hit;
   }
   return withStaleFallback(key, async () => {
-    const j = await getJSON(`${CG}/global`);
-    const d = j?.data || {};
-    const slim = {
-      mcapUsd: d.total_market_cap?.usd || 0,
-      volUsd: d.total_volume?.usd || 0,
-      btcDom: d.market_cap_percentage?.btc || 0,
-      markets: d.markets || 0,
-      coins: d.active_cryptocurrencies || 0,
-      mcapChange24h: d.market_cap_change_percentage_24h_usd || 0,
-    };
-    cacheSet(key, slim);
-    return slim;
+    const snapshot = await fetchBackendSnapshot({ force });
+    if (snapshot.global) {
+      cacheSet(key, snapshot.global);
+      return snapshot.global;
+    }
+    throw new Error('backend global data unavailable');
   });
 }
 
@@ -336,7 +326,7 @@ export async function fetchCandleSet(coins, hours, { force = false, onProgress }
   }
 
   let lastErr = null;
-  for (const provider of PROVIDERS) {
+  for (const provider of [PROVIDERS[1], PROVIDERS[0], PROVIDERS[2]]) {
     const usable = coins.filter((c) => provider.symbolOf(c));
     if (!usable.length) continue;
 
@@ -382,6 +372,7 @@ export async function fetchCandleSet(coins, hours, { force = false, onProgress }
    ============================================================ */
 
 const GEO_URLS = [
+  '/assets/data/countries-110m.json',
   'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json',
   'https://unpkg.com/world-atlas@2/countries-110m.json',
 ];

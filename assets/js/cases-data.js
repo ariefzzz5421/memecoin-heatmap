@@ -98,6 +98,32 @@ export async function fetchCaseMarkets({ force = false } = {}) {
     if (hit) return hit;
   }
   return withStaleFallback(key, async () => {
+    try {
+      const response = await fetch(`/api/market?resource=overview&t=${Math.floor(Date.now() / 10_000)}`);
+      if (response.ok) {
+        const payload = await response.json();
+        const selected = (payload.memecoins || []).filter((row) => CASES.some((item) => item.id === row.id));
+        if (selected.length) {
+          const byId = Object.fromEntries(selected.map((row) => [row.id, {
+            id: row.id,
+            price: row.price,
+            mcap: row.mcap,
+            vol: row.vol,
+            ath: row.ath,
+            athDate: row.athDate,
+            athPct: row.athPct,
+            ch24h: row.ch24h,
+            ch7d: row.ch7d,
+            rank: row.rank,
+            image: row.image,
+          }]));
+          cacheSet(key, byId);
+          return byId;
+        }
+      }
+    } catch (error) {
+      console.warn('backend cases fallback:', error.message);
+    }
     const ids = CASES.map((c) => c.id).join(',');
     const rows = await getJSON(
       `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ids}&order=market_cap_desc&price_change_percentage=24h,7d`,

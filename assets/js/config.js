@@ -35,9 +35,9 @@ export const TIMEFRAMES = [
 /* ---------- Sesi pasar global (jam UTC) ----------
    Dipakai sebagai overlay pada heatmap jam.                */
 export const SESSIONS = [
-  { key: 'asia',   label: 'Sesi Asia',   utcStart: 0,  utcEnd: 8,  color: '#f0b429' },
-  { key: 'europe', label: 'Sesi Eropa',  utcStart: 7,  utcEnd: 16, color: '#4c9aff' },
-  { key: 'us',     label: 'Sesi AS',     utcStart: 13, utcEnd: 21, color: '#ff6b6b' },
+  { key: 'asia',   label: 'Sesi Asia',   utcStart: 0,  utcEnd: 8,  color: 'var(--warn)' },
+  { key: 'europe', label: 'Sesi Eropa',  utcStart: 7,  utcEnd: 16, color: 'var(--up)' },
+  { key: 'us',     label: 'Sesi AS',     utcStart: 13, utcEnd: 21, color: 'var(--down)' },
 ];
 
 /* ---------- Alias nama negara: CoinGecko -> world-atlas ---------- */

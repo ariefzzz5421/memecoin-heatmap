@@ -3,14 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cases — Studi Memecoin yang Menembus $100M Mcap</title>
-<meta name="description" content="Studi kasus memecoin dengan kapitalisasi di atas $100M: DOGE, SHIB, PEPE, WIF, BONK, TRUMP, FLOKI, PENGU. Tanggal launch, waktu menuju ATH, chart real, dan dasbor volume serta launchpad.">
+<title>Memecoin ≥ $100M — Market-Cap Research</title>
+<meta name="description" content="Daftar real-time memecoin dengan kapitalisasi pasar minimal $100 juta, leaderboard 24 jam, dan detail riwayat harga launch sampai ATH.">
 <link rel="stylesheet" href="/assets/css/style.css">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🌐</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='12' fill='%232a78d6'/></svg>">
 </head>
 <body>
-
-<a class="skip" href="#kasus">Lompat ke daftar kasus</a>
+<a class="skip" href="#universe">Lompat ke leaderboard</a>
 
 <header class="site-head">
   <div class="wrap head-inner">
@@ -18,7 +17,7 @@
       <span class="brand-mark" aria-hidden="true"></span>
       <div>
         <h1>Crypto Heatmap Volume</h1>
-        <p class="brand-sub">Studi kasus memecoin ≥ $100M mcap</p>
+        <p class="brand-sub">Memecoin market-cap research</p>
       </div>
     </a>
     <nav class="primary-nav" aria-label="Navigasi utama">
@@ -27,58 +26,57 @@
       <a href="/sentiment/">Sentiment</a>
       <a class="is-active" href="/cases/" aria-current="page">Cases</a>
     </nav>
-    <div class="head-actions">
-      <button class="btn" id="btnRefresh" type="button">Muat ulang data</button>
-    </div>
   </div>
   <div class="status-bar wrap">
     <span class="dot busy" id="statusDot"></span>
-    <span id="statusText">Menyiapkan…</span>
+    <span id="statusText">Mengambil pasar memecoin…</span>
   </div>
 </header>
 
 <main class="wrap">
-
   <section class="route-hero cases-hero">
     <div>
-      <p class="eyebrow">Studi kasus &middot; 8 token</p>
-      <h2>Memecoin yang menembus kapitalisasi $100M</h2>
-      <p>Tiap token punya halaman sendiri: tanggal launch, waktu yang dibutuhkan untuk mencapai
-         ATH, artikel, dan chart mingguan real dari listing bursa paling awal yang tersedia.</p>
+      <p class="eyebrow">Live universe · 2026</p>
+      <h2>Memecoin di atas $100M</h2>
+      <p>Daftar memakai CoinGecko dengan Yahoo Finance sebagai fallback. Setiap baris membuka chart harga sejak data pertama, minggu pertama, bulan pertama, dan ATH.</p>
+    </div>
+    <div class="hero-kpis">
+      <article>
+        <span>Koin terdeteksi</span>
+        <strong id="kpiCount">—</strong>
+        <small>mcap saat ini ≥ $100M</small>
+      </article>
+      <article>
+        <span>Total market cap</span>
+        <strong id="kpiTotal">—</strong>
+        <small id="kpiUpdated">Menunggu data</small>
+      </article>
     </div>
   </section>
 
-  <section class="kpi-strip" aria-label="Ringkasan studi kasus">
-    <article class="kpi">
-      <h2>Koin ≥ $100M</h2>
-      <p class="kpi-val" id="kpiCount">—</p>
-      <p class="kpi-sub" id="kpiCountSub">—</p>
-    </article>
-    <article class="kpi kpi-accent">
-      <h2>Tercepat ke ATH</h2>
-      <p class="kpi-val" id="kpiFast">—</p>
-      <p class="kpi-sub" id="kpiFastSub">—</p>
-    </article>
-    <article class="kpi">
-      <h2>Terlama ke ATH</h2>
-      <p class="kpi-val" id="kpiSlow">—</p>
-      <p class="kpi-sub" id="kpiSlowSub">—</p>
-    </article>
-    <article class="kpi">
-      <h2>Drawdown terdalam dari ATH</h2>
-      <p class="kpi-val" id="kpiDraw">—</p>
-      <p class="kpi-sub" id="kpiDrawSub">—</p>
-    </article>
-  </section>
-
-  <section class="panel" id="kasus">
+  <section class="panel" id="universe">
     <div class="panel-head">
       <div>
-        <h2>Pilih token</h2>
-        <p class="panel-sub">Saring menurut tahun launch, lalu buka halaman studinya.</p>
+        <p class="eyebrow">Ranked by market cap</p>
+        <h2>Leaderboard $100M+</h2>
+        <p class="panel-sub">Urutkan kapitalisasi atau perubahan 24 jam. Wrapped duplicate ditandai, bukan disembunyikan.</p>
       </div>
-      <div class="panel-tools">
-        <div class="seg" role="group" aria-label="Saring tahun launch" id="yearFilter"></div>
+      <div class="seg" role="group" aria-label="Urutkan leaderboard">
+        <button class="seg-btn is-on" data-sort="mcap" type="button">Market cap</button>
+        <button class="seg-btn" data-sort="change" type="button">% 24 jam</button>
+      </div>
+    </div>
+    <div class="table-scroll" id="over100Table">
+      <div class="panel-loading"><span class="spinner"></span> Memuat pasar…</div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">Curated research</p>
+        <h2>Studi kasus terverifikasi</h2>
+        <p class="panel-sub">Konteks launch, katalis publik, dan timeline untuk delapan memecoin lintas siklus.</p>
       </div>
     </div>
     <div class="case-grid" id="caseGrid"></div>
@@ -87,39 +85,23 @@
   <section class="panel">
     <div class="panel-head">
       <div>
-        <h2>Dasbor volume koin studi</h2>
-        <p class="panel-sub">Snapshot 24 jam dari CoinGecko, diurutkan menurut volume.</p>
+        <p class="eyebrow">Protocol activity</p>
+        <h2>Launchpad 24 jam</h2>
+        <p class="panel-sub">Volume dan revenue DeFiLlama; nilai yang belum diindeks dibiarkan kosong.</p>
       </div>
-    </div>
-    <div class="table-scroll" id="coinDashboard">
-      <div class="panel-loading"><span class="spinner"></span> Memuat snapshot…</div>
-    </div>
-  </section>
-
-  <section class="panel">
-    <div class="panel-head">
-      <div>
-        <h2>Launchpad: volume, fees &amp; revenue 24 jam</h2>
-        <p class="panel-sub">Metrik protokol DeFiLlama, diurutkan menurut revenue 24 jam. Metrik yang belum diindeks ditandai —, tanpa estimasi.</p>
-      </div>
+      <a class="text-link" href="/sentiment/">Buka Sentiment →</a>
     </div>
     <div class="table-scroll" id="launchpadTable">
-      <div class="panel-loading"><span class="spinner"></span> Memuat metrik launchpad…</div>
+      <div class="panel-loading"><span class="spinner"></span> Memuat metrik…</div>
     </div>
-    <p class="note" id="launchpadNote"></p>
-    <p class="caveat">
-      <strong>Risiko survivorship:</strong> halaman ini hanya memuat kasus yang berhasil.
-      Mayoritas memecoin tidak pernah mencapai $100M dan kehilangan hampir seluruh nilainya.
-      Seluruh koin studi saat ini diperdagangkan di bawah ATH-nya. Bukan nasihat keuangan.
-    </p>
   </section>
 
+  <p class="risk-line">⚠️ Survivorship bias: mayoritas memecoin gagal mencapai $100M. Hindari leverage dan gunakan ukuran posisi kecil.</p>
 </main>
 
 <footer class="site-foot wrap">
-  <p>Data: CoinGecko &middot; Binance / Kraken / OKX &middot; DeFiLlama. Logo: berkas resmi proyek. Diperbarui <span id="updatedAt">—</span>.</p>
+  <p>CoinGecko · Yahoo Finance fallback · DeFiLlama · <span id="updatedAt">—</span></p>
 </footer>
-
 <script type="module" src="/assets/js/cases-page.js"></script>
 </body>
 </html>

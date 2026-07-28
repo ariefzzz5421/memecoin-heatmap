@@ -316,11 +316,11 @@ export class WorldMap {
         const t = perceptual(row.volUsd, this.maxVol);
         ctx.fillStyle = seqColor(0.12 + 0.6 * t);
       } else {
-        ctx.fillStyle = '#1a1f27'; // daratan tanpa data
+        ctx.fillStyle = PALETTE.map.land; // daratan tanpa data
       }
       ctx.fill(c.path);
       ctx.lineWidth = lw;
-      ctx.strokeStyle = 'rgba(255,255,255,0.09)';
+      ctx.strokeStyle = PALETTE.map.stroke;
       ctx.stroke(c.path);
     }
 
@@ -333,7 +333,7 @@ export class WorldMap {
 
   _drawGraticule(ctx, v) {
     ctx.save();
-    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx.strokeStyle = PALETTE.map.grid;
     ctx.lineWidth = 0.6 / v.k;
     ctx.beginPath();
     for (let lon = -180; lon <= 180; lon += 30) {
@@ -362,8 +362,8 @@ export class WorldMap {
       // halo lembut untuk pusat volume besar
       if (b.t > 0.55) {
         const g = ctx.createRadialGradient(sx, sy, r * 0.4, sx, sy, r * 2.1);
-        g.addColorStop(0, 'rgba(87,152,231,0.20)');
-        g.addColorStop(1, 'rgba(87,152,231,0)');
+        g.addColorStop(0, PALETTE.map.glow);
+        g.addColorStop(1, PALETTE.map.glowClear);
         ctx.fillStyle = g;
         ctx.beginPath();
         ctx.arc(sx, sy, r * 2.1, 0, Math.PI * 2);
@@ -391,7 +391,7 @@ export class WorldMap {
         ctx.stroke();
 
         ctx.fillStyle = PALETTE.status.warning;
-        ctx.font = '700 10px system-ui, -apple-system, "Segoe UI", sans-serif';
+        ctx.font = `700 10px ${PALETTE.font}`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('#1', sx, sy);
@@ -401,7 +401,7 @@ export class WorldMap {
         ctx.beginPath();
         ctx.arc(sx, sy, r + 5, 0, Math.PI * 2);
         ctx.lineWidth = 1.5;
-        ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+        ctx.strokeStyle = PALETTE.map.strokeStrong;
         ctx.setLineDash([3, 3]);
         ctx.stroke();
         ctx.setLineDash([]);
@@ -415,7 +415,7 @@ export class WorldMap {
     const top = this.data?.rows.slice(0, n) || [];
     const placed = [];
 
-    ctx.font = '600 11px system-ui, -apple-system, "Segoe UI", sans-serif';
+    ctx.font = `600 11px ${PALETTE.font}`;
     ctx.textBaseline = 'middle';
 
     for (const row of top) {
@@ -435,7 +435,7 @@ export class WorldMap {
       if (lx + tw + 10 > this.w) continue;
       placed.push(box);
 
-      ctx.fillStyle = 'rgba(11,13,16,0.78)';
+      ctx.fillStyle = PALETTE.map.labelBg;
       ctx.fillRect(lx - 4, ly - 9, tw + 8, 18);
       ctx.fillStyle = PALETTE.ink;
       ctx.fillText(text, lx, ly + 0.5);

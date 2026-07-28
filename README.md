@@ -46,9 +46,9 @@ Candle memakai **rantai fallback otomatis**: Binance dicoba lebih dulu, dan bila
 diblokir jaringan/ISP, halaman beralih sendiri ke OKX lalu Kraken. Nama sumber yang
 akhirnya dipakai ditampilkan di bilah status.
 
-Semua respons di-cache di `localStorage` (3–20 menit; geometri peta 30 hari) agar
-hemat kuota API gratis. Tombol **Muat ulang data** mengosongkan cache dan menarik
-data baru.
+Browser melakukan polling senyap setiap 10 detik ke endpoint backend yang sama.
+Backend mengatur cache sumber, sementara geometri peta disimpan lokal agar peta
+tetap dapat dibuka saat CDN eksternal bermasalah.
 
 ## Routing
 
@@ -57,7 +57,8 @@ data baru.
 | `/` | Overview, jam aktif, dan heatmap memecoin |
 | `/maps/` | Peta khusus dengan marker kuning `#1` untuk lokasi volume terbesar |
 | `/sentiment/` | Volume 24 jam, revenue 24 jam, momentum aktivitas, dan chain volume tertinggi |
-| `/cases/` | Hub studi memecoin ≥ $100M mcap: kartu token dengan filter tahun launch, dasbor volume koin, ranking launchpad |
+| `/cases/` | Leaderboard real-time memecoin dengan market cap ≥ $100M, studi terkurasi, dan ranking launchpad |
+| `/cases/detail/?id=…&symbol=…` | Dossier dinamis: harga sejak data pertama, hari ke-7, hari ke-30, ATH, dan market cap 365 hari |
 | `/cases/{slug}/` | Halaman artikel per token (`doge`, `shib`, `pepe`, `wif`, `bonk`, `trump`, `floki`, `pengu`): logo resmi, tanggal launch, waktu launch → ATH, artikel, chart mingguan, katalis |
 
 Halaman artikel di-generate dari `assets/js/cases-config.js`. Setelah mengubah daftar
@@ -69,11 +70,9 @@ node scripts/generate-case-pages.cjs
 
 ### Pembaruan otomatis
 
-Semua halaman menyegarkan datanya sendiri di latar belakang lewat
-`assets/js/autorefresh.js`: tick tiap 10 detik, tapi tiap sumber punya jarak minimum
-sendiri (snapshot pasar 60 detik, volume bursa 5 menit, kline 15 menit–6 jam) supaya
-batas rate API gratis tidak tertabrak. Tidak ada hitung mundur atau teks di layar —
-hanya titik ping kecil di bilah status yang berdenyut saat data benar-benar diperbarui.
+Semua halaman melakukan polling senyap tiap 10 detik lewat
+`assets/js/autorefresh.js`. Cache backend menahan refresh upstream agar batas API
+gratis tidak tertabrak. Tidak ada tombol, hitung mundur, atau indikator refresh.
 Refresh berhenti saat tab disembunyikan dan langsung mengejar ketertinggalan saat tab
 kembali aktif. Bila sebuah sumber gagal (mis. 429), halaman memakai cache terakhir
 alih-alih mengosongkan tampilan.

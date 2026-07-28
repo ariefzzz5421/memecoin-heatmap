@@ -9,7 +9,7 @@ import { CASE_BY_SLUG } from './cases-config.js';
 import { fetchCaseMarkets, fetchWeekly } from './cases-data.js';
 import { renderCaseChart, renderWeeklyTable, fmtDate, fmtDuration, DAY } from './cases-chart.js';
 import { fmtUsd, fmtPrice, fmtPct, fmtNum, fmtClock, el } from './utils.js';
-import { startAutoRefresh, mountPing } from './autorefresh.js';
+import { startAutoRefresh } from './autorefresh.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -145,7 +145,7 @@ function init() {
   /* Refresh senyap: snapshot pasar tiap 60 detik; kline mingguan tiap 6 jam
      (data mingguan nyaris tidak berubah dalam hitungan menit). */
   startAutoRefresh([
-    { every: 60 * 1000, run: () => refreshMarkets({ force: true }) },
+    { every: 10 * 1000, run: () => refreshMarkets({ force: true }) },
     {
       every: 6 * 3600 * 1000,
       run: async () => {
@@ -153,7 +153,7 @@ function init() {
         renderChartSection();
       },
     },
-  ], mountPing());
+  ]);
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

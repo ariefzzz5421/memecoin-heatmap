@@ -10,33 +10,51 @@ import { WIB_OFFSET } from './config.js';
 
 /* ---------------- Palet ---------------- */
 
+const cssVar = (name) =>
+  getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
 export const PALETTE = {
-  surface: '#14161a',
-  plane: '#0b0d10',
-  ink: '#ffffff',
-  ink2: '#c3c2b7',
-  muted: '#898781',
-  grid: '#2c2c2a',
-  axis: '#383835',
-  border: 'rgba(255,255,255,0.10)',
+  surface: cssVar('--surface'),
+  plane: cssVar('--plane'),
+  ink: cssVar('--ink'),
+  ink2: cssVar('--ink-2'),
+  muted: cssVar('--muted'),
+  grid: cssVar('--grid'),
+  axis: cssVar('--axis'),
+  border: cssVar('--border'),
+  font: cssVar('--font'),
 
   /* Sequential — magnitude volume. Satu hue (biru), gelap -> terang.
      Pada permukaan gelap ujung "nyaris nol" menyatu dengan latar. */
   seq: [
-    '#0d366b', '#104281', '#184f95', '#1c5cab', '#256abf',
-    '#2a78d6', '#3987e5', '#5598e7', '#6da7ec', '#86b6ef',
-    '#9ec5f4', '#b7d3f6', '#cde2fb',
-  ],
+    '--seq-01', '--seq-02', '--seq-03', '--seq-04', '--seq-05',
+    '--seq-06', '--seq-07', '--seq-08', '--seq-09', '--seq-10',
+    '--seq-11', '--seq-12', '--seq-13',
+  ].map(cssVar),
 
   /* Diverging — polaritas perubahan harga.
      Biru = naik, merah = turun, abu netral di tengah.
      Dipilih karena hijau/merah kolaps di buta warna deutan (ΔE 3.3),
      sedangkan pasangan ini terpisah ΔE 15–20. */
-  divMid: '#383835',
-  divUp: ['#184f95', '#256abf', '#3987e5', '#6da7ec'],
-  divDown: ['#793b3a', '#a54b4b', '#d05d5d', '#f77675'],
+  divMid: cssVar('--axis'),
+  divUp: ['--div-up-1', '--div-up-2', '--div-up-3', '--div-up-4'].map(cssVar),
+  divDown: ['--div-down-1', '--div-down-2', '--div-down-3', '--div-down-4'].map(cssVar),
 
-  status: { good: '#0ca30c', warning: '#fab219', serious: '#ec835a', critical: '#d03b3b' },
+  status: {
+    good: cssVar('--good'),
+    warning: cssVar('--warn'),
+    serious: cssVar('--serious'),
+    critical: cssVar('--crit'),
+  },
+  map: {
+    land: cssVar('--map-land'),
+    stroke: cssVar('--map-stroke'),
+    grid: cssVar('--map-grid-line'),
+    glow: cssVar('--map-glow'),
+    glowClear: cssVar('--map-glow-clear'),
+    strokeStrong: cssVar('--map-stroke-strong'),
+    labelBg: cssVar('--map-label-bg'),
+  },
 };
 
 /* Skala sequential: t di [0,1] -> hex */
@@ -65,7 +83,7 @@ export function inkOn(hex) {
     return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
   });
   const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-  return lum > 0.34 ? '#0b0b0b' : '#ffffff';
+  return lum > 0.34 ? PALETTE.plane : PALETTE.ink;
 }
 
 /* Skala persepsi untuk peta: akar pangkat agar ekor panjang tetap terbaca */
