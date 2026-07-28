@@ -38,6 +38,34 @@ function cacheSet(key, value) {
   }
 }
 
+/* Baca cache TANPA memedulikan TTL — dipakai sebagai fallback saat sumber
+   gagal (mis. 429). Data basi berlabel jelas lebih berguna daripada halaman
+   error. */
+function cacheGetStale(key) {
+  try {
+    const raw = localStorage.getItem(CACHE_PREFIX + key);
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    return obj && 'v' in obj ? { value: obj.v, ageMs: Date.now() - obj.t } : null;
+  } catch {
+    return null;
+  }
+}
+
+/* Jalankan fetcher; bila gagal dan ada cache lama, pakai cache lama. */
+async function withStaleFallback(key, fetcher) {
+  try {
+    return await fetcher();
+  } catch (err) {
+    const stale = cacheGetStale(key);
+    if (stale) {
+      console.warn(`sumber gagal (${err.message}) — memakai cache ${Math.round(stale.ageMs / 60000)} menit untuk ${key}`);
+      return stale.value;
+    }
+    throw err;
+  }
+}
+
 export function cacheAge(key) {
   try {
     const raw = localStorage.getItem(CACHE_PREFIX + key);
@@ -92,26 +120,29 @@ export async function fetchExchanges({ pages = 2, force = false } = {}) {
     const hit = cacheGet(key, TTL.exchanges);
     if (hit) return hit;
   }
-  const out = [];
-  for (let p = 1; p <= pages; p++) {
-    const rows = await getJSON(`${CG}/exchanges?per_page=100&page=${p}`);
-    if (!Array.isArray(rows) || rows.length === 0) break;
-    out.push(...rows);
-    if (p < pages) await sleep(400);
-  }
-  const slim = out.map((r) => ({
-    id: r.id,
-    name: r.name,
-    country: r.country,
-    year: r.year_established,
-    url: r.url,
-    image: r.image,
-    trust: r.trust_score,
-    rank: r.trust_score_rank,
-    volBtc: r.trade_volume_24h_btc || 0,
-  }));
-  cacheSet(key, slim);
-  return slim;
+  return withStaleFallback(key, async () => {
+    const out = [];
+    for (let p = 1; p <= pages; p++) {
+      const rows = await getJSON(`${CG}/exchanges?per_page=100&page=${p}`);
+      if (!Array.isArray(rows) || rows.length === 0) break;
+      out.push(...rows);
+      if (p < pages) await sleep(400);
+    }
+    const slim = out.map((r) => ({
+      id: r.id,
+      name: r.name,
+      country: r.country,
+      year: r.year_established,
+      url: r.url,
+      image: r.image,
+      trust: r.trust_score,
+      rank: r.trust_score_rank,
+      volBtc: r.trade_volume_24h_btc || 0,
+    }));
+    if (!slim.length) throw new Error('daftar bursa kosong');
+    cacheSet(key, slim);
+    return slim;
+  });
 }
 
 /* Harga BTC untuk konversi volume BTC -> USD */
@@ -121,11 +152,13 @@ export async function fetchBtcPrice({ force = false } = {}) {
     const hit = cacheGet(key, TTL.global);
     if (hit) return hit;
   }
-  const j = await getJSON(`${CG}/simple/price?ids=bitcoin&vs_currencies=usd`);
-  const p = j?.bitcoin?.usd;
-  if (!p) throw new Error('harga BTC tidak tersedia');
-  cacheSet(key, p);
-  return p;
+  return withStaleFallback(key, async () => {
+    const j = await getJSON(`${CG}/simple/price?ids=bitcoin&vs_currencies=usd`);
+    const p = j?.bitcoin?.usd;
+    if (!p) throw new Error('harga BTC tidak tersedia');
+    cacheSet(key, p);
+    return p;
+  });
 }
 
 /* ============================================================
@@ -138,6 +171,7 @@ export async function fetchMemecoins({ limit = 100, force = false } = {}) {
     const hit = cacheGet(key, TTL.markets);
     if (hit) return hit;
   }
+  return withStaleFallback(key, async () => {
   const url =
     `${CG}/coins/markets?vs_currency=usd&category=meme-token&order=volume_desc` +
     `&per_page=${limit}&page=1&price_change_percentage=1h,24h,7d`;
@@ -159,6 +193,7 @@ export async function fetchMemecoins({ limit = 100, force = false } = {}) {
   }));
   cacheSet(key, slim);
   return slim;
+  });
 }
 
 /* Statistik pasar global */
@@ -168,18 +203,20 @@ export async function fetchGlobal({ force = false } = {}) {
     const hit = cacheGet(key, TTL.global);
     if (hit) return hit;
   }
-  const j = await getJSON(`${CG}/global`);
-  const d = j?.data || {};
-  const slim = {
-    mcapUsd: d.total_market_cap?.usd || 0,
-    volUsd: d.total_volume?.usd || 0,
-    btcDom: d.market_cap_percentage?.btc || 0,
-    markets: d.markets || 0,
-    coins: d.active_cryptocurrencies || 0,
-    mcapChange24h: d.market_cap_change_percentage_24h_usd || 0,
-  };
-  cacheSet(key, slim);
-  return slim;
+  return withStaleFallback(key, async () => {
+    const j = await getJSON(`${CG}/global`);
+    const d = j?.data || {};
+    const slim = {
+      mcapUsd: d.total_market_cap?.usd || 0,
+      volUsd: d.total_volume?.usd || 0,
+      btcDom: d.market_cap_percentage?.btc || 0,
+      markets: d.markets || 0,
+      coins: d.active_cryptocurrencies || 0,
+      mcapChange24h: d.market_cap_change_percentage_24h_usd || 0,
+    };
+    cacheSet(key, slim);
+    return slim;
+  });
 }
 
 /* ============================================================

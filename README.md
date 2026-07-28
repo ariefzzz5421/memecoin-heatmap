@@ -57,7 +57,32 @@ data baru.
 | `/` | Overview, jam aktif, dan heatmap memecoin |
 | `/maps/` | Peta khusus dengan marker kuning `#1` untuk lokasi volume terbesar |
 | `/sentiment/` | Volume 24 jam, revenue 24 jam, momentum aktivitas, dan chain volume tertinggi |
-| `/cases/` | Studi memecoin ≥ $100M mcap: chart mingguan listing → ATH, durasi launch → ATH, katalis terdokumentasi, dasbor volume + launchpad |
+| `/cases/` | Hub studi memecoin ≥ $100M mcap: kartu token dengan filter tahun launch, dasbor volume koin, ranking launchpad |
+| `/cases/{slug}/` | Halaman artikel per token (`doge`, `shib`, `pepe`, `wif`, `bonk`, `trump`, `floki`, `pengu`): logo resmi, tanggal launch, waktu launch → ATH, artikel, chart mingguan, katalis |
+
+Halaman artikel di-generate dari `assets/js/cases-config.js`. Setelah mengubah daftar
+token atau isi artikel, jalankan:
+
+```bash
+node scripts/generate-case-pages.cjs
+```
+
+### Pembaruan otomatis
+
+Semua halaman menyegarkan datanya sendiri di latar belakang lewat
+`assets/js/autorefresh.js`: tick tiap 10 detik, tapi tiap sumber punya jarak minimum
+sendiri (snapshot pasar 60 detik, volume bursa 5 menit, kline 15 menit–6 jam) supaya
+batas rate API gratis tidak tertabrak. Tidak ada hitung mundur atau teks di layar —
+hanya titik ping kecil di bilah status yang berdenyut saat data benar-benar diperbarui.
+Refresh berhenti saat tab disembunyikan dan langsung mengejar ketertinggalan saat tab
+kembali aktif. Bila sebuah sumber gagal (mis. 429), halaman memakai cache terakhir
+alih-alih mengosongkan tampilan.
+
+### Logo
+
+Logo token dan platform diunduh sekali dari sumber resminya (CoinGecko untuk token,
+indeks DeFiLlama untuk platform) dan disimpan lokal di `assets/img/` — situs tidak
+memuat gambar dari host pihak ketiga saat runtime.
 
 Halaman Sentiment memakai metrik protokol DeFiLlama. Bila sebuah metrik belum
 diindeks (saat ini volume protokol Pons), halaman menampilkan status tidak tersedia
@@ -99,23 +124,30 @@ permukaan gelap `#14161a`:
 
 ```
 index.html
-maps/  sentiment/  cases/  masing-masing satu index.html per route
+maps/  sentiment/  cases/            satu index.html per route
+cases/{doge,shib,pepe,wif,bonk,trump,floki,pengu}/   halaman artikel per token
 scripts/
   dev-server.cjs          server statis pengembangan (npm run dev)
   build.cjs               salin situs statis ke dist/client (npm run build)
+  generate-case-pages.cjs generate ulang halaman artikel dari cases-config.js
 vercel.json               deploy statis: build ke dist/client
+assets/img/coins/         logo resmi token (unduhan sekali)
+assets/img/platforms/     logo resmi platform/launchpad
 assets/css/style.css
 assets/js/
   config.js               tabel yurisdiksi, keranjang koin, timeframe
-  datasource.js           pengambilan data + cache + rantai fallback
+  datasource.js           pengambilan data + cache + fallback cache basi
   geo.js                  dekoder TopoJSON + proyeksi + zoom/pan
   analytics.js            agregasi, analisa jam, algoritma treemap
   worldmap.js             peta canvas interaktif
   hours.js                profil jam + matriks hari x jam
   treemap.js              heatmap memecoin
-  cases-config.js         kurasi studi kasus (launch, katalis, provider chart)
+  autorefresh.js          pembaruan senyap di latar + titik ping
+  cases-config.js         kurasi studi kasus (launch, katalis, artikel, logo)
   cases-data.js           kline mingguan + snapshot pasar + metrik launchpad
-  cases-page.js           halaman studi kasus
+  cases-chart.js          chart mingguan skala log + tabel data
+  cases-page.js           hub studi kasus (grid + filter tahun)
+  cases-article.js        halaman artikel per token
   sentiment-data.js       metrik platform DeFiLlama
   sentiment-page.js       halaman sentiment
   maps-page.js            halaman peta khusus

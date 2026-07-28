@@ -8,12 +8,13 @@ const LLAMA = 'https://api.llama.fi';
 const CACHE_KEY = 'chv:platform-pulse:v2';
 const CACHE_TTL = 5 * 60 * 1000;
 
+/* logo: berkas resmi dari indeks DeFiLlama, disimpan lokal di assets/img. */
 export const PLATFORM_DEFINITIONS = [
-  { id: 'pumpfun', name: 'Pump.fun', slug: 'pump.fun', category: 'Launchpad', accent: '#6da7ec' },
-  { id: 'fomo', name: 'Fomo', slug: 'fomo-wallet', category: 'Wallet spot', accent: '#b7d3f6' },
-  { id: 'gmgn', name: 'GMGN', slug: 'gmgn', category: 'Trading bot', accent: '#f0b429' },
-  { id: 'pons', name: 'Pons Launchpad', slug: 'pons', category: 'Launchpad', accent: '#ec835a' },
-  { id: 'virtuals', name: 'Virtuals Protocol', slug: 'virtuals-protocol', category: 'Launchpad AI agent', accent: '#d05d5d' },
+  { id: 'pumpfun', name: 'Pump.fun', slug: 'pump.fun', category: 'Launchpad', accent: '#6da7ec', logo: '/assets/img/platforms/pump.fun.webp' },
+  { id: 'fomo', name: 'Fomo', slug: 'fomo-wallet', category: 'Wallet spot', accent: '#b7d3f6', logo: '/assets/img/platforms/fomo-wallet.webp' },
+  { id: 'gmgn', name: 'GMGN', slug: 'gmgn', category: 'Trading bot', accent: '#f0b429', logo: '/assets/img/platforms/gmgn.webp' },
+  { id: 'pons', name: 'Pons Launchpad', slug: 'pons', category: 'Launchpad', accent: '#ec835a', logo: '/assets/img/platforms/pons.webp' },
+  { id: 'virtuals', name: 'Virtuals Protocol', slug: 'virtuals-protocol', category: 'Launchpad AI agent', accent: '#d05d5d', logo: '/assets/img/platforms/virtuals-protocol.webp' },
 ];
 
 function readCache() {

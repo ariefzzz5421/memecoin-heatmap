@@ -210,53 +210,9 @@
     <div class="insight-grid" id="memeInsights"></div>
   </section>
 
-  <!-- ============ METODOLOGI ============ -->
-  <section class="panel">
-    <h2>Metodologi &amp; sumber data</h2>
-    <div class="method-grid">
-      <div>
-        <h3>Dari mana angkanya</h3>
-        <ul>
-          <li><strong>Volume per yurisdiksi</strong> — CoinGecko <code>/exchanges</code>, 200 bursa
-            teratas. Volume dilaporkan dalam BTC lalu dikonversi ke USD memakai harga BTC saat itu.</li>
-          <li><strong>Pasar memecoin</strong> — CoinGecko <code>/coins/markets</code>,
-            kategori <code>meme-token</code>, diurutkan volume.</li>
-          <li><strong>Volume per jam</strong> — candle 1 jam dari Binance; bila diblokir jaringan,
-            otomatis beralih ke OKX lalu Kraken. Yang dipakai adalah <em>quote volume</em> (USDT),
-            dijumlahkan lintas koin dalam keranjang.</li>
-          <li><strong>Geometri peta</strong> — Natural Earth 110m via world-atlas (TopoJSON),
-            didekode di browser tanpa pustaka eksternal.</li>
-        </ul>
-      </div>
-      <div>
-        <h3>Batasan yang perlu diketahui</h3>
-        <ul>
-          <li>Negara bursa = yurisdiksi pendaftaran, <strong>bukan</strong> domisili trader.
-            Tidak ada API publik yang memetakan volume ke lokasi trader sebenarnya.</li>
-          <li>Volume bursa yang dilaporkan bisa dibesar-besarkan; CoinGecko memberi
-            <em>trust score</em> tapi tidak menyaring seluruhnya.</li>
-          <li>Analisa jam memakai keranjang koin terbatas di satu bursa, jadi ia mewakili
-            pola pasar, bukan volume total seluruh dunia.</li>
-          <li>WIB dianggap tetap UTC+7 (tidak ada DST). Sesi Eropa &amp; AS pada label bergeser
-            satu jam saat musim panas di sana.</li>
-        </ul>
-      </div>
-      <div>
-        <h3>Warna yang dipakai</h3>
-        <ul>
-          <li><strong>Magnitude</strong> (volume) — satu hue biru, gelap ke terang.</li>
-          <li><strong>Polaritas</strong> (perubahan harga) — biru naik, merah turun, abu di tengah.
-            Hijau/merah sengaja dihindari: pasangan itu menyatu pada buta warna deuteranopia
-            (ΔE 3,3), sedangkan biru/merah terpisah ΔE 15–20.</li>
-          <li>Setiap ubin dan sel membawa angka langsung, dan tersedia tampilan tabel,
-            jadi warna tidak pernah jadi satu-satunya penanda.</li>
-        </ul>
-      </div>
-    </div>
-    <p class="caveat">
-      Bukan nasihat keuangan. Volume tinggi = likuiditas tinggi, bukan indikasi arah harga.
-    </p>
-  </section>
+  <p class="caveat">
+    Bukan nasihat keuangan. Volume tinggi = likuiditas tinggi, bukan indikasi arah harga.
+  </p>
 
 </main>
 

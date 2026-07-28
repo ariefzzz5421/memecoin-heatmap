@@ -34,6 +34,33 @@ function cacheSet(key, value) {
   } catch { /* kuota penuh — lewati */ }
 }
 
+/* Cache tanpa TTL — dipakai saat sumber gagal (mis. 429 CoinGecko).
+   Dengan auto-refresh tiap menit, batas rate sesekali pasti tersentuh;
+   data sedikit basi jauh lebih berguna daripada halaman kosong. */
+function cacheGetStale(key) {
+  try {
+    const raw = localStorage.getItem(CACHE_PREFIX + key);
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    return obj && 'v' in obj ? obj.v : null;
+  } catch {
+    return null;
+  }
+}
+
+async function withStaleFallback(key, fetcher) {
+  try {
+    return await fetcher();
+  } catch (err) {
+    const stale = cacheGetStale(key);
+    if (stale) {
+      console.warn(`sumber gagal (${err.message}) — memakai cache lama untuk ${key}`);
+      return stale;
+    }
+    throw err;
+  }
+}
+
 export function clearCasesCache() {
   for (const k of Object.keys(localStorage)) {
     if (k.startsWith(CACHE_PREFIX)) localStorage.removeItem(k);
@@ -70,28 +97,31 @@ export async function fetchCaseMarkets({ force = false } = {}) {
     const hit = cacheGet(key, TTL_MARKETS);
     if (hit) return hit;
   }
-  const ids = CASES.map((c) => c.id).join(',');
-  const rows = await getJSON(
-    `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ids}&order=market_cap_desc&price_change_percentage=24h,7d`,
-  );
-  const byId = {};
-  for (const r of rows) {
-    byId[r.id] = {
-      id: r.id,
-      price: r.current_price,
-      mcap: r.market_cap,
-      vol: r.total_volume,
-      ath: r.ath,
-      athDate: r.ath_date,
-      athPct: r.ath_change_percentage,
-      ch24h: r.price_change_percentage_24h_in_currency ?? r.price_change_percentage_24h,
-      ch7d: r.price_change_percentage_7d_in_currency,
-      rank: r.market_cap_rank,
-      image: r.image,
-    };
-  }
-  cacheSet(key, byId);
-  return byId;
+  return withStaleFallback(key, async () => {
+    const ids = CASES.map((c) => c.id).join(',');
+    const rows = await getJSON(
+      `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ids}&order=market_cap_desc&price_change_percentage=24h,7d`,
+    );
+    if (!Array.isArray(rows) || !rows.length) throw new Error('snapshot pasar kosong');
+    const byId = {};
+    for (const r of rows) {
+      byId[r.id] = {
+        id: r.id,
+        price: r.current_price,
+        mcap: r.market_cap,
+        vol: r.total_volume,
+        ath: r.ath,
+        athDate: r.ath_date,
+        athPct: r.ath_change_percentage,
+        ch24h: r.price_change_percentage_24h_in_currency ?? r.price_change_percentage_24h,
+        ch7d: r.price_change_percentage_7d_in_currency,
+        rank: r.market_cap_rank,
+        image: r.image,
+      };
+    }
+    cacheSet(key, byId);
+    return byId;
+  });
 }
 
 /* ---------------- 2. Kline mingguan ---------------- */
@@ -189,6 +219,7 @@ export async function fetchLaunchpads({ force = false } = {}) {
     if (hit) return hit;
   }
 
+  return withStaleFallback(key, async () => {
   const rows = await Promise.all(LAUNCHPADS.map(async (lp) => {
     const [vol, rev] = await Promise.allSettled([
       llamaSummary('dexs', lp.slug),
@@ -210,4 +241,5 @@ export async function fetchLaunchpads({ force = false } = {}) {
   rows.sort((a, b) => (b.rev24h ?? -1) - (a.rev24h ?? -1));
   cacheSet(key, rows);
   return rows;
+  });
 }

@@ -3,6 +3,7 @@ import { aggregateJurisdictions } from './analytics.js';
 import { WorldMap } from './worldmap.js';
 import { renderSeqLegend } from './hours.js';
 import { fmtUsd, fmtUsdShort, fmtNum, fmtClock, el, seqColor, perceptual } from './utils.js';
+import { startAutoRefresh, mountPing } from './autorefresh.js';
 
 const $ = (id) => document.getElementById(id);
 let map;
@@ -131,16 +132,29 @@ async function load({ force = false } = {}) {
   setStatus('Memuat peta dan volume bursa…', 'busy');
   $('mapLoading').hidden = false;
 
-  const [topology, btc, exchanges] = await Promise.all([
-    fetchWorldTopo(),
-    fetchBtcPrice({ force }),
-    fetchExchanges({ pages: 2, force }),
-  ]);
+  /* Geometri dan data pasar dimuat terpisah: kegagalan CoinGecko (mis. 429)
+     tidak boleh mematikan peta — datasource sudah punya fallback cache basi,
+     dan di sini kegagalan data hanya menjadi status, bukan layar error. */
+  const topology = await fetchWorldTopo();
+  map.setTopology(topology);
+  $('mapLoading').hidden = true;
+  map.render();
+
+  let btc;
+  let exchanges;
+  try {
+    [btc, exchanges] = await Promise.all([
+      fetchBtcPrice({ force }),
+      fetchExchanges({ pages: 2, force }),
+    ]);
+  } catch (err) {
+    console.error(err);
+    setStatus(`Data volume gagal dimuat (${err.message}) — coba Muat ulang data`, 'err');
+    return;
+  }
   btcPrice = btc;
   aggregate = aggregateJurisdictions(exchanges, btc);
-  map.setTopology(topology);
   map.setData(aggregate);
-  $('mapLoading').hidden = true;
   renderSeqLegend($('mapLegend'), {
     min: 0,
     max: aggregate.rows[0]?.volUsd || 0,
@@ -177,6 +191,26 @@ function init() {
     $('mapLoading').innerHTML = `<span class="error">Peta gagal dimuat: ${error.message}</span>`;
     setStatus('Sebagian data gagal dimuat', 'err');
   });
+
+  /* Volume bursa berubah lambat — 5 menit sudah cukup dan aman untuk
+     batas rate CoinGecko gratis. Geometri peta tidak perlu diambil ulang. */
+  startAutoRefresh([
+    {
+      every: 5 * 60 * 1000,
+      run: async () => {
+        const [btc, exchanges] = await Promise.all([
+          fetchBtcPrice({ force: true }),
+          fetchExchanges({ pages: 2, force: true }),
+        ]);
+        btcPrice = btc;
+        aggregate = aggregateJurisdictions(exchanges, btc);
+        map.setData(aggregate);
+        renderRankings();
+        renderTable();
+        $('updatedAt').textContent = fmtClock(Date.now());
+      },
+    },
+  ], mountPing());
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

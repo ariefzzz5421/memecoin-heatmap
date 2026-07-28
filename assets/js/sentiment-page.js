@@ -1,5 +1,6 @@
 import { fetchPlatformPulse, clearPlatformPulseCache } from './sentiment-data.js';
 import { fmtUsd, fmtPct, fmtClock, el } from './utils.js';
+import { startAutoRefresh, mountPing } from './autorefresh.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -56,9 +57,14 @@ function renderPlatforms(data) {
 
     const card = el('article', { class: 'platform-card' },
       el('div', { class: 'platform-card-head' },
-        el('div', {},
-          el('span', { class: 'platform-kicker' }, platform.category || 'Platform'),
-          el('h2', {}, platform.name),
+        el('div', { class: 'platform-ident' },
+          platform.logo
+            ? el('img', { class: 'platform-logo', src: platform.logo, alt: `Logo ${platform.name}`, loading: 'lazy', width: '38', height: '38' })
+            : null,
+          el('div', {},
+            el('span', { class: 'platform-kicker' }, platform.category || 'Platform'),
+            el('h2', {}, platform.name),
+          ),
         ),
         el('span', { class: `pulse-badge ${platform.momentum.key}` }, platform.momentum.label),
       ),
@@ -154,6 +160,23 @@ function init() {
     load({ force: true }).catch(showError);
   });
   load().catch(showError);
+
+  /* Metrik DeFiLlama diperbarui harian di sumbernya; 60 detik sudah lebih
+     dari cukup dan tidak membebani API. */
+  startAutoRefresh([
+    {
+      every: 60 * 1000,
+      run: async () => {
+        const data = await fetchPlatformPulse({ force: true });
+        renderSummary(data);
+        renderPlatforms(data);
+        renderChains(data);
+        renderCoverage(data);
+        $('updatedAt').textContent = fmtClock(data.fetchedAt);
+        $('cacheState').textContent = 'data baru';
+      },
+    },
+  ], mountPing());
 }
 
 function showError(error) {

@@ -15,6 +15,7 @@ import {
   fmtUsd, fmtUsdShort, fmtPct, fmtNum, fmtPrice, fmtClock,
   pad2, hourRange, DOW_ID, el, debounce, seqColor, perceptual,
 } from './utils.js';
+import { startAutoRefresh, mountPing } from './autorefresh.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -753,6 +754,40 @@ function init() {
     console.error(e);
     status(`Gagal memuat: ${e.message}`, 'err');
   });
+
+  /* Pembaruan senyap di latar. Jarak tiap sumber dipisah agar batas rate
+     CoinGecko gratis tidak tertabrak; kline jauh lebih jarang karena
+     analisa jam memakai jendela 30 hari yang praktis tidak berubah. */
+  startAutoRefresh([
+    {
+      every: 60 * 1000,
+      run: async () => {
+        const [g, coins] = await Promise.all([
+          fetchGlobal({ force: true }),
+          fetchMemecoins({ limit: 100, force: true }),
+        ]);
+        state.global = g;
+        state.coins = coins;
+        updateTopKpi();
+        renderMemeSection();
+        $('footUpdated').textContent = fmtClock(Date.now());
+      },
+    },
+    {
+      every: 5 * 60 * 1000,
+      run: async () => {
+        const [btc, exchanges] = await Promise.all([
+          fetchBtcPrice({ force: true }),
+          fetchExchanges({ pages: 2, force: true }),
+        ]);
+        state.btcPrice = btc;
+        state.agg = aggregateJurisdictions(exchanges, btc);
+        renderMapSection();
+        updateTopKpi();
+      },
+    },
+    { every: 15 * 60 * 1000, run: () => loadHours({ force: true }) },
+  ], mountPing());
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
