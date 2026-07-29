@@ -1,4 +1,5 @@
 import { refreshPalette } from './utils.js';
+import { initMotion } from './motion.js';
 
 const STORAGE_KEY = 'heatmap-volume-theme';
 const root = document.documentElement;
@@ -44,3 +45,6 @@ document.addEventListener('click', (event) => {
 media.addEventListener?.('change', (event) => {
   if (!savedTheme()) applyTheme(event.matches ? 'light' : 'dark');
 });
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initMotion);
+else initMotion();

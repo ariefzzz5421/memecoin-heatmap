@@ -1,4 +1,4 @@
-# Design — Crypto Heatmap Volume
+# Design — Memecoin Heatmap
 
 A locked design system for this app. Every page reads this file before visual
 changes. Extend this system instead of inventing route-specific themes.
@@ -37,8 +37,8 @@ navigation, selected data, and the strongest metric; it is not decoration.
 
 ## Typography
 
-- Display: system UI / Segoe UI, weight 720, roman.
-- Body: system UI / Segoe UI, weight 400–600.
+- Display: locally hosted Geist, weight 700, roman.
+- Body: locally hosted Geist, weight 400–600.
 - Mono: ui-monospace / SFMono-Regular, weight 500.
 - Display tracking: `-0.035em`.
 - Type anchor: `--text-display: clamp(2.35rem, 5.4vw, 5.8rem)`.
@@ -100,17 +100,20 @@ Use a four-point scale through named tokens only:
 ## 2026 extension: themes, identity, and source imagery
 
 - The graphite-blue system remains the default dark theme. The light theme is a paper-blue translation of the same tokens, spacing, hierarchy, and data colors.
-- The square market-map mark is the product identity. It may appear in the header, favicon, and empty-image fallback only.
+- The user-supplied green/orange mascot and market-arrow mark is the product identity. Its transparent mascot crop appears in the header and favicon; the full lockup remains stored as the canonical source artwork.
 - Official chain marks identify a network in dense tables. Country flags identify jurisdictions in rankings and tables. Neither is decorative background imagery.
 - Source panels use the existing border, radius, and type tokens. External links name both the source and the field it supports.
-- The 2026 route uses an evidence-register structure: event cards, qualified creator/deployer attribution, full contract, current snapshot, and direct source links.
+- The 2026 index uses short event previews with crossing date, documented peak, and launch date. Creator attribution, contract, current snapshot, article, chart, and direct sources live on one routed dossier per token.
 - Light/dark switching redraws canvas and SVG data visualizations with refreshed CSS-token values.
 
 ## Compact evidence-ledger extension
 
-- The 2026 route is a single-column evidence ledger. Each record leads with the
-  token and network, then gives large launch/crossing dates, three market
-  metrics, qualified creator attribution, contract, and compact sources.
+- The 2026 route is a two-column preview ledger on wide screens and a
+  single-column ledger on narrow screens. Each preview leads with the token and
+  network, then gives only launch, crossing, and documented peak.
+- Each 2026 token has a routed research dossier with a static article-first
+  render. Current data enriches in place and the historical chart loads after
+  the article so a slow provider never blocks the research.
 - Source links are icon-led and use locally stored official brand marks. Labels
   remain literal; icons never replace source names.
 - Case dossiers use one dominant interactive history surface. Price and market

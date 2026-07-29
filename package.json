@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "node scripts/dev-server.cjs",
-    "build": "node scripts/build.cjs"
+    "generate": "node scripts/generate-case-pages.cjs && node scripts/generate-2026-pages.cjs",
+    "build": "npm run generate && node scripts/build.cjs"
   }
 }

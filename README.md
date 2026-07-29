@@ -1,4 +1,4 @@
-# Crypto Heatmap Volume
+# Memecoin Heatmap
 
 A source-first crypto market dashboard for global exchange volume, active trading
 hours, memecoin performance, protocol activity, and documented case studies.

@@ -805,7 +805,8 @@ async function currentCoin(id) {
 
 async function loadHistory(id, symbol) {
   const yahooSymbol = `${String(symbol || '').toUpperCase()}-USD`;
-  const launchAt = CASE_WEEKLY[id]?.launchAt || null;
+  const eventRecord = MEME_2026_EVENTS.find((event) => event.id === id);
+  const launchAt = CASE_WEEKLY[id]?.launchAt || eventRecord?.launchAt || null;
   const overviewCoin = cache.get('overview')?.value?.memecoins?.find((row) => row.id === id) || null;
   const [coinResult, yahooResult] = await Promise.allSettled([
     overviewCoin ? Promise.resolve(overviewCoin) : currentCoin(id),

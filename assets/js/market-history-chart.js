@@ -21,15 +21,20 @@ const fmtDate = (timestamp) => new Intl.DateTimeFormat('en-US', {
 
 const inRange = (row, start, end) => row && row.t >= start && row.t <= end;
 
-function rangeBounds(key, launchT, lastT, athT) {
+function rangeBounds(key, launchT, lastT, athT, firstT) {
+  const safeStart = Number.isFinite(launchT)
+    ? Math.min(launchT, lastT)
+    : Number.isFinite(firstT)
+      ? Math.min(firstT, lastT)
+      : lastT - 30 * DAY;
   if (key === 'launch30' && Number.isFinite(launchT)) {
     return [launchT, Math.min(launchT + 30 * DAY, lastT)];
   }
   if (key === 'toAth' && Number.isFinite(launchT) && Number.isFinite(athT)) {
     return [launchT, Math.max(launchT + DAY, athT)];
   }
-  if (key === 'year') return [Math.max(lastT - 365 * DAY, launchT || 0), lastT];
-  return [Number.isFinite(launchT) ? Math.min(launchT, lastT) : 0, lastT];
+  if (key === 'year') return [Math.max(lastT - 365 * DAY, safeStart), lastT];
+  return [safeStart, lastT];
 }
 
 function markerRows(payload, mode) {
@@ -68,9 +73,15 @@ export function renderMarketHistoryChart(holder, payload, options = {}) {
   const launchT = Date.parse(options.launchAt || payload.launchAt || '');
   const priceRows = (payload.priceHistory || []).filter((row) => row.price > 0);
   const mcapRows = (payload.marketCapHistory365d || []).filter((row) => row.mcap > 0);
+  const firstT = Math.min(...[
+    priceRows[0]?.t,
+    mcapRows[0]?.t,
+    Number.isFinite(launchT) ? launchT : null,
+  ].filter(Number.isFinite));
   const lastT = Math.max(
     priceRows.at(-1)?.t || 0,
     mcapRows.at(-1)?.t || 0,
+    Number.isFinite(launchT) ? launchT : 0,
     Date.now(),
   );
   const athT = payload.milestones?.ath?.t;
@@ -101,7 +112,7 @@ export function renderMarketHistoryChart(holder, payload, options = {}) {
     const valueKey = state.mode;
     const rows = state.mode === 'price' ? priceRows : mcapRows;
     const formatter = state.mode === 'price' ? fmtPrice : fmtUsd;
-    const [rangeStart, rangeEnd] = rangeBounds(state.range, launchT, lastT, athT);
+    const [rangeStart, rangeEnd] = rangeBounds(state.range, launchT, lastT, athT, firstT);
     const visibleRows = rows.filter((row) => inRange(row, rangeStart, rangeEnd));
     const markers = markerRows(payload, state.mode).filter((marker) =>
       Number.isFinite(marker.t) && inRange(marker, rangeStart, rangeEnd));
@@ -109,6 +120,50 @@ export function renderMarketHistoryChart(holder, payload, options = {}) {
     const values = [...visibleRows.map((row) => row[valueKey]), ...markerValues].filter((value) => value > 0);
 
     stage.replaceChildren();
+    if (!rows.length) {
+      stage.append(el('div', { class: 'chart-series-unavailable' },
+        el('span', { class: 'chart-series-icon', 'aria-hidden': 'true' }, '—'),
+        el('strong', {}, `${state.mode === 'price' ? 'Price' : 'Market-cap'} history unavailable`),
+        el('p', {}, 'The public providers returned no time-series points. No dates or values are estimated.'),
+      ));
+      live.replaceChildren(el('span', {}, 'Use the sourced event timeline below.'));
+      milestoneStrip.replaceChildren(...[
+        ['Launch', payload.milestones?.launch],
+        ['Day 7', payload.milestones?.day7],
+        ['Day 30', payload.milestones?.day30],
+        [
+          state.mode === 'price' ? 'ATH' : 'Market-cap peak',
+          state.mode === 'price' ? payload.milestones?.ath : payload.marketCapPeak365d,
+        ],
+      ].map(([label, milestone]) => {
+        const value = milestone?.[valueKey];
+        return el('div', { class: 'chart-milestone' },
+          el('span', {}, label),
+          el('strong', { class: 'num' }, Number.isFinite(value) && value > 0 ? formatter(value) : 'Unavailable'),
+          Number.isFinite(milestone?.t) ? el('small', {}, fmtDate(milestone.t)) : null,
+        );
+      }));
+      coverage.textContent = [
+        `Price: ${payload.source?.priceHistory || 'unavailable'}`,
+        `Market cap: ${payload.source?.marketCapHistory || 'unavailable'}`,
+        'No values are interpolated.',
+      ].join(' · ');
+      metricControls.querySelectorAll('button').forEach((button) => {
+        const active = button.dataset.metric === state.mode;
+        button.classList.toggle('is-active', active);
+        button.setAttribute('aria-selected', String(active));
+      });
+      rangeControls.querySelectorAll('button').forEach((button) => {
+        const active = button.dataset.range === state.range;
+        button.classList.toggle('is-active', active);
+        button.setAttribute('aria-pressed', String(active));
+        button.disabled = true;
+      });
+      return;
+    }
+    rangeControls.querySelectorAll('button').forEach((button) => {
+      button.disabled = false;
+    });
     const width = Math.max(stage.clientWidth || 720, 300);
     const height = width < 560 ? 330 : 390;
     const pad = { top: 94, right: 20, bottom: 42, left: width < 560 ? 62 : 82 };

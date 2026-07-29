@@ -126,7 +126,7 @@ function render() {
   $('tokenName').textContent = displayName;
   $('tokenSym').textContent = symbol;
   $('crumbToken').textContent = symbol;
-  $('tokenLogo').src = coin?.image || curated?.logo || '/assets/img/brand/heatmap-volume-mark.png';
+  $('tokenLogo').src = coin?.image || curated?.logo || '/assets/img/brand/memecoin-heatmap-mark.png';
   $('tokenLogo').alt = `${displayName} logo`;
   const summary = [
     Number.isFinite(currentPrice) ? `Price ${fmtPrice(currentPrice)}` : null,
