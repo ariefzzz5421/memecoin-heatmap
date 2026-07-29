@@ -14,6 +14,7 @@ import { CASES, LAUNCHPADS } from './cases-config.js';
 const CACHE_PREFIX = 'chv:cases:';
 const TTL_MARKETS = 5 * 60 * 1000;
 const TTL_KLINES = 24 * 60 * 60 * 1000; // histori mingguan: cukup 1x/hari
+const TTL_HISTORY = 60 * 60 * 1000;
 const TTL_LAUNCHPADS = 5 * 60 * 1000;
 
 function cacheGet(key, ttl) {
@@ -179,7 +180,27 @@ export async function fetchWeekly(caseDef, { force = false } = {}) {
   return { ...value, cached: payload.cache === 'hit' };
 }
 
-/* ---------------- 3. Metrik launchpad ---------------- */
+/* ---------------- 3. Price + market-cap history ---------------- */
+
+export async function fetchHistory(caseDef, { force = false } = {}) {
+  const key = `history:${caseDef.id}`;
+  if (!force) {
+    const hit = cacheGet(key, TTL_HISTORY);
+    if (hit) return { ...hit, cached: true };
+  }
+  return withStaleFallback(key, async () => {
+    const payload = await getJSON(
+      `/api/market?resource=history&id=${encodeURIComponent(caseDef.id)}&symbol=${encodeURIComponent(caseDef.sym)}` +
+      `&t=${Math.floor(Date.now() / 10_000)}`,
+      { timeout: 40_000, retries: 1 },
+    );
+    if (!payload?.ok) throw new Error(payload?.error || 'Historical market data is unavailable');
+    cacheSet(key, payload);
+    return payload;
+  });
+}
+
+/* ---------------- 4. Metrik launchpad ---------------- */
 
 async function llamaSummary(kind, slug) {
   const params = new URLSearchParams({

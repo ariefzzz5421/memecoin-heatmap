@@ -21,31 +21,28 @@
   <div class="status-bar wrap"><span class="dot busy" id="statusDot"></span><span id="statusText">Loading verified records…</span></div>
 </header>
 <main class="wrap">
-  <section class="route-hero">
+  <section class="route-hero compact-route-hero">
     <div>
       <p class="eyebrow">January 1 — July 29, 2026</p>
-      <h2>Memecoin $100M breakouts in 2026</h2>
-      <p>A threshold-event record: the crossing must occur in 2026. Launch date can be earlier and is labelled separately. Each inclusion requires market-history evidence plus a second public source or explorer record.</p>
-    </div>
-    <div class="hero-kpis">
-      <article><span>Verified events</span><strong id="verifiedCount">—</strong><small>strict public-source set</small></article>
-      <article><span>Research cutoff</span><strong>29 Jul</strong><small>2026 · Asia/Jakarta</small></article>
+      <h2>$100M crossings in 2026</h2>
+      <p>Verified historical market-cap events with separate launch and crossing dates.</p>
+      <p class="hero-meta"><strong id="verifiedCount">—</strong> verified events <span>·</span> research cutoff 29 Jul 2026</p>
     </div>
   </section>
   <p class="verified-line"><span class="dot"></span><span id="researchState">Checking live CoinGecko snapshots while preserving documented threshold evidence.</span></p>
-  <section class="panel" id="breakouts">
-    <div class="panel-head"><div><p class="eyebrow">Evidence register</p><h2>Confirmed $100M crossings</h2><p class="panel-sub">Current price and market cap can move below the threshold after the historical event. The event stays in this register.</p></div></div>
+  <section class="breakout-section" id="breakouts">
+    <div class="panel-head"><div><h2>Verified records</h2><p class="panel-sub">Current values may be below $100M; the documented crossing remains in the record.</p></div></div>
     <div class="breakout-list" id="breakoutList"><div class="panel-loading"><span class="spinner"></span> Loading research data…</div></div>
   </section>
-  <section class="panel research-method">
-    <div><p class="eyebrow">Method</p><h2>What qualifies</h2><p>This is the full set we could verify from public records at the cutoff—not a claim of perfect coverage across every on-chain launch.</p></div>
+  <details class="panel method-disclosure">
+    <summary>Inclusion method</summary>
     <ol>
       <li>The token's market cap is documented above $100M on or after January 1, 2026.</li>
       <li>CoinGecko or equivalent market history supports the period, with a separate publication, listing, or explorer source.</li>
       <li>Contract and creator/issuer fields distinguish verified attribution from anonymous or community-led creation.</li>
       <li>Conflicting or single-source claims remain excluded until corroborated.</li>
     </ol>
-  </section>
+  </details>
   <p class="risk-line">⚠ A historical $100M market cap is not proof of liquidity, distribution quality, or future returns. Avoid leverage and predefine a small position size.</p>
 </main>
 <footer class="site-foot wrap"><p>Live snapshots: CoinGecko · threshold evidence is linked per token · <span id="updatedAt">—</span></p></footer>

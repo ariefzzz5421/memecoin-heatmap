@@ -105,3 +105,17 @@ Use a four-point scale through named tokens only:
 - Source panels use the existing border, radius, and type tokens. External links name both the source and the field it supports.
 - The 2026 route uses an evidence-register structure: event cards, qualified creator/deployer attribution, full contract, current snapshot, and direct source links.
 - Light/dark switching redraws canvas and SVG data visualizations with refreshed CSS-token values.
+
+## Compact evidence-ledger extension
+
+- The 2026 route is a single-column evidence ledger. Each record leads with the
+  token and network, then gives large launch/crossing dates, three market
+  metrics, qualified creator attribution, contract, and compact sources.
+- Source links are icon-led and use locally stored official brand marks. Labels
+  remain literal; icons never replace source names.
+- Case dossiers use one dominant interactive history surface. Price and market
+  cap share the same controls, range choices, log-scale plot, sourced arrow
+  markers, and explicit unavailable states.
+- Launch price and market cap are displayed only when a historical source
+  returns them. The interface never interpolates or visually invents a missing
+  launch value.

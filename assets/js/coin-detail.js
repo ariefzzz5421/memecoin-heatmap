@@ -1,6 +1,8 @@
 import { fmtUsd, fmtPrice, fmtPct, fmtClock, el } from './utils.js';
 import { startAutoRefresh } from './autorefresh.js';
 import { CASES } from './cases-config.js';
+import { renderMarketHistoryChart } from './market-history-chart.js';
+import { brandedSourceLink } from './source-brands.js';
 
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
@@ -102,8 +104,8 @@ function renderLineChart(holder, rows, valueKey, formatter, markers = []) {
   holder.append(svg);
 }
 
-function fact(label, value, note = '') {
-  return el('article', { class: 'dossier-stat' },
+function fact(label, value, note = '', emphasis = false) {
+  return el('article', { class: `dossier-stat${emphasis ? ' is-emphasis' : ''}` },
     el('span', {}, label),
     el('strong', { class: 'num' }, value),
     note ? el('small', {}, note) : null,
@@ -113,52 +115,66 @@ function fact(label, value, note = '') {
 function render() {
   const coin = payload.coin;
   const milestones = payload.milestones || {};
-  const marketCapPeak = payload.marketCapPeak365d;
-  document.title = `${coin?.name || symbol} (${symbol}) — Memecoin Detail`;
-  $('tokenName').textContent = coin?.name || symbol;
+  const launch = milestones.launch;
+  const lastPrice = payload.priceHistory?.at(-1)?.price;
+  const currentPrice = Number.isFinite(coin?.price) ? coin.price : lastPrice;
+  const displayName = coin?.name || curated?.name || symbol;
+  const athPrice = Number.isFinite(coin?.ath) ? coin.ath : milestones.ath?.price;
+  const athTimestamp = coin?.athDate ? Date.parse(coin.athDate) : milestones.ath?.t;
+  document.title = `${displayName} (${symbol}) — Memecoin Detail`;
+  $('tokenName').textContent = displayName;
   $('tokenSym').textContent = symbol;
   $('crumbToken').textContent = symbol;
-  $('tokenLogo').src = coin?.image || '';
-  $('tokenLogo').alt = coin ? `${coin.name} logo` : '';
-  $('tokenSummary').textContent =
-    `Price ${fmtPrice(coin?.price)} · market cap ${fmtUsd(coin?.mcap)} · 24h change ${fmtPct(coin?.ch24h, 1)}.`;
+  $('tokenLogo').src = coin?.image || curated?.logo || '/assets/img/brand/heatmap-volume-mark.png';
+  $('tokenLogo').alt = `${displayName} logo`;
+  const summary = [
+    Number.isFinite(currentPrice) ? `Price ${fmtPrice(currentPrice)}` : null,
+    Number.isFinite(coin?.mcap) ? `market cap ${fmtUsd(coin.mcap)}` : null,
+    Number.isFinite(coin?.ch24h) ? `24h change ${fmtPct(coin.ch24h, 1)}` : null,
+  ].filter(Boolean);
+  $('tokenSummary').textContent = summary.length
+    ? `${summary.join(' · ')}.`
+    : 'Current snapshot unavailable; historical source data remains below.';
 
   const facts = [
-    curated ? fact('Documented launch', fmtDate(Date.parse(curated.launch)), curated.launchNote) : null,
-    fact('Current price', fmtPrice(coin?.price), `${fmtPct(coin?.ch24h, 1)} / 24h`),
-    fact('Market cap', fmtUsd(coin?.mcap), `Rank #${coin?.rank || '—'}`),
-    fact('24h volume', fmtUsd(coin?.vol)),
-    fact('Price ATH', fmtPrice(coin?.ath), coin?.athDate ? fmtDate(Date.parse(coin.athDate)) : ''),
-    fact('From ATH', fmtPct(coin?.athPct, 1)),
-    fact('365d market-cap peak', marketCapPeak ? fmtUsd(marketCapPeak.mcap) : '—',
-      marketCapPeak ? fmtDate(marketCapPeak.t) : 'Unavailable'),
+    curated ? fact('Launch date', fmtDate(Date.parse(curated.launch)), curated.launchNote, true) : null,
+    fact('Launch price', Number.isFinite(launch?.price) ? fmtPrice(launch.price) : 'Unavailable',
+      launch?.source || 'No public snapshot returned'),
+    fact('Launch market cap', Number.isFinite(launch?.mcap) ? fmtUsd(launch.mcap) : 'Unavailable',
+      launch?.source || 'No public snapshot returned'),
+    fact('Current price', Number.isFinite(currentPrice) ? fmtPrice(currentPrice) : 'Unavailable',
+      Number.isFinite(coin?.ch24h) ? `${fmtPct(coin.ch24h, 1)} / 24h` : payload.source?.priceHistory || ''),
+    fact('Market cap', Number.isFinite(coin?.mcap) ? fmtUsd(coin.mcap) : 'Unavailable',
+      coin?.rank ? `Rank #${coin.rank}` : payload.source?.marketCapHistory || 'No public series returned'),
+    fact('Price ATH', fmtPrice(athPrice), Number.isFinite(athTimestamp) ? fmtDate(athTimestamp) : ''),
   ].filter(Boolean);
   $('caseFacts').replaceChildren(...facts);
 
-  const markerRows = [
-    milestones.first && { ...milestones.first, label: 'First data' },
-    milestones.day7 && { ...milestones.day7, label: 'Day 7' },
-    milestones.day30 && { ...milestones.day30, label: 'Day 30' },
-    milestones.ath && { ...milestones.ath, label: 'ATH' },
-  ].filter(Boolean);
-  renderLineChart($('priceChart'), payload.priceHistory, 'price', fmtPrice, markerRows);
-  renderLineChart($('mcapChart'), payload.marketCapHistory365d, 'mcap', fmtUsd);
-
-  $('milestones').replaceChildren(...markerRows.map((row) =>
-    fact(row.label, fmtPrice(row.price), fmtDate(row.t))));
+  renderMarketHistoryChart($('marketHistoryChart'), payload, {
+    launchAt: curated?.launch || payload.launchAt,
+    symbol,
+  });
   const curatedSources = curated ? [
-    { label: 'Official X', url: curated.officialX },
-    { label: 'Official site', url: curated.officialSite },
-    { label: 'CoinGecko', url: curated.coingecko },
-    ...curated.contracts.map((contract) => ({ label: `${contract.network} contract explorer`, url: contract.explorer })),
+    { label: 'Official X', url: curated.officialX, note: new URL(curated.officialX).pathname },
+    {
+      label: 'Official site',
+      url: curated.officialSite,
+      note: new URL(curated.officialSite).hostname,
+      logo: curated.logo,
+    },
+    { label: 'CoinGecko', url: curated.coingecko, note: 'current market and ATH' },
+    ...curated.contracts.map((contract) => ({
+      label: `${contract.network} explorer`,
+      url: contract.explorer,
+      note: contract.address ? 'verified contract' : 'native chain',
+    })),
   ] : [];
-  const allSources = [...curatedSources, ...payload.sources]
+  const allSources = [...curatedSources, ...(payload.sources || []).map((source) => ({
+    ...source,
+    note: source.label.includes('Yahoo') ? 'daily price history' : 'historical market data',
+  }))]
     .filter((source, index, rows) => rows.findIndex((item) => item.url === source.url) === index);
-  $('sourceLinks').replaceChildren(...allSources.map((source) =>
-    el('a', { href: source.url, target: '_blank', rel: 'noreferrer', class: 'source-link' },
-      el('span', {}, source.label),
-      el('span', { 'aria-hidden': 'true' }, '↗'),
-    )));
+  $('sourceLinks').replaceChildren(...allSources.map((source) => brandedSourceLink(source)));
   $('updatedAt').textContent = fmtClock(payload.fetchedAt);
   setStatus(`Data ready · price: ${payload.source.priceHistory || 'unavailable'} · market cap: ${payload.source.marketCapHistory || 'unavailable'}`, 'ok');
 }
@@ -178,7 +194,7 @@ function init() {
   load().catch((error) => {
     console.error(error);
     setStatus(error.message, 'err');
-    $('priceChart').replaceChildren(el('p', { class: 'error' }, error.message));
+    $('marketHistoryChart').replaceChildren(el('p', { class: 'error' }, error.message));
   });
   startAutoRefresh([{ every: 10_000, run: load }]);
   let resizeTimer;
@@ -187,6 +203,9 @@ function init() {
     resizeTimer = setTimeout(() => {
       if (payload) render();
     }, 160);
+  });
+  window.addEventListener('themechange', () => {
+    if (payload) render();
   });
 }
 

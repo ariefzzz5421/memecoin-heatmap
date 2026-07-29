@@ -1,7 +1,22 @@
 import { fmtClock, fmtPct, fmtPrice, fmtUsd, el } from './utils.js';
 import { startAutoRefresh } from './autorefresh.js';
+import { brandedSourceLink } from './source-brands.js';
 
 const $ = (id) => document.getElementById(id);
+const CHAIN_LOGOS = {
+  Solana: '/assets/img/chains/solana.png',
+  'Robinhood Chain': '/assets/img/chains/robinhood.png',
+  Base: '/assets/img/chains/base.png',
+  Ethereum: '/assets/img/chains/ethereum.png',
+  'BNB Chain': '/assets/img/chains/bnb.svg',
+};
+
+const fmtDate = (value) => new Intl.DateTimeFormat('en-US', {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+  timeZone: 'UTC',
+}).format(new Date(`${value}T00:00:00Z`));
 
 function setStatus(text, kind = 'busy') {
   $('statusText').textContent = text;
@@ -25,20 +40,22 @@ function metric(label, value) {
   );
 }
 
-function sourceLink(label, url) {
-  return el('a', {
-    class: 'source-button',
-    href: url,
-    target: '_blank',
-    rel: 'noreferrer',
-  }, label);
+function sourceLink(label, url, note = '', disabled = false) {
+  return brandedSourceLink({
+    label,
+    url,
+    note,
+    disabled,
+    className: 'source-button',
+  });
 }
 
 function renderCard(event) {
   const current = event.current;
   const social = event.officialX
     ? sourceLink(event.socialLabel || 'Official X', event.officialX)
-    : el('span', { class: 'source-button', title: event.socialNote || 'No verified account found' }, 'Official X unavailable');
+    : sourceLink('Official X unavailable', 'https://x.com/', event.socialNote, true);
+  const chainLogo = CHAIN_LOGOS[event.chain];
 
   return el('article', { class: 'breakout-card' },
     el('div', { class: 'breakout-head' },
@@ -53,24 +70,41 @@ function renderCard(event) {
       el('div', { class: 'breakout-title' },
         el('p', { class: 'eyebrow' }, event.launchCohort),
         el('h3', {}, `${event.name} · ${event.symbol}`),
-        el('p', {}, `${event.chain} · crossed ${event.crossedAt}`),
+        el('p', { class: 'chain-label' },
+          chainLogo ? el('img', { src: chainLogo, alt: '', width: '18', height: '18' }) : null,
+          event.chain,
+        ),
       ),
-      el('span', { class: 'pill' }, 'Verified event'),
+    ),
+    el('div', { class: 'breakout-timeline', 'aria-label': 'Key dates' },
+      el('div', { class: 'breakout-date' },
+        el('span', {}, 'Launch date'),
+        el('time', { datetime: event.launchAt }, fmtDate(event.launchAt)),
+      ),
+      el('div', { class: 'breakout-date is-crossing' },
+        el('span', {}, '$100M crossing'),
+        el('time', { datetime: event.crossedAt }, fmtDate(event.crossedAt)),
+      ),
     ),
     el('div', { class: 'breakout-metrics' },
       metric('Documented peak', fmtUsd(event.documentedPeak, 0)),
       metric('Current market cap', current ? fmtUsd(current.mcap) : 'Unavailable'),
       metric('Current price', current ? `${fmtPrice(current.price)} · ${fmtPct(current.ch24h, 1)}` : 'Unavailable'),
     ),
-    el('p', { class: 'breakout-note' }, event.note),
-    el('div', { class: 'identity-grid' },
-      el('div', { class: 'identity-item' }, el('span', {}, 'Contract creator / issuer'), el('strong', {}, event.creator)),
-      el('div', { class: 'identity-item' }, el('span', {}, 'Launch date'), el('strong', {}, event.launchAt)),
+    el('div', { class: 'breakout-identity' },
+      el('span', {}, 'Creator / issuer'),
+      el('strong', {}, event.creator),
+      el('a', {
+        class: 'contract-link',
+        href: event.explorer,
+        target: '_blank',
+        rel: 'noreferrer',
+      }, event.contract),
     ),
-    el('p', { class: 'contract-line' }, event.contract),
+    el('p', { class: 'breakout-note' }, event.note),
     el('div', { class: 'breakout-sources' },
-      sourceLink('CoinGecko', event.coingecko),
-      sourceLink('Contract explorer', event.explorer),
+      sourceLink('CoinGecko', event.coingecko, 'market record'),
+      sourceLink('Contract explorer', event.explorer, 'verified address'),
       social,
       ...event.evidence.map((item) => sourceLink(item.label, item.url)),
     ),

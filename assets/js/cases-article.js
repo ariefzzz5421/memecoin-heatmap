@@ -6,9 +6,11 @@
    ============================================================ */
 
 import { CASE_BY_SLUG } from './cases-config.js';
-import { fetchCaseMarkets, fetchWeekly } from './cases-data.js';
-import { renderCaseChart, renderWeeklyTable, fmtDate, fmtDuration, DAY } from './cases-chart.js';
-import { fmtUsd, fmtPrice, fmtPct, fmtNum, fmtClock, el } from './utils.js';
+import { fetchCaseMarkets, fetchHistory, fetchWeekly } from './cases-data.js';
+import { renderWeeklyTable, fmtDate, fmtDuration, DAY } from './cases-chart.js';
+import { renderMarketHistoryChart } from './market-history-chart.js';
+import { brandedSourceLink } from './source-brands.js';
+import { fmtUsd, fmtPrice, fmtPct, fmtClock, el } from './utils.js';
 import { startAutoRefresh } from './autorefresh.js';
 
 const $ = (id) => document.getElementById(id);
@@ -16,7 +18,7 @@ const $ = (id) => document.getElementById(id);
 const slug = document.body.dataset.case;
 const caseDef = CASE_BY_SLUG[slug];
 
-const state = { m: null, weekly: null };
+const state = { m: null, weekly: null, history: null };
 
 function setStatus(text, kind = 'busy') {
   $('statusText').textContent = text;
@@ -24,48 +26,55 @@ function setStatus(text, kind = 'busy') {
 }
 
 function launchToAthDays(m) {
-  if (!m?.athDate) return null;
-  return (Date.parse(m.athDate) - Date.parse(caseDef.launch)) / DAY;
+  const athTimestamp = m?.athDate
+    ? Date.parse(m.athDate)
+    : state.history?.milestones?.ath?.t;
+  if (!Number.isFinite(athTimestamp)) return null;
+  return (athTimestamp - Date.parse(caseDef.launch)) / DAY;
 }
 
 /* Ringkasan terhitung di bawah judul: launch, ATH, durasi. */
 function renderSummary() {
   const m = state.m;
   const days = launchToAthDays(m);
+  const historyAth = state.history?.milestones?.ath;
+  const athPrice = Number.isFinite(m?.ath) ? m.ath : historyAth?.price;
+  const athTimestamp = m?.athDate ? Date.parse(m.athDate) : historyAth?.t;
   const parts = [`Launch: ${fmtDate(Date.parse(caseDef.launch))} (${caseDef.launchNote}).`];
-  if (m && Number.isFinite(m.ath) && m.athDate) {
-    parts.push(`ATH: ${fmtPrice(m.ath)} on ${fmtDate(Date.parse(m.athDate))}.`);
+  if (Number.isFinite(athPrice) && Number.isFinite(athTimestamp)) {
+    parts.push(`ATH: ${fmtPrice(athPrice)} on ${fmtDate(athTimestamp)}.`);
     parts.push(`Launch → ATH: ${fmtDuration(days)}.`);
   }
   $('articleSummary').textContent = parts.join(' ');
 }
 
-function factRow(label, value) {
-  return el('div', { class: 'stat' },
+function factRow(label, value, note = '', emphasis = false) {
+  return el('div', { class: `stat${emphasis ? ' is-emphasis' : ''}` },
     el('span', { class: 'stat-l' }, label),
     el('span', { class: 'stat-v num' }, value),
+    note ? el('small', {}, note) : null,
   );
 }
 
 function renderFacts() {
   const m = state.m;
-  const weekly = state.weekly;
   const days = launchToAthDays(m);
-  const first = weekly?.rows?.[0];
-  const maxHigh = weekly ? Math.max(...weekly.rows.map((r) => r.h)) : null;
-  const multiple = first && maxHigh ? maxHigh / first.c : null;
+  const historyAth = state.history?.milestones?.ath;
+  const athPrice = Number.isFinite(m?.ath) ? m.ath : historyAth?.price;
+  const athTimestamp = m?.athDate ? Date.parse(m.athDate) : historyAth?.t;
+  const launch = state.history?.milestones?.launch;
+  const launchPrice = Number.isFinite(launch?.price) ? fmtPrice(launch.price) : 'Unavailable';
+  const launchMcap = Number.isFinite(launch?.mcap) ? fmtUsd(launch.mcap) : 'Unavailable';
 
   $('caseFacts').replaceChildren(
-    factRow('Launch', fmtDate(Date.parse(caseDef.launch))),
-    factRow('ATH', Number.isFinite(m?.ath) && m?.athDate ? `${fmtPrice(m.ath)} · ${fmtDate(Date.parse(m.athDate))}` : 'Unavailable'),
-    factRow('Launch → ATH', fmtDuration(days)),
-    factRow('Current price', m
-      ? `${fmtPrice(m.price)}${Number.isFinite(m.athPct) ? ` (${fmtPct(m.athPct, 1)} from ATH)` : ''}`
-      : '—'),
-    factRow('Market cap', m ? fmtUsd(m.mcap) : '—'),
-    factRow('24h volume', m ? fmtUsd(m.vol) : '—'),
-    factRow('Chart multiple', multiple ? `${fmtNum(Math.round(multiple))}× from first weekly close` : '—'),
-    factRow('Chart data', weekly ? `${weekly.provider}, since ${fmtDate(weekly.rows[0].t)}` : 'loading…'),
+    factRow('Launch date', fmtDate(Date.parse(caseDef.launch)), caseDef.launchNote, true),
+    factRow('Launch price', launchPrice, launch?.source || 'No public snapshot returned'),
+    factRow('Launch market cap', launchMcap, launch?.source || 'No public snapshot returned'),
+    factRow('ATH', Number.isFinite(athPrice) ? fmtPrice(athPrice) : 'Unavailable',
+      Number.isFinite(athTimestamp) ? `${fmtDate(athTimestamp)} · ${fmtDuration(days)} after launch` : ''),
+    factRow('Current price', m ? fmtPrice(m.price) : 'Unavailable',
+      Number.isFinite(m?.athPct) ? `${fmtPct(m.athPct, 1)} from ATH` : ''),
+    factRow('Current market cap', m ? fmtUsd(m.mcap) : 'Unavailable'),
   );
 }
 
@@ -102,33 +111,50 @@ function renderIdentityAndSources() {
     )),
   );
 
-  const sources = $('caseSources');
-  sources.replaceChildren(
-    el('a', { class: 'source-link', href: caseDef.officialX, target: '_blank', rel: 'noreferrer' },
-      el('strong', {}, 'Official X'),
-      el('span', {}, new URL(caseDef.officialX).pathname),
-    ),
-    el('a', { class: 'source-link', href: caseDef.officialSite, target: '_blank', rel: 'noreferrer' },
-      el('strong', {}, 'Official site'),
-      el('span', {}, new URL(caseDef.officialSite).hostname),
-    ),
-    el('a', { class: 'source-link', href: caseDef.coingecko, target: '_blank', rel: 'noreferrer' },
-      el('strong', {}, 'CoinGecko'),
-      el('span', {}, 'price, market cap, and ATH'),
-    ),
-    ...caseDef.contracts.map((contract) => el('a', {
-      class: 'source-link',
-      href: contract.explorer,
-      target: '_blank',
-      rel: 'noreferrer',
-    }, el('strong', {}, `${contract.network} explorer`), el('span', {}, contract.address || 'native chain'))),
-  );
+  const definitions = [
+    { label: 'Official X', url: caseDef.officialX, note: new URL(caseDef.officialX).pathname },
+    {
+      label: 'Official site',
+      url: caseDef.officialSite,
+      note: new URL(caseDef.officialSite).hostname,
+      logo: caseDef.logo,
+    },
+    { label: 'CoinGecko', url: caseDef.coingecko, note: 'current market and ATH' },
+    ...caseDef.contracts.map((contract) => ({
+      label: `${contract.network} explorer`,
+      url: contract.explorer,
+      note: contract.address ? 'verified contract' : 'native chain',
+    })),
+    ...(state.history?.sources || []).map((source) => ({
+      ...source,
+      note: source.label.includes('Yahoo') ? 'daily price history' : 'historical market data',
+    })),
+  ].filter((source, index, rows) =>
+    source.url && rows.findIndex((item) => item.url === source.url) === index);
+  $('caseSources').replaceChildren(...definitions.map((source) => brandedSourceLink(source)));
 }
 
 function renderChartSection() {
-  if (!state.weekly) return;
-  renderCaseChart($('caseChart'), caseDef, state.m, state.weekly, $('caseTip'));
-  renderWeeklyTable($('caseWeeklyTable'), caseDef, state.weekly);
+  if (state.history) {
+    const history = Number.isFinite(state.m?.ath) && state.m?.athDate
+      ? {
+          ...state.history,
+          milestones: {
+            ...state.history.milestones,
+            ath: {
+              t: Date.parse(state.m.athDate),
+              price: state.m.ath,
+              source: 'CoinGecko',
+            },
+          },
+        }
+      : state.history;
+    renderMarketHistoryChart($('caseChart'), history, {
+      launchAt: caseDef.launch,
+      symbol: caseDef.sym,
+    });
+  }
+  if (state.weekly) renderWeeklyTable($('caseWeeklyTable'), caseDef, state.weekly);
 }
 
 async function refreshMarkets({ force = false } = {}) {
@@ -147,20 +173,32 @@ async function load() {
   renderFacts();
 
   $('caseChart').replaceChildren(el('div', { class: 'chart-loading' },
-    el('span', { class: 'spinner' }), ` Loading weekly ${caseDef.sym} candles…`));
+    el('span', { class: 'spinner' }), ` Loading ${caseDef.sym} history…`));
 
   const marketsP = refreshMarkets()
     .catch((e) => console.warn('market snapshot:', e.message));
 
-  try {
-    state.weekly = await fetchWeekly(caseDef);
-    renderChartSection();
-  } catch (e) {
-    $('caseChart').replaceChildren(el('p', { class: 'error' }, `Chart could not load: ${e.message}`));
+  const [historyResult, weeklyResult] = await Promise.allSettled([
+    fetchHistory(caseDef),
+    fetchWeekly(caseDef),
+  ]);
+  if (historyResult.status === 'fulfilled') {
+    state.history = historyResult.value;
+  } else {
+    $('caseChart').replaceChildren(el('p', { class: 'error' },
+      `Historical chart is unavailable: ${historyResult.reason.message}`));
+  }
+  if (weeklyResult.status === 'fulfilled') {
+    state.weekly = weeklyResult.value;
+  } else {
+    $('caseWeeklyTable').replaceChildren(el('p', { class: 'error' },
+      `Weekly source is unavailable: ${weeklyResult.reason.message}`));
   }
 
   await marketsP;
+  renderChartSection();
   renderFacts();
+  renderIdentityAndSources();
   setStatus('Case data ready', 'ok');
 }
 
@@ -183,10 +221,19 @@ function init() {
     setStatus(`Could not load: ${e.message}`, 'err');
   });
 
-  /* Refresh senyap: snapshot pasar tiap 60 detik; kline mingguan tiap 6 jam
-     (data mingguan nyaris tidak berubah dalam hitungan menit). */
+  /* Current values refresh silently; historical series use their natural
+     daily/weekly cadence instead of hammering public APIs. */
   startAutoRefresh([
     { every: 10 * 1000, run: () => refreshMarkets({ force: true }) },
+    {
+      every: 60 * 60 * 1000,
+      run: async () => {
+        state.history = await fetchHistory(caseDef, { force: true });
+        renderChartSection();
+        renderFacts();
+        renderIdentityAndSources();
+      },
+    },
     {
       every: 6 * 3600 * 1000,
       run: async () => {

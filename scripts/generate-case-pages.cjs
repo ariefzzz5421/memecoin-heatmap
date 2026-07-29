@@ -36,14 +36,14 @@ const template = (item) => `<!DOCTYPE html>
     <div><p class="eyebrow">Case study · launch <span id="tokenYear">${item.launch.slice(0, 4)}</span></p><h2><span id="tokenName">${item.name}</span> <span class="token-sym" id="tokenSym">${item.sym}</span></h2><p class="article-summary" id="articleSummary">Loading summary…</p></div>
   </header>
 
-  <section class="panel"><article class="article-body" id="articleBody"></article></section>
-
-  <section class="panel">
-    <div class="panel-head"><div><h2>Weekly chart since exchange listing</h2><p class="panel-sub">Real weekly candles from the earliest supported exchange listing, shown on a log scale with the available ATH marker.</p></div></div>
-    <div class="chart-holder case-chart-holder"><div id="caseChart"></div><div class="tooltip" id="caseTip" hidden></div></div>
+  <section class="panel market-history-panel">
+    <div class="panel-head"><div><h2>Launch-to-market chart</h2><p class="panel-sub">Switch between price and market cap. Arrows mark sourced launch, first tracked, and peak points; unavailable values stay explicit.</p></div></div>
+    <div class="market-history-chart" id="caseChart"></div>
     <div class="detail-stats case-facts" id="caseFacts"></div>
-    <details class="disclosure"><summary>Weekly data table</summary><div class="table-scroll" id="caseWeeklyTable"></div></details>
+    <details class="disclosure"><summary>Raw weekly exchange data</summary><div class="table-scroll" id="caseWeeklyTable"></div></details>
   </section>
+
+  <section class="panel"><article class="article-body" id="articleBody"></article></section>
 
   <section class="panel">
     <div class="split">
@@ -58,7 +58,7 @@ const template = (item) => `<!DOCTYPE html>
   </section>
 
   <section class="panel source-panel">
-    <div><p class="eyebrow">Provenance</p><h2>Official and market sources</h2></div>
+    <div><h2>Sources</h2><p class="panel-sub">Official identity, explorer, and market-history links.</p></div>
     <div class="source-links" id="caseSources"></div>
   </section>
   <p class="risk-line">⚠ Historical success is not a repeatable setup. Avoid leverage and define position size before entry.</p>

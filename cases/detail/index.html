@@ -26,15 +26,11 @@
     <div><p class="eyebrow">Price history · market cap</p><h2><span id="tokenName">Memecoin</span> <span class="token-sym" id="tokenSym">—</span></h2><p class="article-summary" id="tokenSummary">Loading current data…</p></div>
   </section>
   <section class="case-facts dossier-facts" id="caseFacts" aria-label="Market summary"></section>
-  <section class="panel">
-    <div class="panel-head"><div><p class="eyebrow">Yahoo Finance / CoinGecko fallback</p><h2>Price: first observation to ATH</h2><p class="panel-sub">Markers show the first observation, day seven, day 30, and ATH. A log scale keeps the early phase visible.</p></div></div>
-    <div class="history-chart" id="priceChart"><div class="chart-loading"><span class="spinner"></span> Loading price history…</div></div><div class="milestone-grid" id="milestones"></div>
+  <section class="panel market-history-panel">
+    <div class="panel-head"><div><h2>Launch-to-market chart</h2><p class="panel-sub">Switch between price and market cap. Arrows mark sourced launch, first tracked, and peak points; unavailable values stay explicit.</p></div></div>
+    <div class="market-history-chart" id="marketHistoryChart"><div class="chart-loading"><span class="spinner"></span> Loading market history…</div></div>
   </section>
-  <section class="panel">
-    <div class="panel-head"><div><p class="eyebrow">CoinGecko public window</p><h2>Market cap · 365 days</h2><p class="panel-sub">The public source can limit market-cap history to 365 days. Values outside the returned range are not reconstructed or estimated.</p></div></div>
-    <div class="history-chart" id="mcapChart"><div class="chart-loading"><span class="spinner"></span> Loading market cap…</div></div>
-  </section>
-  <section class="panel source-panel"><div><p class="eyebrow">Provenance</p><h2>Data sources</h2></div><div class="source-links" id="sourceLinks"></div></section>
+  <section class="panel source-panel"><div><h2>Sources</h2><p class="panel-sub">Official identity, explorer, and market-history links.</p></div><div class="source-links" id="sourceLinks"></div></section>
   <p class="risk-line">⚠ Price history does not predict future results. Avoid leverage and define position size before entry.</p>
 </main>
 <footer class="site-foot wrap"><p>Backend-cached data · <span id="updatedAt">—</span></p></footer>

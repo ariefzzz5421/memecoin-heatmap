@@ -179,14 +179,14 @@ const MEME_2026_EVENTS = [
 ];
 
 const CASE_WEEKLY = {
-  dogecoin: { providers: ['binance', 'kraken', 'okx'], symbols: { binance: 'DOGEUSDT', kraken: 'XDGUSD', okx: 'DOGE-USDT' } },
-  'shiba-inu': { providers: ['okx', 'binance', 'kraken'], symbols: { binance: 'SHIBUSDT', kraken: 'SHIBUSD', okx: 'SHIB-USDT' } },
-  pepe: { providers: ['okx', 'binance', 'kraken'], symbols: { binance: 'PEPEUSDT', kraken: 'PEPEUSD', okx: 'PEPE-USDT' } },
-  dogwifcoin: { providers: ['kraken', 'binance', 'okx'], symbols: { binance: 'WIFUSDT', kraken: 'WIFUSD', okx: 'WIF-USDT' } },
-  bonk: { providers: ['kraken', 'binance', 'okx'], symbols: { binance: 'BONKUSDT', kraken: 'BONKUSD', okx: 'BONK-USDT' } },
-  'official-trump': { providers: ['okx', 'kraken', 'binance'], symbols: { binance: 'TRUMPUSDT', kraken: 'TRUMPUSD', okx: 'TRUMP-USDT' } },
-  floki: { providers: ['okx', 'binance', 'kraken'], symbols: { binance: 'FLOKIUSDT', kraken: 'FLOKIUSD', okx: 'FLOKI-USDT' } },
-  'pudgy-penguins': { providers: ['okx', 'kraken', 'binance'], symbols: { binance: 'PENGUUSDT', kraken: 'PENGUUSD', okx: 'PENGU-USDT' } },
+  dogecoin: { launchAt: '2013-12-06', providers: ['binance', 'kraken', 'okx'], symbols: { binance: 'DOGEUSDT', kraken: 'XDGUSD', okx: 'DOGE-USDT' } },
+  'shiba-inu': { launchAt: '2020-08-01', providers: ['okx', 'binance', 'kraken'], symbols: { binance: 'SHIBUSDT', kraken: 'SHIBUSD', okx: 'SHIB-USDT' } },
+  pepe: { launchAt: '2023-04-14', providers: ['okx', 'binance', 'kraken'], symbols: { binance: 'PEPEUSDT', kraken: 'PEPEUSD', okx: 'PEPE-USDT' } },
+  dogwifcoin: { launchAt: '2023-11-20', providers: ['kraken', 'binance', 'okx'], symbols: { binance: 'WIFUSDT', kraken: 'WIFUSD', okx: 'WIF-USDT' } },
+  bonk: { launchAt: '2022-12-25', providers: ['kraken', 'binance', 'okx'], symbols: { binance: 'BONKUSDT', kraken: 'BONKUSD', okx: 'BONK-USDT' } },
+  'official-trump': { launchAt: '2025-01-17', providers: ['okx', 'kraken', 'binance'], symbols: { binance: 'TRUMPUSDT', kraken: 'TRUMPUSD', okx: 'TRUMP-USDT' } },
+  floki: { launchAt: '2021-06-25', providers: ['okx', 'binance', 'kraken'], symbols: { binance: 'FLOKIUSDT', kraken: 'FLOKIUSD', okx: 'FLOKI-USDT' } },
+  'pudgy-penguins': { launchAt: '2024-12-17', providers: ['okx', 'kraken', 'binance'], symbols: { binance: 'PENGUUSDT', kraken: 'PENGUUSD', okx: 'PENGU-USDT' } },
 };
 
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -661,21 +661,48 @@ function downsample(rows, maximum = 1200) {
   return rows.filter((_, index) => index % step === 0 || index === rows.length - 1);
 }
 
-function nearest(rows, timestamp) {
+function nearest(rows, timestamp, tolerance = Number.POSITIVE_INFINITY) {
   if (!rows.length) return null;
-  return rows.find((row) => row.t >= timestamp) || rows.at(-1);
+  const best = rows.reduce((candidate, row) =>
+    Math.abs(row.t - timestamp) < Math.abs(candidate.t - timestamp) ? row : candidate, rows[0]);
+  return Math.abs(best.t - timestamp) <= tolerance ? best : null;
 }
 
-function buildPriceMilestones(rows, coin) {
-  if (!rows.length) return {};
+function buildPriceMilestones(rows, coin, launchAt, launchSnapshots = {}) {
+  const launchT = Date.parse(launchAt);
+  const day = 86400000;
+  const launch = launchSnapshots.launch || {
+    t: launchT,
+    requestedAt: launchT,
+    price: null,
+    mcap: null,
+    source: null,
+    unavailable: true,
+  };
+  if (!rows.length) {
+    return {
+      launch,
+      day7: launchSnapshots.day7 || null,
+      day30: launchSnapshots.day30 || null,
+      ath: Number.isFinite(coin?.ath)
+        ? { t: Date.parse(coin.athDate), price: coin.ath, source: 'CoinGecko' }
+        : null,
+    };
+  }
   const first = rows[0];
-  const day7 = nearest(rows, first.t + 7 * 86400000);
-  const day30 = nearest(rows, first.t + 30 * 86400000);
+  const day7 = launchSnapshots.day7 || nearest(rows, launchT + 7 * day, 2 * day);
+  const day30 = launchSnapshots.day30 || nearest(rows, launchT + 30 * day, 2 * day);
   const chartAth = rows.reduce((best, row) => row.price > best.price ? row : best, first);
   const ath = Number.isFinite(coin?.ath)
     ? { t: Date.parse(coin.athDate), price: coin.ath, source: 'CoinGecko' }
     : { ...chartAth, source: 'Yahoo Finance' };
-  return { first, day7, day30, ath };
+  return {
+    launch,
+    first,
+    day7,
+    day30,
+    ath,
+  };
 }
 
 async function yahooHistory(symbol) {
@@ -695,18 +722,76 @@ async function yahooHistory(symbol) {
 }
 
 async function coingeckoHistory(id) {
+  let lastError;
+  for (const days of ['max', '365']) {
+    try {
+      const json = await fetchJSON(
+        `${CG}/coins/${encodeURIComponent(id)}/market_chart?vs_currency=usd&days=${days}&interval=daily`,
+        { timeout: 22_000, retries: 0 },
+      );
+      return {
+        prices: (json.prices || [])
+          .map(([t, price]) => ({ t, price: Number(price) }))
+          .filter((row) => Number.isFinite(row.price) && row.price > 0),
+        marketCaps: (json.market_caps || [])
+          .map(([t, mcap]) => ({ t, mcap: Number(mcap) }))
+          .filter((row) => Number.isFinite(row.mcap) && row.mcap > 0),
+        window: days === 'max' ? 'full public history' : '365d public window',
+      };
+    } catch (error) {
+      lastError = error;
+      await pause(700);
+    }
+  }
+  throw lastError || new Error('CoinGecko history unavailable');
+}
+
+const historyDate = (timestamp) => {
+  const date = new Date(timestamp);
+  return [
+    String(date.getUTCDate()).padStart(2, '0'),
+    String(date.getUTCMonth() + 1).padStart(2, '0'),
+    date.getUTCFullYear(),
+  ].join('-');
+};
+
+async function coingeckoSnapshot(id, requestedAt) {
   const json = await fetchJSON(
-    `${CG}/coins/${encodeURIComponent(id)}/market_chart?vs_currency=usd&days=365&interval=daily`,
-    { timeout: 22_000 },
+    `${CG}/coins/${encodeURIComponent(id)}/history?date=${historyDate(requestedAt)}&localization=false`,
+    { timeout: 18_000, retries: 1 },
   );
+  const price = Number(json?.market_data?.current_price?.usd);
+  const mcap = Number(json?.market_data?.market_cap?.usd);
+  if (!(price > 0) && !(mcap > 0)) throw new Error(`no market snapshot for ${historyDate(requestedAt)}`);
   return {
-    prices: (json.prices || [])
-      .map(([t, price]) => ({ t, price: Number(price) }))
-      .filter((row) => Number.isFinite(row.price)),
-    marketCaps: (json.market_caps || [])
-      .map(([t, mcap]) => ({ t, mcap: Number(mcap) }))
-      .filter((row) => Number.isFinite(row.mcap)),
+    t: requestedAt,
+    requestedAt,
+    price: price > 0 ? price : null,
+    mcap: mcap > 0 ? mcap : null,
+    source: 'CoinGecko historical snapshot',
   };
+}
+
+async function coingeckoLaunchSnapshots(id, launchAt) {
+  const launchT = Date.parse(launchAt);
+  if (!Number.isFinite(launchT)) return { snapshots: {}, failures: ['invalid launch date'] };
+  const day = 86400000;
+  const definitions = [
+    ['launch', launchT],
+    ['day7', launchT + 7 * day],
+    ['day30', launchT + 30 * day],
+  ];
+  const snapshots = {};
+  const failures = [];
+  for (const [key, timestamp] of definitions) {
+    try {
+      snapshots[key] = await coingeckoSnapshot(id, timestamp);
+    } catch (error) {
+      failures.push(`${key}: ${error.message || 'unavailable'}`);
+    }
+    await pause(900);
+  }
+  return { snapshots, failures };
 }
 
 async function currentCoin(id) {
@@ -720,17 +805,39 @@ async function currentCoin(id) {
 
 async function loadHistory(id, symbol) {
   const yahooSymbol = `${String(symbol || '').toUpperCase()}-USD`;
+  const launchAt = CASE_WEEKLY[id]?.launchAt || null;
   const overviewCoin = cache.get('overview')?.value?.memecoins?.find((row) => row.id === id) || null;
-  const [coinResult, yahooResult, geckoResult] = await Promise.allSettled([
+  const [coinResult, yahooResult] = await Promise.allSettled([
     overviewCoin ? Promise.resolve(overviewCoin) : currentCoin(id),
     yahooHistory(yahooSymbol),
-    coingeckoHistory(id),
   ]);
+  await pause(900);
+  let geckoResult;
+  try {
+    geckoResult = { status: 'fulfilled', value: await coingeckoHistory(id) };
+  } catch (reason) {
+    geckoResult = { status: 'rejected', reason };
+  }
+  await pause(900);
+  let launchResult;
+  try {
+    launchResult = {
+      status: 'fulfilled',
+      value: launchAt
+        ? await coingeckoLaunchSnapshots(id, launchAt)
+        : { snapshots: {}, failures: [] },
+    };
+  } catch (reason) {
+    launchResult = { status: 'rejected', reason };
+  }
   const coin = coinResult.status === 'fulfilled' ? coinResult.value : null;
   const yahooRows = yahooResult.status === 'fulfilled' ? yahooResult.value : [];
   const gecko = geckoResult.status === 'fulfilled'
     ? geckoResult.value
-    : { prices: [], marketCaps: [] };
+    : { prices: [], marketCaps: [], window: null };
+  const launchHistory = launchResult.status === 'fulfilled'
+    ? launchResult.value
+    : { snapshots: {}, failures: [launchResult.reason?.message || 'launch history unavailable'] };
   const priceRows = yahooRows.length ? yahooRows : gecko.prices;
 
   if (!coin && !priceRows.length && !gecko.marketCaps.length) {
@@ -747,14 +854,17 @@ async function loadHistory(id, symbol) {
     fetchedAt: Date.now(),
     id,
     symbol: String(symbol || '').toUpperCase(),
+    launchAt,
     coin,
     priceHistory: downsample(priceRows),
     marketCapHistory365d: downsample(gecko.marketCaps),
-    milestones: buildPriceMilestones(priceRows, coin),
+    milestones: buildPriceMilestones(priceRows, coin, launchAt || new Date(priceRows[0]?.t || Date.now()).toISOString(), launchHistory.snapshots),
+    launchHistoryFailures: launchHistory.failures,
     marketCapPeak365d,
     source: {
       priceHistory: yahooRows.length ? 'Yahoo Finance' : gecko.prices.length ? 'CoinGecko' : null,
-      marketCapHistory: gecko.marketCaps.length ? 'CoinGecko (365d public window)' : null,
+      marketCapHistory: gecko.marketCaps.length ? `CoinGecko (${gecko.window})` : null,
+      launchMilestones: Object.keys(launchHistory.snapshots).length ? 'CoinGecko historical snapshots' : null,
       current: coin ? 'CoinGecko' : null,
     },
     sources: [
@@ -785,7 +895,7 @@ export async function getMarketPayload(urlLike) {
     }
     const key = `history:${id}:${symbol}`;
     const partial = cache.get(key)?.value?.partial;
-    return cached(key, partial ? 30_000 : TTL.history, () => loadHistory(id, symbol));
+    return cached(key, partial ? 10 * 60_000 : TTL.history, () => loadHistory(id, symbol));
   }
   if (resource === 'sentiment') {
     return cached('sentiment', TTL.sentiment, loadSentiment);
