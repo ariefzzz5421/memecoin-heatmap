@@ -1,93 +1,44 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Memecoin Detail — Crypto Heatmap Volume</title>
-<meta name="description" content="Riwayat harga memecoin dari data pertama hingga ATH, milestone minggu dan bulan pertama, serta market cap 365 hari.">
+<meta name="description" content="Memecoin price history from first available data to ATH, with day-seven, day-30, and 365-day market-cap milestones.">
 <link rel="stylesheet" href="/assets/css/style.css">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='12' fill='%232a78d6'/></svg>">
+<link rel="icon" type="image/png" href="/assets/img/brand/heatmap-volume-mark.png">
 </head>
 <body>
 <header class="site-head">
   <div class="wrap head-inner">
-    <a class="brand brand-link" href="/">
-      <span class="brand-mark" aria-hidden="true"></span>
-      <div>
-        <h1>Crypto Heatmap Volume</h1>
-        <p class="brand-sub">Token research dossier</p>
-      </div>
-    </a>
-    <nav class="primary-nav" aria-label="Navigasi utama">
-      <a href="/">Overview</a>
-      <a href="/maps/">Maps</a>
-      <a href="/sentiment/">Sentiment</a>
-      <a class="is-active" href="/cases/" aria-current="page">Cases</a>
+    <a class="brand brand-link" href="/"><img class="brand-mark" src="/assets/img/brand/heatmap-volume-mark.png" alt="" width="38" height="38"><div><h1>Crypto Heatmap Volume</h1><p class="brand-sub">Token research dossier</p></div></a>
+    <nav class="primary-nav" aria-label="Primary navigation">
+      <a href="/">Overview</a><a href="/maps/">Maps</a><a href="/sentiment/">Sentiment</a><a class="is-active" href="/cases/" aria-current="page">Cases</a><a href="/2026-memecoins/">2026</a>
     </nav>
+    <div class="head-actions"><button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch theme"><span class="theme-icon theme-icon-sun" aria-hidden="true">☀</span><span class="theme-icon theme-icon-moon" aria-hidden="true">☾</span></button></div>
   </div>
-  <div class="status-bar wrap">
-    <span class="dot busy" id="statusDot"></span>
-    <span id="statusText">Mengambil riwayat pasar…</span>
-  </div>
+  <div class="status-bar wrap"><span class="dot busy" id="statusDot"></span><span id="statusText">Loading market history…</span></div>
 </header>
-
 <main class="wrap article-wrap detail-dossier">
-  <nav class="breadcrumb" aria-label="Breadcrumb">
-    <a href="/cases/">Cases</a><span>/</span><span id="crumbToken">Detail</span>
-  </nav>
-
+  <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/cases/">Cases</a><span>/</span><span id="crumbToken">Detail</span></nav>
   <section class="token-hero dynamic-token-hero">
     <img class="token-logo" id="tokenLogo" alt="" width="96" height="96">
-    <div>
-      <p class="eyebrow">Price history · market cap</p>
-      <h2><span id="tokenName">Memecoin</span> <span class="token-sym" id="tokenSym">—</span></h2>
-      <p class="article-summary" id="tokenSummary">Memuat data aktual…</p>
-    </div>
+    <div><p class="eyebrow">Price history · market cap</p><h2><span id="tokenName">Memecoin</span> <span class="token-sym" id="tokenSym">—</span></h2><p class="article-summary" id="tokenSummary">Loading current data…</p></div>
   </section>
-
-  <section class="case-facts dossier-facts" id="caseFacts" aria-label="Ringkasan pasar"></section>
-
+  <section class="case-facts dossier-facts" id="caseFacts" aria-label="Market summary"></section>
   <section class="panel">
-    <div class="panel-head">
-      <div>
-        <p class="eyebrow">Yahoo Finance / CoinGecko fallback</p>
-        <h2>Harga: data pertama hingga ATH</h2>
-        <p class="panel-sub">Marker menunjukkan observasi pertama, hari ke-7, hari ke-30, dan ATH. Skala log dipakai agar fase awal tetap terlihat.</p>
-      </div>
-    </div>
-    <div class="history-chart" id="priceChart">
-      <div class="chart-loading"><span class="spinner"></span> Memuat riwayat harga…</div>
-    </div>
-    <div class="milestone-grid" id="milestones"></div>
+    <div class="panel-head"><div><p class="eyebrow">Yahoo Finance / CoinGecko fallback</p><h2>Price: first observation to ATH</h2><p class="panel-sub">Markers show the first observation, day seven, day 30, and ATH. A log scale keeps the early phase visible.</p></div></div>
+    <div class="history-chart" id="priceChart"><div class="chart-loading"><span class="spinner"></span> Loading price history…</div></div><div class="milestone-grid" id="milestones"></div>
   </section>
-
   <section class="panel">
-    <div class="panel-head">
-      <div>
-        <p class="eyebrow">CoinGecko public window</p>
-        <h2>Kapitalisasi pasar · 365 hari</h2>
-        <p class="panel-sub">CoinGecko publik membatasi histori market cap ke 365 hari. Nilai di luar rentang ini tidak direkonstruksi atau diestimasi.</p>
-      </div>
-    </div>
-    <div class="history-chart" id="mcapChart">
-      <div class="chart-loading"><span class="spinner"></span> Memuat market cap…</div>
-    </div>
+    <div class="panel-head"><div><p class="eyebrow">CoinGecko public window</p><h2>Market cap · 365 days</h2><p class="panel-sub">The public source can limit market-cap history to 365 days. Values outside the returned range are not reconstructed or estimated.</p></div></div>
+    <div class="history-chart" id="mcapChart"><div class="chart-loading"><span class="spinner"></span> Loading market cap…</div></div>
   </section>
-
-  <section class="panel source-panel">
-    <div>
-      <p class="eyebrow">Sources</p>
-      <h2>Sumber data</h2>
-    </div>
-    <div class="source-links" id="sourceLinks"></div>
-  </section>
-
-  <p class="risk-line">⚠️ Riwayat harga tidak menjamin hasil berikutnya. Hindari leverage dan tentukan ukuran posisi sebelum masuk.</p>
+  <section class="panel source-panel"><div><p class="eyebrow">Provenance</p><h2>Data sources</h2></div><div class="source-links" id="sourceLinks"></div></section>
+  <p class="risk-line">⚠ Price history does not predict future results. Avoid leverage and define position size before entry.</p>
 </main>
-
-<footer class="site-foot wrap">
-  <p>Data backend ter-cache · <span id="updatedAt">—</span></p>
-</footer>
+<footer class="site-foot wrap"><p>Backend-cached data · <span id="updatedAt">—</span></p></footer>
+<script type="module" src="/assets/js/theme.js"></script>
 <script type="module" src="/assets/js/coin-detail.js"></script>
 </body>
 </html>

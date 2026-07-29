@@ -1,115 +1,57 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sentiment — Volume & Revenue Platform Kripto</title>
-<meta name="description" content="Pantau volume 24 jam, revenue 24 jam, momentum aktivitas, dan chain terpanas untuk Pump.fun, Fomo, GMGN, Pons Launchpad, dan Virtuals Protocol.">
+<title>Sentiment — Launchpad Volume & Revenue</title>
+<meta name="description" content="Monitor sourced 24-hour volume, revenue, activity momentum, and hottest chains for tracked crypto launchpads and trading platforms.">
 <link rel="stylesheet" href="/assets/css/style.css">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='12' fill='%232a78d6'/></svg>">
+<link rel="icon" type="image/png" href="/assets/img/brand/heatmap-volume-mark.png">
 </head>
 <body>
-
-<a class="skip" href="#platforms">Lompat ke data platform</a>
-
+<a class="skip" href="#platforms">Skip to platform data</a>
 <header class="site-head">
   <div class="wrap head-inner">
-    <a class="brand brand-link" href="/">
-      <span class="brand-mark" aria-hidden="true"></span>
-      <div>
-        <h1>Crypto Heatmap Volume</h1>
-        <p class="brand-sub">Volume, revenue & momentum platform</p>
-      </div>
-    </a>
-    <nav class="primary-nav" aria-label="Navigasi utama">
-      <a href="/">Overview</a>
-      <a href="/maps/">Maps</a>
-      <a class="is-active" href="/sentiment/" aria-current="page">Sentiment</a>
-      <a href="/cases/">Cases</a>
+    <a class="brand brand-link" href="/"><img class="brand-mark" src="/assets/img/brand/heatmap-volume-mark.png" alt="" width="38" height="38"><div><h1>Crypto Heatmap Volume</h1><p class="brand-sub">Platform volume, revenue, and momentum</p></div></a>
+    <nav class="primary-nav" aria-label="Primary navigation">
+      <a href="/">Overview</a><a href="/maps/">Maps</a><a class="is-active" href="/sentiment/" aria-current="page">Sentiment</a><a href="/cases/">Cases</a><a href="/2026-memecoins/">2026</a>
     </nav>
+    <div class="head-actions"><button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch theme"><span class="theme-icon theme-icon-sun" aria-hidden="true">☀</span><span class="theme-icon theme-icon-moon" aria-hidden="true">☾</span></button></div>
   </div>
-  <div class="status-bar wrap">
-    <span class="dot busy" id="statusDot"></span>
-    <span id="statusText">Mengambil metrik platform…</span>
-  </div>
+  <div class="status-bar wrap"><span class="dot busy" id="statusDot"></span><span id="statusText">Loading platform metrics…</span></div>
 </header>
-
 <main class="wrap">
   <section class="route-hero sentiment-hero">
-    <div>
-      <p class="eyebrow">Metrik platform · 24 jam</p>
-      <h2>Volume &amp; revenue platform, 24 jam</h2>
-      <p>Aktivitas protokol dari DeFiLlama. Nilai yang tidak tersedia tetap kosong, tanpa estimasi.</p>
-    </div>
-    <div class="source-chip">
-      <span class="dot ok"></span>
-      DeFiLlama · <span id="cacheState">data baru</span>
-    </div>
+    <div><p class="eyebrow">Protocol metrics · 24h</p><h2>Platform volume and revenue</h2><p>DeFiLlama protocol activity. Unavailable fields remain explicitly unavailable—never estimated.</p></div>
+    <div class="source-chip"><span class="dot ok"></span>DeFiLlama · <span id="cacheState">fresh response</span></div>
   </section>
-
-  <section class="kpi-strip sentiment-kpis" aria-label="Ringkasan metrik platform">
-    <article class="kpi">
-      <h2>Volume platform 24 jam</h2>
-      <p class="kpi-val" id="totalVolume">—</p>
-      <p class="kpi-sub" id="totalVolumeSub">—</p>
-    </article>
-    <article class="kpi">
-      <h2>Revenue platform 24 jam</h2>
-      <p class="kpi-val" id="totalRevenue">—</p>
-      <p class="kpi-sub" id="totalRevenueSub">—</p>
-    </article>
-    <article class="kpi kpi-accent">
-      <h2>Chain volume tertinggi</h2>
-      <p class="kpi-val" id="hotChain">—</p>
-      <p class="kpi-sub" id="hotChainSub">—</p>
-    </article>
-    <article class="kpi">
-      <h2>Cakupan sumber</h2>
-      <p class="kpi-val" id="coverage">—</p>
-      <p class="kpi-sub">Metrik tersedia dari 5 platform</p>
-    </article>
+  <section class="kpi-strip sentiment-kpis" aria-label="Platform metric summary">
+    <article class="kpi"><h2>Platform volume · 24h</h2><p class="kpi-val" id="totalVolume">—</p><p class="kpi-sub" id="totalVolumeSub">—</p></article>
+    <article class="kpi"><h2>Platform revenue · 24h</h2><p class="kpi-val" id="totalRevenue">—</p><p class="kpi-sub" id="totalRevenueSub">—</p></article>
+    <article class="kpi kpi-accent"><h2>Highest-volume chain</h2><p class="kpi-val" id="hotChain">—</p><p class="kpi-sub" id="hotChainSub">—</p></article>
+    <article class="kpi"><h2>Source coverage</h2><p class="kpi-val" id="coverage">—</p><p class="kpi-sub">availability across tracked platforms</p></article>
   </section>
-
   <section id="platforms">
-    <div class="section-intro">
-      <div>
-        <p class="eyebrow">Platform monitor</p>
-        <h2>Volume & revenue per platform</h2>
-      </div>
-      <p>Perubahan dibandingkan 24 jam sebelumnya.</p>
-    </div>
-    <div class="platform-grid" id="platformGrid">
-      <div class="panel-loading"><span class="spinner"></span> Memuat data platform…</div>
-    </div>
+    <div class="section-intro"><div><p class="eyebrow">Platform monitor</p><h2>Volume and revenue by platform</h2></div><p>Change versus the previous 24-hour period.</p></div>
+    <div class="platform-grid" id="platformGrid"><div class="panel-loading"><span class="spinner"></span> Loading platform data…</div></div>
   </section>
-
   <section class="panel">
-    <div class="panel-head">
-      <div>
-        <h2>Chain berdasarkan volume 24 jam</h2>
-        <p class="panel-sub">Total volume 24 jam per chain dari platform terpantau. Revenue sebagai pembanding kedua.</p>
-      </div>
-    </div>
-    <div class="table-scroll" id="chainTable">
-      <div class="panel-loading"><span class="spinner"></span> Menghitung chain…</div>
+    <div class="panel-head"><div><h2>Chains by reported 24h volume</h2><p class="panel-sub">Aggregated volume across monitored platforms, with revenue as a separate comparison. Official chain marks identify the network only.</p></div></div>
+    <div class="table-scroll" id="chainTable"><div class="panel-loading"><span class="spinner"></span> Building chain ranking…</div></div>
+  </section>
+  <section class="panel source-panel">
+    <div><p class="eyebrow">Provenance</p><h2>Sources and boundaries</h2></div>
+    <div class="source-links">
+      <a class="source-link" href="https://defillama.com/" target="_blank" rel="noreferrer"><strong>DeFiLlama</strong><span>protocol volume and revenue</span></a>
+      <a class="source-link" href="https://www.bnbchain.org/en/brand-guidelines" target="_blank" rel="noreferrer"><strong>BNB Chain</strong><span>official brand source</span></a>
+      <a class="source-link" href="https://www.monad.xyz/" target="_blank" rel="noreferrer"><strong>Monad</strong><span>official brand source</span></a>
+      <a class="source-link" href="https://www.megaeth.com/brand-kit" target="_blank" rel="noreferrer"><strong>MegaETH</strong><span>official brand kit</span></a>
     </div>
   </section>
-
-  <section class="panel methodology-compact">
-    <div class="panel-head">
-      <div>
-        <h2>Cakupan data</h2>
-        <p class="panel-sub">Volume = transaksi protokol; revenue = pendapatan protokol setelah insentif. Nilai antar-platform dapat overlap.</p>
-      </div>
-    </div>
-    <p class="note warn" id="coverageNote">Memeriksa cakupan data…</p>
-  </section>
+  <section class="panel methodology-compact"><div class="panel-head"><div><h2>Coverage note</h2><p class="panel-sub">Volume means protocol transactions; revenue means value retained after incentives under DeFiLlama's methodology. Cross-platform values can overlap.</p></div></div><p class="note warn" id="coverageNote">Checking source coverage…</p></section>
 </main>
-
-<footer class="site-foot wrap">
-  <p>Sumber: DeFiLlama protocol metrics. Diperbarui <span id="updatedAt">—</span>.</p>
-</footer>
-
+<footer class="site-foot wrap"><p>Source: <a href="https://defillama.com/" target="_blank" rel="noreferrer">DeFiLlama protocol metrics</a> · <span id="updatedAt">—</span></p></footer>
+<script type="module" src="/assets/js/theme.js"></script>
 <script type="module" src="/assets/js/sentiment-page.js"></script>
 </body>
 </html>

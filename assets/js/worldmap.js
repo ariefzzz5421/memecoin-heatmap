@@ -461,15 +461,15 @@ export class WorldMap {
         <span class="tip-rank">#${this.data.rows.indexOf(r) + 1}</span>
       </div>
       <dl class="tip-grid">
-        <dt>Volume 24 jam</dt><dd class="num">${fmtUsd(r.volUsd)}</dd>
-        <dt>Pangsa global</dt><dd class="num">${(r.share * 100).toFixed(2)}%</dd>
-        <dt>Jumlah bursa</dt><dd class="num">${fmtNum(r.count)}</dd>
-        <dt>Rata-rata / bursa</dt><dd class="num">${fmtUsd(r.avgUsd)}</dd>
-        <dt>Median / bursa</dt><dd class="num">${fmtUsd(r.medianUsd)}</dd>
-        <dt>Bursa terbesar</dt><dd>${escapeHtml(r.top?.name || '—')}</dd>
-        ${localTime ? `<dt>Waktu lokal</dt><dd class="num">${localTime}</dd>` : ''}
+        <dt>24h volume</dt><dd class="num">${fmtUsd(r.volUsd)}</dd>
+        <dt>Mapped share</dt><dd class="num">${(r.share * 100).toFixed(2)}%</dd>
+        <dt>Exchanges</dt><dd class="num">${fmtNum(r.count)}</dd>
+        <dt>Average / exchange</dt><dd class="num">${fmtUsd(r.avgUsd)}</dd>
+        <dt>Median / exchange</dt><dd class="num">${fmtUsd(r.medianUsd)}</dd>
+        <dt>Largest exchange</dt><dd>${escapeHtml(r.top?.name || '—')}</dd>
+        ${localTime ? `<dt>Local time</dt><dd class="num">${localTime}</dd>` : ''}
       </dl>
-      <div class="tip-foot">Klik untuk mengunci detail</div>`;
+      <div class="tip-foot">Click to lock details</div>`;
 
     tip.hidden = false;
     const box = this.canvas.getBoundingClientRect();

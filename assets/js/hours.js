@@ -35,7 +35,7 @@ export function renderHourProfile(container, an, { tooltip, sessions = true } = 
   const root = svg('svg', {
     viewBox: `0 0 ${W} ${H}`, width: '100%', height: H,
     role: 'img',
-    'aria-label': 'Rata-rata volume per jam dalam sehari, sumbu WIB dan UTC',
+    'aria-label': 'Average hourly volume across a day, shown in WIB and UTC',
   });
 
   // profil diurutkan menurut jam WIB agar sumbu utama = waktu pengguna
@@ -93,7 +93,7 @@ export function renderHourProfile(container, an, { tooltip, sessions = true } = 
     x: M.left + iw, y: avgY - 6, 'text-anchor': 'end',
     fill: PALETTE.ink2, 'font-size': 10,
   });
-  avgLbl.textContent = `rata-rata ${fmtUsdShort(an.avgPerHour)}/jam`;
+  avgLbl.textContent = `average ${fmtUsdShort(an.avgPerHour)}/hour`;
   root.append(avgLbl);
 
   /* --- batang --- */
@@ -109,7 +109,7 @@ export function renderHourProfile(container, an, { tooltip, sessions = true } = 
       'data-i': i,
       tabindex: 0,
       role: 'listitem',
-      'aria-label': `${pad2(p.wib)}:00 WIB, rata-rata ${fmtUsd(p.avg)}`,
+      'aria-label': `${pad2(p.wib)}:00 WIB, average ${fmtUsd(p.avg)}`,
     });
     rect.style.cursor = 'pointer';
     rect.style.transition = 'opacity .12s';
@@ -121,12 +121,12 @@ export function renderHourProfile(container, an, { tooltip, sessions = true } = 
         <div class="tip-head"><strong>${pad2(p.wib)}:00 WIB</strong>
           <span class="tip-rank">${pad2(p.utc)}:00 UTC</span></div>
         <dl class="tip-grid">
-          <dt>Rata-rata volume</dt><dd class="num">${fmtUsd(p.avg)}</dd>
+          <dt>Average volume</dt><dd class="num">${fmtUsd(p.avg)}</dd>
           <dt>Median</dt><dd class="num">${fmtUsd(p.med)}</dd>
           <dt>Puncak tertinggi</dt><dd class="num">${fmtUsd(p.max)}</dd>
-          <dt>vs rata-rata harian</dt><dd class="num ${p.vsAvg >= 0 ? 'up' : 'down'}">${fmtPct(p.vsAvg * 100, 1)}</dd>
-          <dt>Pangsa hari</dt><dd class="num">${(p.share * 100).toFixed(1)}%</dd>
-          <dt>Sampel</dt><dd class="num">${p.n} jam</dd>
+          <dt>vs daily average</dt><dd class="num ${p.vsAvg >= 0 ? 'up' : 'down'}">${fmtPct(p.vsAvg * 100, 1)}</dd>
+          <dt>Daily share</dt><dd class="num">${(p.share * 100).toFixed(1)}%</dd>
+          <dt>Samples</dt><dd class="num">${p.n} hours</dd>
         </dl>`;
       tooltip.hidden = false;
       positionTip(tooltip, container, evt);
@@ -152,7 +152,7 @@ export function renderHourProfile(container, an, { tooltip, sessions = true } = 
       x: lx, y: y(p.avg) - 8, 'text-anchor': 'middle',
       fill: PALETTE.ink, 'font-size': 11, 'font-weight': 600,
     });
-    t1.textContent = `puncak ${fmtUsdShort(p.avg)}`;
+    t1.textContent = `peak ${fmtUsdShort(p.avg)}`;
     root.append(t1);
   }
 
@@ -202,7 +202,7 @@ export function renderHourMatrix(container, an, { tooltip } = {}) {
 
   if (!an.hasMatrix) {
     container.append(el('p', { class: 'note' },
-      'Matriks hari x jam butuh minimal 7 hari data. Pilih timeframe 7 hari atau lebih.'));
+      'The day × hour matrix needs at least seven days of data. Select a seven-day or longer window.'));
     return;
   }
 
@@ -239,9 +239,9 @@ export function renderHourMatrix(container, an, { tooltip } = {}) {
             <div class="tip-head"><strong>${DOW_ID[row.dow]}, ${pad2(cell.wib)}:00 WIB</strong>
               <span class="tip-rank">${pad2(cell.utc)}:00 UTC</span></div>
             <dl class="tip-grid">
-              <dt>Rata-rata volume</dt><dd class="num">${fmtUsd(cell.avg)}</dd>
-              <dt>vs rata-rata</dt><dd class="num ${vs >= 0 ? 'up' : 'down'}">${fmtPct(vs * 100, 1)}</dd>
-              <dt>Sampel</dt><dd class="num">${cell.n} minggu</dd>
+              <dt>Average volume</dt><dd class="num">${fmtUsd(cell.avg)}</dd>
+              <dt>vs average</dt><dd class="num ${vs >= 0 ? 'up' : 'down'}">${fmtPct(vs * 100, 1)}</dd>
+              <dt>Samples</dt><dd class="num">${cell.n} weeks</dd>
             </dl>`;
           tooltip.hidden = false;
           positionTip(tooltip, container, evt);

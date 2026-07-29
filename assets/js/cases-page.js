@@ -14,7 +14,7 @@ async function market(resource) {
   const response = await fetch(`/api/market?resource=${resource}&t=${Math.floor(Date.now() / 10_000)}`);
   if (!response.ok) throw new Error(`Backend HTTP ${response.status}`);
   const payload = await response.json();
-  if (!payload?.ok) throw new Error(payload?.error || 'Data tidak tersedia');
+  if (!payload?.ok) throw new Error(payload?.error || 'Data is unavailable');
   return payload;
 }
 
@@ -31,16 +31,16 @@ function renderUniverse() {
   $('kpiCount').textContent = String(coins.length);
   $('kpiTotal').textContent = fmtUsd(coins.reduce((sum, coin) => sum + (coin.mcap || 0), 0));
   $('kpiUpdated').textContent =
-    `${state.overview.source?.memecoins || 'Sumber parsial'} · ${fmtClock(state.overview.fetchedAt)}`;
+    `${state.overview.source?.memecoins || 'Partial source'} · ${fmtClock(state.overview.fetchedAt)}`;
 
   const table = el('table', { class: 'data-table market-leader-table' });
   table.append(el('thead', {}, el('tr', {},
     el('th', {}, '#'),
-    el('th', {}, 'Koin'),
-    el('th', { class: 'r' }, 'Harga'),
-    el('th', { class: 'r' }, '24 jam'),
+    el('th', {}, 'Coin'),
+    el('th', { class: 'r' }, 'Price'),
+    el('th', { class: 'r' }, '24h'),
     el('th', { class: 'r' }, 'Market cap'),
-    el('th', { class: 'r' }, 'Volume 24j'),
+    el('th', { class: 'r' }, '24h volume'),
     el('th', { class: 'r' }, ''),
   )));
   const body = el('tbody');
@@ -100,8 +100,8 @@ function renderLaunchpads() {
   table.append(el('thead', {}, el('tr', {},
     el('th', {}, '#'),
     el('th', {}, 'Platform'),
-    el('th', { class: 'r' }, 'Volume 24j'),
-    el('th', { class: 'r' }, 'Revenue 24j'),
+    el('th', { class: 'r' }, '24h volume'),
+    el('th', { class: 'r' }, '24h revenue'),
     el('th', { class: 'r' }, 'Momentum'),
   )));
   const body = el('tbody');
@@ -137,7 +137,7 @@ async function refresh() {
     renderLaunchpads();
   }
   if (!state.overview) throw overviewResult.reason;
-  setStatus(sentimentResult.status === 'fulfilled' ? 'Data pasar siap' : 'Data pasar siap · launchpad tertunda', 'ok');
+  setStatus(sentimentResult.status === 'fulfilled' ? 'Market data ready' : 'Market data ready · launchpad metrics delayed', 'ok');
 }
 
 function init() {
@@ -150,7 +150,7 @@ function init() {
   });
   refresh().catch((error) => {
     console.error(error);
-    setStatus(`Data belum tersedia: ${error.message}`, 'err');
+    setStatus(`Data unavailable: ${error.message}`, 'err');
   });
   startAutoRefresh([{ every: 10_000, run: refresh }]);
 }

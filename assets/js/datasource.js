@@ -82,7 +82,7 @@ async function withStaleFallback(key, fetcher) {
   } catch (err) {
     const stale = cacheGetStale(key);
     if (stale) {
-      console.warn(`sumber gagal (${err.message}) — memakai cache ${Math.round(stale.ageMs / 60000)} menit untuk ${key}`);
+      console.warn(`source failed (${err.message}) — using ${Math.round(stale.ageMs / 60000)}-minute cache for ${key}`);
       return stale.value;
     }
     throw err;
@@ -275,7 +275,7 @@ const PROVIDERS = [
 /* Ambil candle 1 jam sebanyak `hours` untuk satu koin, dengan paginasi mundur. */
 async function fetchCandlesFor(coin, hours, provider) {
   const symbol = provider.symbolOf(coin);
-  if (!symbol) throw new Error(`${coin.key} tidak tersedia di ${provider.label}`);
+  if (!symbol) throw new Error(`${coin.key} is unavailable on ${provider.label}`);
 
   const want = Math.min(hours, provider.maxHours);
   const map = new Map();
@@ -361,10 +361,10 @@ export async function fetchCandleSet(coins, hours, { force = false, onProgress }
       cacheSet(cacheKey, payload);
       return { provider: provider.label, series, failed, cached: false };
     }
-    lastErr = new Error(`${provider.label} gagal (${failed.map((f) => f.key).join(', ')})`);
+    lastErr = new Error(`${provider.label} failed (${failed.map((f) => f.key).join(', ')})`);
   }
 
-  throw lastErr || new Error('Semua sumber candle gagal dihubungi');
+  throw lastErr || new Error('All candle sources failed');
 }
 
 /* ============================================================
@@ -389,5 +389,5 @@ export async function fetchWorldTopo() {
       return topo;
     } catch (e) { lastErr = e; }
   }
-  throw lastErr || new Error('gagal memuat peta dunia');
+  throw lastErr || new Error('world map could not load');
 }

@@ -1,68 +1,70 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Crypto Heatmap Volume — Peta Volume Global & Jam Aktif Trading</title>
-<meta name="description" content="Peta volume kripto global interaktif, heatmap volume memecoin, dan analisa jam paling aktif untuk trading dalam WIB dan UTC. Data real dari CoinGecko, Binance, OKX, dan Kraken.">
-<link rel="stylesheet" href="assets/css/style.css">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🌐</text></svg>">
+<title>Crypto Heatmap Volume — Global Volume & Trading Hours</title>
+<meta name="description" content="Interactive global crypto volume map, memecoin heatmap, live leaderboard, and active trading-hour analysis in WIB and UTC.">
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="icon" type="image/png" href="/assets/img/brand/heatmap-volume-mark.png">
 </head>
 <body>
-
-<a class="skip" href="#peta">Lompat ke peta</a>
+<a class="skip" href="#map">Skip to the map</a>
 
 <header class="site-head">
   <div class="wrap head-inner">
-    <div class="brand">
-      <span class="brand-mark" aria-hidden="true"></span>
+    <a class="brand brand-link" href="/">
+      <img class="brand-mark" src="/assets/img/brand/heatmap-volume-mark.png" alt="" width="38" height="38">
       <div>
         <h1>Crypto Heatmap Volume</h1>
-        <p class="brand-sub">Peta volume global &middot; heatmap memecoin &middot; jam aktif trading (WIB / UTC)</p>
+        <p class="brand-sub">Global volume · memecoin momentum · trading hours</p>
       </div>
-    </div>
-    <nav class="primary-nav" aria-label="Navigasi utama">
+    </a>
+    <nav class="primary-nav" aria-label="Primary navigation">
       <a class="is-active" href="/" aria-current="page">Overview</a>
       <a href="/maps/">Maps</a>
       <a href="/sentiment/">Sentiment</a>
       <a href="/cases/">Cases</a>
+      <a href="/2026-memecoins/">2026</a>
     </nav>
-    <div class="head-actions" aria-label="Waktu pasar">
+    <div class="head-actions" aria-label="Market time and appearance">
       <div class="clock" id="clock" aria-live="off">
-        <span class="clock-wib" id="clockWib">--:--</span>
+        <span class="clock-wib" id="clockWib">--:-- WIB</span>
         <span class="clock-utc" id="clockUtc">--:-- UTC</span>
       </div>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch theme">
+        <span class="theme-icon theme-icon-sun" aria-hidden="true">☀</span>
+        <span class="theme-icon theme-icon-moon" aria-hidden="true">☾</span>
+      </button>
     </div>
   </div>
   <div class="status-bar wrap" id="statusBar">
     <span class="dot" id="statusDot"></span>
-    <span id="statusText">Menyiapkan…</span>
-    <span class="status-sep">&middot;</span>
+    <span id="statusText">Preparing market data…</span>
+    <span class="status-sep">·</span>
     <span id="statusSource" class="muted"></span>
   </div>
 </header>
 
 <main class="wrap">
-
-  <!-- ============ KPI ============ -->
-  <section class="kpi-strip" aria-label="Ringkasan utama">
+  <section class="kpi-strip" aria-label="Market summary">
     <article class="kpi">
-      <h2>Volume kripto global 24 jam</h2>
+      <h2>Global crypto volume · 24h</h2>
       <p class="kpi-val" id="kpiGlobalVol">—</p>
-      <p class="kpi-sub" id="kpiGlobalSub">seluruh pasar spot</p>
+      <p class="kpi-sub" id="kpiGlobalSub">all spot markets</p>
     </article>
     <article class="kpi">
-      <h2>Pusat volume terbesar</h2>
+      <h2>Largest volume hub</h2>
       <p class="kpi-val" id="kpiTopPlace">—</p>
       <p class="kpi-sub" id="kpiTopSub">—</p>
     </article>
     <article class="kpi">
-      <h2>Rata-rata volume per bursa</h2>
+      <h2>Average volume per exchange</h2>
       <p class="kpi-val" id="kpiAvgEx">—</p>
       <p class="kpi-sub" id="kpiAvgExSub">—</p>
     </article>
     <article class="kpi kpi-accent">
-      <h2>Jam paling aktif</h2>
+      <h2>Most active hour</h2>
       <p class="kpi-val" id="kpiPeakHour">—</p>
       <p class="kpi-sub" id="kpiPeakSub">—</p>
     </article>
@@ -71,165 +73,122 @@
   <section class="panel performance-panel" aria-labelledby="leadersTitle">
     <div class="panel-head">
       <div>
-        <p class="eyebrow">Live movers · 24 jam</p>
-        <h2 id="leadersTitle">Leaderboard memecoin</h2>
-        <p class="panel-sub">Perubahan harga terbesar dari kategori memecoin CoinGecko. Klik koin untuk membuka riwayat harga dan kapitalisasi.</p>
+        <p class="eyebrow">Live movers · 24h</p>
+        <h2 id="leadersTitle">Memecoin leaderboard</h2>
+        <p class="panel-sub">Largest percentage moves in CoinGecko's memecoin category. Open any coin for price and market-cap history.</p>
       </div>
-      <a class="text-link" href="/cases/">Lihat koin ≥ $100M →</a>
+      <a class="text-link" href="/cases/">Explore $100M+ coins →</a>
     </div>
     <div class="leaderboard-grid" id="memeLeaders">
-      <div class="panel-loading"><span class="spinner"></span> Memuat leaderboard…</div>
+      <div class="panel-loading"><span class="spinner"></span> Loading leaderboard…</div>
     </div>
   </section>
 
-  <!-- ============ PETA ============ -->
-  <section class="panel" id="peta">
+  <section class="panel" id="map">
     <div class="panel-head">
       <div>
-        <h2>Peta volume kripto global</h2>
-        <p class="panel-sub">
-          Ukuran &amp; warna gelembung = volume perdagangan 24 jam yang tercatat di yurisdiksi
-          badan hukum bursa. Gulir untuk zoom, seret untuk geser, klik untuk mengunci detail.
-        </p>
+        <h2>Global crypto volume map</h2>
+        <p class="panel-sub">Bubble size and color represent reported 24h exchange volume grouped by legal jurisdiction. Scroll to zoom, drag to pan, and click to lock details.</p>
       </div>
       <div class="panel-tools">
-        <button class="btn sm" id="btnZoomIn" type="button" aria-label="Perbesar">+</button>
-        <button class="btn sm" id="btnZoomOut" type="button" aria-label="Perkecil">−</button>
+        <button class="btn sm" id="btnZoomIn" type="button" aria-label="Zoom in">+</button>
+        <button class="btn sm" id="btnZoomOut" type="button" aria-label="Zoom out">−</button>
         <button class="btn sm" id="btnMapReset" type="button">Reset</button>
-        <label class="chk"><input type="checkbox" id="chkLabels" checked> Label</label>
+        <label class="chk"><input type="checkbox" id="chkLabels" checked> Labels</label>
       </div>
     </div>
-
     <div class="map-layout">
       <div class="map-holder">
-        <canvas id="mapCanvas" aria-label="Peta dunia volume kripto per yurisdiksi" role="img"></canvas>
+        <canvas id="mapCanvas" aria-label="World map of crypto exchange volume by jurisdiction" role="img"></canvas>
         <div class="tooltip" id="mapTip" hidden></div>
         <div class="map-legend" id="mapLegend"></div>
-        <div class="map-loading" id="mapLoading"><span class="spinner"></span> Memuat geometri peta…</div>
+        <div class="map-loading" id="mapLoading"><span class="spinner"></span> Loading map geometry…</div>
       </div>
-
       <aside class="map-side">
         <div class="side-block">
-          <h3>Peringkat yurisdiksi</h3>
+          <h3>Jurisdiction ranking</h3>
           <ol class="rank-list" id="rankList"></ol>
         </div>
         <div class="side-block">
-          <h3>Sebaran per kawasan</h3>
+          <h3>Regional distribution</h3>
           <div id="regionList" class="region-list"></div>
         </div>
       </aside>
     </div>
-
     <div class="detail-card" id="detailCard" hidden></div>
-
     <details class="disclosure">
-      <summary>Tabel lengkap yurisdiksi</summary>
+      <summary>Full jurisdiction table</summary>
       <div class="table-scroll" id="jurTable"></div>
     </details>
-
-    <p class="caveat">
-      <strong>Batas data:</strong> peta ini memetakan <em>yurisdiksi badan hukum bursa</em>
-      (field <code>country</code> di CoinGecko), bukan lokasi trader. Seychelles, Cayman,
-      dan BVI besar karena bursa global terdaftar di sana. Jam aktif trader diukur di
-      bagian berikutnya, dari volume per jam.
-    </p>
+    <p class="caveat"><strong>Data boundary:</strong> this map uses an exchange's legal-jurisdiction metadata, not trader location. Exchanges without a country field are excluded from jurisdiction totals. Active trading hours below come from real hourly candles.</p>
   </section>
 
-  <!-- ============ JAM AKTIF ============ -->
-  <section class="panel" id="jam">
+  <section class="panel" id="hours">
     <div class="panel-head">
       <div>
-        <h2>Jam paling aktif untuk trading</h2>
-        <p class="panel-sub">
-          Rata-rata volume per jam dari candle 1 jam yang sebenarnya. Sumbu utama WIB
-          (UTC+7), sumbu pembanding UTC.
-        </p>
+        <h2>Most active trading hours</h2>
+        <p class="panel-sub">Average quote volume from real 1-hour candles. The primary axis is WIB (UTC+7), with UTC shown for comparison.</p>
       </div>
       <div class="panel-tools">
-        <div class="seg" role="group" aria-label="Keranjang koin">
+        <div class="seg" role="group" aria-label="Coin basket">
           <button class="seg-btn is-on" data-basket="meme" type="button">Memecoin</button>
           <button class="seg-btn" data-basket="major" type="button">Major</button>
         </div>
-        <div class="seg" role="group" aria-label="Rentang waktu" id="tfGroup"></div>
+        <div class="seg" role="group" aria-label="Time range" id="tfGroup"></div>
       </div>
     </div>
-
     <div class="insight-grid" id="hourInsights"></div>
-
     <div class="chart-block">
-      <div class="chart-head">
-        <h3>Profil volume rata-rata per jam</h3>
-        <div class="legend" id="hourLegendSessions"></div>
-      </div>
+      <div class="chart-head"><h3>Average hourly volume profile</h3><div class="legend" id="hourLegendSessions"></div></div>
       <div class="chart-holder" id="hourProfile"></div>
     </div>
-
     <div class="chart-block">
-      <div class="chart-head">
-        <h3>Matriks hari &times; jam <span class="muted">(waktu WIB)</span></h3>
-        <div class="legend" id="matrixLegend"></div>
-      </div>
+      <div class="chart-head"><h3>Day × hour matrix <span class="muted">(WIB)</span></h3><div class="legend" id="matrixLegend"></div></div>
       <div class="chart-holder" id="hourMatrix"></div>
     </div>
-
     <div class="split">
-      <div class="side-block">
-        <h3>Kontribusi per sesi pasar</h3>
-        <div class="table-scroll" id="sessionTable"></div>
-      </div>
-      <div class="side-block">
-        <h3>Jam puncak tiap koin</h3>
-        <div class="table-scroll" id="coinHourTable"></div>
-      </div>
+      <div class="side-block"><h3>Market-session contribution</h3><div class="table-scroll" id="sessionTable"></div></div>
+      <div class="side-block"><h3>Peak hour by coin</h3><div class="table-scroll" id="coinHourTable"></div></div>
     </div>
-
     <details class="disclosure">
-      <summary>Tabel rata-rata volume per jam (24 baris)</summary>
+      <summary>Average volume by hour · 24 rows</summary>
       <div class="table-scroll" id="hourTable"></div>
     </details>
-
     <div class="tooltip" id="hourTip" hidden></div>
   </section>
 
-  <!-- ============ MEMECOIN ============ -->
   <section class="panel" id="meme">
     <div class="panel-head">
       <div>
-        <h2>Heatmap volume memecoin</h2>
-        <p class="panel-sub">
-          Luas ubin = pangsa volume 24 jam. Warna = perubahan harga
-          (<span class="sw up"></span> biru naik, <span class="sw down"></span> merah turun).
-        </p>
+        <h2>Memecoin volume heatmap</h2>
+        <p class="panel-sub">Tile area is 24h volume share. Color is price change (<span class="sw up"></span> blue up, <span class="sw down"></span> red down).</p>
       </div>
       <div class="panel-tools">
-        <div class="seg" role="group" aria-label="Periode perubahan">
-          <button class="seg-btn" data-change="1h" type="button">1j</button>
-          <button class="seg-btn is-on" data-change="24h" type="button">24j</button>
-          <button class="seg-btn" data-change="7d" type="button">7h</button>
+        <div class="seg" role="group" aria-label="Change period">
+          <button class="seg-btn" data-change="1h" type="button">1h</button>
+          <button class="seg-btn is-on" data-change="24h" type="button">24h</button>
+          <button class="seg-btn" data-change="7d" type="button">7d</button>
         </div>
-        <div class="seg" role="group" aria-label="Tampilan">
-          <button class="seg-btn is-on" data-view="map" type="button">Peta ubin</button>
-          <button class="seg-btn" data-view="table" type="button">Tabel</button>
+        <div class="seg" role="group" aria-label="View">
+          <button class="seg-btn is-on" data-view="map" type="button">Tiles</button>
+          <button class="seg-btn" data-view="table" type="button">Table</button>
         </div>
       </div>
     </div>
-
     <div class="legend" id="memeLegend"></div>
     <div class="treemap-holder" id="treemap"></div>
     <div class="table-scroll" id="memeTable" hidden></div>
     <div class="tooltip" id="memeTip" hidden></div>
     <div class="insight-grid" id="memeInsights"></div>
   </section>
-
 </main>
 
 <footer class="site-foot wrap">
-  <p>CoinGecko · Yahoo Finance · CoinPaprika fallback · Binance / OKX / Kraken · Natural Earth · <span id="footUpdated">—</span></p>
-  <p class="muted">⚠️ Volume dan momentum bukan sinyal beli. Hindari leverage; batasi ukuran posisi.</p>
+  <p><a href="https://www.coingecko.com/" target="_blank" rel="noreferrer">CoinGecko</a> · Yahoo Finance · CoinPaprika fallback · Binance / OKX / Kraken · <a href="https://www.naturalearthdata.com/" target="_blank" rel="noreferrer">Natural Earth</a> · <span id="footUpdated">—</span></p>
+  <p class="muted">⚠ Volume and momentum are not buy signals. Avoid leverage and size positions before entering.</p>
 </footer>
-
 <div class="toast" id="toast" hidden></div>
-
-<script type="module" src="assets/js/app.js"></script>
+<script type="module" src="/assets/js/theme.js"></script>
+<script type="module" src="/assets/js/app.js"></script>
 </body>
 </html>

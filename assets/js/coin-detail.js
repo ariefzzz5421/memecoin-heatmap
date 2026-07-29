@@ -14,7 +14,7 @@ function setStatus(text, kind = 'busy') {
   $('statusDot').className = `dot ${kind}`;
 }
 
-const fmtDate = (timestamp) => new Intl.DateTimeFormat('id-ID', {
+const fmtDate = (timestamp) => new Intl.DateTimeFormat('en-US', {
   day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC',
 }).format(new Date(timestamp));
 
@@ -27,7 +27,7 @@ function svgNode(tag, attrs = {}) {
 function renderLineChart(holder, rows, valueKey, formatter, markers = []) {
   holder.replaceChildren();
   if (!rows?.length) {
-    holder.append(el('p', { class: 'empty-state' }, 'Riwayat ini belum tersedia dari sumber publik.'));
+    holder.append(el('p', { class: 'empty-state' }, 'This history is unavailable from the public source.'));
     return;
   }
 
@@ -48,7 +48,7 @@ function renderLineChart(holder, rows, valueKey, formatter, markers = []) {
   const svg = svgNode('svg', {
     viewBox: `0 0 ${width} ${height}`,
     role: 'img',
-    'aria-label': `Chart dari ${fmtDate(minT)} sampai ${fmtDate(maxT)}`,
+    'aria-label': `Chart from ${fmtDate(minT)} to ${fmtDate(maxT)}`,
   });
   for (let index = 0; index <= 4; index++) {
     const ratio = index / 4;
@@ -119,26 +119,26 @@ function render() {
   $('tokenSym').textContent = symbol;
   $('crumbToken').textContent = symbol;
   $('tokenLogo').src = coin?.image || '';
-  $('tokenLogo').alt = coin ? `Logo ${coin.name}` : '';
+  $('tokenLogo').alt = coin ? `${coin.name} logo` : '';
   $('tokenSummary').textContent =
-    `Harga ${fmtPrice(coin?.price)} · market cap ${fmtUsd(coin?.mcap)} · perubahan 24 jam ${fmtPct(coin?.ch24h, 1)}.`;
+    `Price ${fmtPrice(coin?.price)} · market cap ${fmtUsd(coin?.mcap)} · 24h change ${fmtPct(coin?.ch24h, 1)}.`;
 
   const facts = [
-    curated ? fact('Launch terdokumentasi', fmtDate(Date.parse(curated.launch)), curated.launchNote) : null,
-    fact('Harga sekarang', fmtPrice(coin?.price), `${fmtPct(coin?.ch24h, 1)} / 24j`),
-    fact('Market cap', fmtUsd(coin?.mcap), `Peringkat #${coin?.rank || '—'}`),
-    fact('Volume 24 jam', fmtUsd(coin?.vol)),
-    fact('ATH harga', fmtPrice(coin?.ath), coin?.athDate ? fmtDate(Date.parse(coin.athDate)) : ''),
-    fact('Dari ATH', fmtPct(coin?.athPct, 1)),
-    fact('Puncak mcap 365h', marketCapPeak ? fmtUsd(marketCapPeak.mcap) : '—',
-      marketCapPeak ? fmtDate(marketCapPeak.t) : 'Tidak tersedia'),
+    curated ? fact('Documented launch', fmtDate(Date.parse(curated.launch)), curated.launchNote) : null,
+    fact('Current price', fmtPrice(coin?.price), `${fmtPct(coin?.ch24h, 1)} / 24h`),
+    fact('Market cap', fmtUsd(coin?.mcap), `Rank #${coin?.rank || '—'}`),
+    fact('24h volume', fmtUsd(coin?.vol)),
+    fact('Price ATH', fmtPrice(coin?.ath), coin?.athDate ? fmtDate(Date.parse(coin.athDate)) : ''),
+    fact('From ATH', fmtPct(coin?.athPct, 1)),
+    fact('365d market-cap peak', marketCapPeak ? fmtUsd(marketCapPeak.mcap) : '—',
+      marketCapPeak ? fmtDate(marketCapPeak.t) : 'Unavailable'),
   ].filter(Boolean);
   $('caseFacts').replaceChildren(...facts);
 
   const markerRows = [
-    milestones.first && { ...milestones.first, label: 'Data awal' },
-    milestones.day7 && { ...milestones.day7, label: 'Hari 7' },
-    milestones.day30 && { ...milestones.day30, label: 'Hari 30' },
+    milestones.first && { ...milestones.first, label: 'First data' },
+    milestones.day7 && { ...milestones.day7, label: 'Day 7' },
+    milestones.day30 && { ...milestones.day30, label: 'Day 30' },
     milestones.ath && { ...milestones.ath, label: 'ATH' },
   ].filter(Boolean);
   renderLineChart($('priceChart'), payload.priceHistory, 'price', fmtPrice, markerRows);
@@ -146,23 +146,31 @@ function render() {
 
   $('milestones').replaceChildren(...markerRows.map((row) =>
     fact(row.label, fmtPrice(row.price), fmtDate(row.t))));
-  $('sourceLinks').replaceChildren(...payload.sources.map((source) =>
+  const curatedSources = curated ? [
+    { label: 'Official X', url: curated.officialX },
+    { label: 'Official site', url: curated.officialSite },
+    { label: 'CoinGecko', url: curated.coingecko },
+    ...curated.contracts.map((contract) => ({ label: `${contract.network} contract explorer`, url: contract.explorer })),
+  ] : [];
+  const allSources = [...curatedSources, ...payload.sources]
+    .filter((source, index, rows) => rows.findIndex((item) => item.url === source.url) === index);
+  $('sourceLinks').replaceChildren(...allSources.map((source) =>
     el('a', { href: source.url, target: '_blank', rel: 'noreferrer', class: 'source-link' },
       el('span', {}, source.label),
       el('span', { 'aria-hidden': 'true' }, '↗'),
     )));
   $('updatedAt').textContent = fmtClock(payload.fetchedAt);
-  setStatus(`Data siap · harga: ${payload.source.priceHistory || 'tidak tersedia'} · mcap: ${payload.source.marketCapHistory || 'tidak tersedia'}`, 'ok');
+  setStatus(`Data ready · price: ${payload.source.priceHistory || 'unavailable'} · market cap: ${payload.source.marketCapHistory || 'unavailable'}`, 'ok');
 }
 
 async function load() {
-  if (!id || !symbol) throw new Error('Parameter id dan symbol tidak lengkap');
+  if (!id || !symbol) throw new Error('The id and symbol parameters are required');
   const response = await fetch(
     `/api/market?resource=history&id=${encodeURIComponent(id)}&symbol=${encodeURIComponent(symbol)}&t=${Math.floor(Date.now() / 10_000)}`,
   );
   if (!response.ok) throw new Error(`Backend HTTP ${response.status}`);
   payload = await response.json();
-  if (!payload?.ok) throw new Error(payload?.error || 'Riwayat tidak tersedia');
+  if (!payload?.ok) throw new Error(payload?.error || 'History is unavailable');
   render();
 }
 

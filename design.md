@@ -96,3 +96,12 @@ Use a four-point scale through named tokens only:
 - Table density.
 - Article chart height.
 - Which live metric receives the accent.
+
+## 2026 extension: themes, identity, and source imagery
+
+- The graphite-blue system remains the default dark theme. The light theme is a paper-blue translation of the same tokens, spacing, hierarchy, and data colors.
+- The square market-map mark is the product identity. It may appear in the header, favicon, and empty-image fallback only.
+- Official chain marks identify a network in dense tables. Country flags identify jurisdictions in rankings and tables. Neither is decorative background imagery.
+- Source panels use the existing border, radius, and type tokens. External links name both the source and the field it supports.
+- The 2026 route uses an evidence-register structure: event cards, qualified creator/deployer attribution, full contract, current snapshot, and direct source links.
+- Light/dark switching redraws canvas and SVG data visualizations with refreshed CSS-token values.

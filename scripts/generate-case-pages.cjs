@@ -1,8 +1,4 @@
-/* ============================================================
-   generate-case-pages.cjs — tulis ulang cases/{slug}/index.html
-   dari cases-config.js. Jalankan setiap kali daftar token studi
-   berubah:  node scripts/generate-case-pages.cjs
-   ============================================================ */
+/* Regenerate cases/{slug}/index.html from the curated case definitions. */
 
 const fs = require('fs');
 const path = require('path');
@@ -10,98 +6,66 @@ const { pathToFileURL } = require('url');
 
 const root = path.resolve(__dirname, '..');
 
-const template = (c) => `<!DOCTYPE html>
-<html lang="id">
+const template = (item) => `<!DOCTYPE html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${c.name} (${c.sym}) — Studi Kasus Memecoin</title>
-<meta name="description" content="Studi kasus ${c.name}: tanggal launch, waktu menuju ATH, chart mingguan real dari listing bursa, dan katalis terdokumentasi.">
+<title>${item.name} (${item.sym}) — Memecoin Case Study</title>
+<meta name="description" content="${item.name} case study with sourced identity, contract, creator attribution, weekly market history, ATH timeline, and documented catalysts.">
 <link rel="stylesheet" href="/assets/css/style.css">
-<link rel="icon" href="${c.logo}">
+<link rel="icon" type="image/png" href="/assets/img/brand/heatmap-volume-mark.png">
 </head>
-<body data-case="${c.slug}">
-
-<a class="skip" href="#artikel">Lompat ke artikel</a>
-
+<body data-case="${item.slug}">
+<a class="skip" href="#article">Skip to the article</a>
 <header class="site-head">
   <div class="wrap head-inner">
-    <a class="brand brand-link" href="/">
-      <span class="brand-mark" aria-hidden="true"></span>
-      <div>
-        <h1>Crypto Heatmap Volume</h1>
-        <p class="brand-sub">Studi kasus memecoin ≥ $100M mcap</p>
-      </div>
-    </a>
-    <nav class="primary-nav" aria-label="Navigasi utama">
-      <a href="/">Overview</a>
-      <a href="/maps/">Maps</a>
-      <a href="/sentiment/">Sentiment</a>
-      <a class="is-active" href="/cases/" aria-current="page">Cases</a>
+    <a class="brand brand-link" href="/"><img class="brand-mark" src="/assets/img/brand/heatmap-volume-mark.png" alt="" width="38" height="38"><div><h1>Crypto Heatmap Volume</h1><p class="brand-sub">Sourced memecoin case study</p></div></a>
+    <nav class="primary-nav" aria-label="Primary navigation">
+      <a href="/">Overview</a><a href="/maps/">Maps</a><a href="/sentiment/">Sentiment</a><a class="is-active" href="/cases/" aria-current="page">Cases</a><a href="/2026-memecoins/">2026</a>
     </nav>
-    <div class="head-actions">
-      <a class="btn" href="/cases/">&larr; Semua kasus</a>
-    </div>
+    <div class="head-actions"><button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch theme"><span class="theme-icon theme-icon-sun" aria-hidden="true">☀</span><span class="theme-icon theme-icon-moon" aria-hidden="true">☾</span></button></div>
   </div>
-  <div class="status-bar wrap">
-    <span class="dot busy" id="statusDot"></span>
-    <span id="statusText">Memuat data…</span>
-  </div>
+  <div class="status-bar wrap"><span class="dot busy" id="statusDot"></span><span id="statusText">Loading case data…</span></div>
 </header>
 
-<main class="wrap article-wrap" id="artikel">
-
+<main class="wrap article-wrap" id="article">
+  <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/cases/">Cases</a><span>/</span><span>${item.sym}</span></nav>
   <header class="token-hero">
-    <img class="token-logo" id="tokenLogo" src="${c.logo}" alt="Logo resmi ${c.name}" width="96" height="96">
-    <div>
-      <p class="eyebrow">Studi kasus &middot; launch <span id="tokenYear">${c.launch.slice(0, 4)}</span></p>
-      <h2><span id="tokenName">${c.name}</span> <span class="token-sym" id="tokenSym">${c.sym}</span></h2>
-      <p class="article-summary" id="articleSummary">Memuat ringkasan&hellip;</p>
-    </div>
+    <img class="token-logo" id="tokenLogo" src="${item.logo}" alt="${item.name} logo" width="96" height="96">
+    <div><p class="eyebrow">Case study · launch <span id="tokenYear">${item.launch.slice(0, 4)}</span></p><h2><span id="tokenName">${item.name}</span> <span class="token-sym" id="tokenSym">${item.sym}</span></h2><p class="article-summary" id="articleSummary">Loading summary…</p></div>
   </header>
 
-  <section class="panel">
-    <article class="article-body" id="articleBody"></article>
-  </section>
+  <section class="panel"><article class="article-body" id="articleBody"></article></section>
 
   <section class="panel">
-    <div class="panel-head">
-      <div>
-        <h2>Chart mingguan sejak listing</h2>
-        <p class="panel-sub">Kline mingguan real dari bursa dengan listing paling awal yang tersedia, skala log, penanda ATH.</p>
-      </div>
-    </div>
-    <div class="chart-holder case-chart-holder">
-      <div id="caseChart"></div>
-      <div class="tooltip" id="caseTip" hidden></div>
-    </div>
+    <div class="panel-head"><div><h2>Weekly chart since exchange listing</h2><p class="panel-sub">Real weekly candles from the earliest supported exchange listing, shown on a log scale with the available ATH marker.</p></div></div>
+    <div class="chart-holder case-chart-holder"><div id="caseChart"></div><div class="tooltip" id="caseTip" hidden></div></div>
     <div class="detail-stats case-facts" id="caseFacts"></div>
-    <details class="disclosure">
-      <summary>Tabel data mingguan</summary>
-      <div class="table-scroll" id="caseWeeklyTable"></div>
-    </details>
+    <details class="disclosure"><summary>Weekly data table</summary><div class="table-scroll" id="caseWeeklyTable"></div></details>
   </section>
 
   <section class="panel">
     <div class="split">
-      <div class="side-block">
-        <h3>Katalis terdokumentasi</h3>
-        <ul class="catalyst-list" id="caseCatalysts"></ul>
-      </div>
-      <div class="side-block">
-        <h3>Pola yang tercatat</h3>
-        <p class="thesis" id="caseThesis"></p>
-        <p class="note">Katalis adalah peristiwa publik dengan korelasi waktu terhadap pergerakan harga — bukan bukti sebab-akibat tunggal. Bukan nasihat keuangan.</p>
-      </div>
+      <div class="side-block"><h3>Documented catalysts</h3><ul class="catalyst-list" id="caseCatalysts"></ul></div>
+      <div class="side-block"><h3>Observed pattern</h3><p class="thesis" id="caseThesis"></p><p class="note">Catalysts are publicly dated events correlated with price movement—not proof of a single cause.</p></div>
     </div>
   </section>
 
+  <section class="panel">
+    <div class="panel-head"><div><p class="eyebrow">Identity</p><h2>Creator, issuer, and contracts</h2><p class="panel-sub">Attribution is deliberately qualified when an individual deployer is anonymous or not publicly verified.</p></div></div>
+    <div class="identity-grid" id="caseIdentity"></div>
+  </section>
+
+  <section class="panel source-panel">
+    <div><p class="eyebrow">Provenance</p><h2>Official and market sources</h2></div>
+    <div class="source-links" id="caseSources"></div>
+  </section>
+  <p class="risk-line">⚠ Historical success is not a repeatable setup. Avoid leverage and define position size before entry.</p>
 </main>
 
-<footer class="site-foot wrap">
-  <p>Data: CoinGecko &middot; Binance / Kraken / OKX. Logo: berkas resmi proyek. Diperbarui <span id="updatedAt">—</span>.</p>
-</footer>
-
+<footer class="site-foot wrap"><p>Live market data: CoinGecko · candles: Binance / Kraken / OKX · <span id="updatedAt">—</span></p></footer>
+<script type="module" src="/assets/js/theme.js"></script>
 <script type="module" src="/assets/js/cases-article.js"></script>
 </body>
 </html>
@@ -109,10 +73,10 @@ const template = (c) => `<!DOCTYPE html>
 
 (async () => {
   const mod = await import(pathToFileURL(path.join(root, 'assets/js/cases-config.js')).href);
-  for (const c of mod.CASES) {
-    const dir = path.join(root, 'cases', c.slug);
+  for (const item of mod.CASES) {
+    const dir = path.join(root, 'cases', item.slug);
     fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(path.join(dir, 'index.html'), template(c));
-    console.log(`cases/${c.slug}/index.html`);
+    fs.writeFileSync(path.join(dir, 'index.html'), template(item));
+    console.log(`cases/${item.slug}/index.html`);
   }
 })();

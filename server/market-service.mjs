@@ -9,6 +9,8 @@ const TTL = {
   overview: 30_000,
   history: 60 * 60 * 1000,
   sentiment: 60_000,
+  meme2026: 60_000,
+  caseWeekly: 6 * 60 * 60 * 1000,
 };
 
 const PLATFORMS = [
@@ -76,6 +78,115 @@ const EXCHANGE_COUNTRIES = {
   deribit: 'Panama',
   indodax: 'Indonesia',
   tokocrypto: 'Indonesia',
+};
+
+const CHAIN_META = {
+  Solana: { logo: '/assets/img/chains/solana.png', sourceUrl: 'https://solana.com/branding' },
+  BSC: { logo: '/assets/img/chains/bnb.svg', sourceUrl: 'https://www.bnbchain.org/en/brand-guidelines' },
+  'BNB Chain': { logo: '/assets/img/chains/bnb.svg', sourceUrl: 'https://www.bnbchain.org/en/brand-guidelines' },
+  'Robinhood Chain': { logo: '/assets/img/chains/robinhood.png', sourceUrl: 'https://robinhood.com/us/en/about/brand/' },
+  Base: { logo: '/assets/img/chains/base.png', sourceUrl: 'https://www.base.org/brand-kit' },
+  Ethereum: { logo: '/assets/img/chains/ethereum.png', sourceUrl: 'https://ethereum.org/en/assets/' },
+  Monad: { logo: '/assets/img/chains/monad.svg', sourceUrl: 'https://www.monad.xyz/' },
+  'Hyperliquid L1': { logo: '/assets/img/chains/hyperliquid.png', sourceUrl: 'https://hyperfoundation.org/' },
+  Hyperliquid: { logo: '/assets/img/chains/hyperliquid.png', sourceUrl: 'https://hyperfoundation.org/' },
+  MegaETH: { logo: '/assets/img/chains/megaeth.svg', sourceUrl: 'https://www.megaeth.com/brand-kit' },
+};
+
+const MEME_2026_EVENTS = [
+  {
+    id: 'the-white-whale',
+    name: 'The White Whale',
+    symbol: 'WHITEWHALE',
+    chain: 'Solana',
+    launchAt: '2025-10-13',
+    crossedAt: '2026-01-07',
+    launchCohort: 'Prior launch · crossed in 2026',
+    documentedPeak: 200_000_000,
+    contract: 'a3W4qutoEJA4232T2gwZUfgYJTetr96pU4SJMwppump',
+    creator: 'Anonymous original deployer; later community takeover',
+    explorer: 'https://solscan.io/token/a3W4qutoEJA4232T2gwZUfgYJTetr96pU4SJMwppump',
+    officialX: 'https://x.com/WhiteWhaleMeme',
+    coingecko: 'https://www.coingecko.com/en/coins/the-white-whale',
+    note: 'Launched in 2025, but the documented $100M threshold event occurred on January 7, 2026.',
+    evidence: [
+      { label: 'Crypto Briefing · $100M event', url: 'https://cryptobriefing.com/whitewhale-memecoin-hits-100mn-with-50x-gains/' },
+      { label: 'CoinGecko market record', url: 'https://www.coingecko.com/en/coins/the-white-whale' },
+    ],
+  },
+  {
+    id: 'nietzschean-penguin',
+    name: 'Nietzschean Penguin',
+    symbol: 'PENGUIN',
+    chain: 'Solana',
+    launchAt: '2026-01-17',
+    crossedAt: '2026-01-24',
+    launchCohort: '2026 launch',
+    documentedPeak: 160_000_000,
+    contract: '8Jx8AAHj86wbQgUTjGuj6GTTL5Ps3cqxKRTvpaJApump',
+    creator: 'Anonymous Pump.fun deployer; community-led token',
+    explorer: 'https://solscan.io/token/8Jx8AAHj86wbQgUTjGuj6GTTL5Ps3cqxKRTvpaJApump',
+    officialX: null,
+    socialNote: 'No single verified issuer account found; community-run.',
+    coingecko: 'https://www.coingecko.com/en/coins/nietzschean-penguin',
+    note: 'The market record reached an approximately $160M peak at the January 24 price high; no single verified issuer account was found.',
+    evidence: [
+      { label: 'CoinMarketCap Academy · breakout', url: 'https://coinmarketcap.com/academy/article/meme-coin-news-meme-coin-volumes-hit-2026-high-as-penguin-meme-sparks-breakout-and-more' },
+      { label: 'KCEX contract listing', url: 'https://www.kcex.com/support/articles/43234799829400' },
+    ],
+  },
+  {
+    id: 'the-black-bull',
+    name: 'The Black Bull',
+    symbol: 'ANSEM',
+    chain: 'Solana',
+    launchAt: '2026-06-16',
+    crossedAt: '2026-06-29',
+    launchCohort: '2026 launch',
+    documentedPeak: 185_000_000,
+    contract: '9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump',
+    creator: 'Anonymous deployer; community tribute to Ansem',
+    explorer: 'https://solscan.io/token/9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump',
+    officialX: 'https://x.com/blknoiz06',
+    socialLabel: 'Ansem · referenced public account',
+    coingecko: 'https://www.coingecko.com/en/coins/the-black-bull',
+    note: 'A community-created tribute token. The linked X account is the referenced person, not proof that he deployed the contract.',
+    evidence: [
+      { label: 'Crypto Times · $125M event', url: 'https://www.cryptotimes.io/2026/06/29/inside-the-ansem-memecoin-surge-community-spirit-or-concentrated-control/' },
+      { label: 'MEXC contract listing', url: 'https://www.mexc.co/en-NG/announcements/article/first-in-market-17827791536536' },
+    ],
+  },
+  {
+    id: 'cash-cat',
+    name: 'Cash Cat',
+    symbol: 'CASHCAT',
+    chain: 'Robinhood Chain',
+    launchAt: '2026-07-02',
+    crossedAt: '2026-07-08',
+    launchCohort: '2026 launch',
+    documentedPeak: 156_000_000,
+    contract: '0x020bfC650A365f8BB26819deAAbF3E21291018b4',
+    creator: 'Anonymous deployer; not affiliated with Robinhood',
+    explorer: 'https://robinhoodchain.blockscout.com/token/0x020bfC650A365f8BB26819deAAbF3E21291018b4',
+    officialX: 'https://x.com/cashcat_token',
+    coingecko: 'https://www.coingecko.com/en/coins/cash-cat',
+    note: 'An independently created Robinhood Chain memecoin. Its use of the network does not imply Robinhood affiliation.',
+    evidence: [
+      { label: 'CoinDesk · Robinhood Chain memecoins', url: 'https://www.coindesk.com/tech/2026/07/13/robinhood-built-a-blockchain-for-tokenized-stocks-memecoins-took-over' },
+      { label: 'Blockstream Media · $156M peak', url: 'https://blockstreammedia.com/2026/07/17/what-is-cashcat-robinhood-chains-memecoin/' },
+    ],
+  },
+];
+
+const CASE_WEEKLY = {
+  dogecoin: { providers: ['binance', 'kraken', 'okx'], symbols: { binance: 'DOGEUSDT', kraken: 'XDGUSD', okx: 'DOGE-USDT' } },
+  'shiba-inu': { providers: ['okx', 'binance', 'kraken'], symbols: { binance: 'SHIBUSDT', kraken: 'SHIBUSD', okx: 'SHIB-USDT' } },
+  pepe: { providers: ['okx', 'binance', 'kraken'], symbols: { binance: 'PEPEUSDT', kraken: 'PEPEUSD', okx: 'PEPE-USDT' } },
+  dogwifcoin: { providers: ['kraken', 'binance', 'okx'], symbols: { binance: 'WIFUSDT', kraken: 'WIFUSD', okx: 'WIF-USDT' } },
+  bonk: { providers: ['kraken', 'binance', 'okx'], symbols: { binance: 'BONKUSDT', kraken: 'BONKUSD', okx: 'BONK-USDT' } },
+  'official-trump': { providers: ['okx', 'kraken', 'binance'], symbols: { binance: 'TRUMPUSDT', kraken: 'TRUMPUSD', okx: 'TRUMP-USDT' } },
+  floki: { providers: ['okx', 'binance', 'kraken'], symbols: { binance: 'FLOKIUSDT', kraken: 'FLOKIUSD', okx: 'FLOKI-USDT' } },
+  'pudgy-penguins': { providers: ['okx', 'kraken', 'binance'], symbols: { binance: 'PENGUUSDT', kraken: 'PENGUUSD', okx: 'PENGU-USDT' } },
 };
 
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -353,9 +464,9 @@ function llamaMetric(summary) {
 
 function momentum(volume, revenue) {
   const changes = [volume?.change1d, revenue?.change1d].filter(Number.isFinite);
-  if (!changes.length) return { key: 'unknown', label: 'Data —', score: null };
+  if (!changes.length) return { key: 'unknown', label: 'Unavailable', score: null };
   const score = changes.reduce((sum, value) => sum + value, 0) / changes.length;
-  const label = `${score >= 0 ? '+' : ''}${score.toFixed(1)}% / 24j`;
+  const label = `${score >= 0 ? '+' : ''}${score.toFixed(1)}% / 24h`;
   if (score >= 20) return { key: 'hot', label, score };
   if (score >= 5) return { key: 'up', label, score };
   if (score <= -20) return { key: 'cold', label, score };
@@ -381,7 +492,14 @@ function buildChains(platforms) {
     ]);
     for (const name of names) {
       if (!rows.has(name)) {
-        rows.set(name, { name, volume24h: 0, revenue24h: 0, platforms: new Set() });
+        rows.set(name, {
+          name,
+          volume24h: 0,
+          revenue24h: 0,
+          platforms: new Set(),
+          logo: CHAIN_META[name]?.logo || null,
+          sourceUrl: CHAIN_META[name]?.sourceUrl || null,
+        });
       }
       const row = rows.get(name);
       const volume = platform.volume?.chainBreakdown?.[name]?.total24h;
@@ -411,10 +529,10 @@ async function loadSentiment() {
       momentum: momentum(volume, revenue),
       volumeNote: volume
         ? 'Spot / swap volume tracked by DeFiLlama'
-        : 'Volume 24 jam belum tersedia dari sumber',
+        : '24h volume unavailable from the source',
       revenueNote: revenue
         ? 'Protocol revenue tracked by DeFiLlama'
-        : 'Revenue 24 jam belum tersedia dari sumber',
+        : '24h revenue unavailable from the source',
     };
   }));
   const chains = buildChains(platforms);
@@ -426,6 +544,115 @@ async function loadSentiment() {
     fetchedAt: Date.now(),
     source: 'DeFiLlama',
   };
+}
+
+async function loadMeme2026() {
+  let marketRows = [];
+  let marketWarning = null;
+  try {
+    const ids = MEME_2026_EVENTS.map((event) => event.id).join(',');
+    marketRows = await fetchJSON(
+      `${CG}/coins/markets?vs_currency=usd&ids=${encodeURIComponent(ids)}` +
+      '&order=market_cap_desc&sparkline=false&price_change_percentage=24h',
+      { timeout: 18_000 },
+    );
+  } catch (error) {
+    marketWarning = `Current CoinGecko snapshot unavailable: ${error.message}`;
+  }
+
+  const currentById = new Map(marketRows.map((row) => [row.id, slimCoin(row)]));
+  return {
+    ok: true,
+    partial: Boolean(marketWarning) || currentById.size < MEME_2026_EVENTS.length,
+    fetchedAt: Date.now(),
+    cutoffAt: '2026-07-29T23:59:59+07:00',
+    source: 'CoinGecko live snapshots + linked threshold evidence',
+    warning: marketWarning,
+    methodology: {
+      thresholdUsd: 100_000_000,
+      windowStart: '2026-01-01',
+      windowEnd: '2026-07-29',
+      rule: 'The documented market-cap crossing must occur inside the window; the token may have launched earlier.',
+      completeness: 'Public-source set verified under the stated two-source method at the research cutoff; not an exhaustive on-chain census.',
+    },
+    events: MEME_2026_EVENTS.map((event) => ({
+      ...event,
+      current: currentById.get(event.id) || null,
+    })),
+  };
+}
+
+async function exchangeWeekly(provider, symbol) {
+  if (provider === 'binance') {
+    let lastError;
+    for (const base of ['https://api.binance.com', 'https://api-gcp.binance.com', 'https://api1.binance.com']) {
+      try {
+        const rows = await fetchJSON(`${base}/api/v3/klines?symbol=${symbol}&interval=1w&limit=1000`, {
+          timeout: 12_000,
+          retries: 0,
+        });
+        return rows.map((row) => ({
+          t: Number(row[0]), o: Number(row[1]), h: Number(row[2]),
+          l: Number(row[3]), c: Number(row[4]), q: Number(row[7]),
+        }));
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw lastError || new Error('Binance unavailable');
+  }
+
+  if (provider === 'kraken') {
+    const json = await fetchJSON(
+      `https://api.kraken.com/0/public/OHLC?pair=${encodeURIComponent(symbol)}&interval=10080`,
+      { timeout: 15_000, retries: 0 },
+    );
+    if (json.error?.length) throw new Error(json.error.join(', '));
+    const key = Object.keys(json.result || {}).find((name) => name !== 'last');
+    return (json.result?.[key] || []).map((row) => ({
+      t: Number(row[0]) * 1000, o: Number(row[1]), h: Number(row[2]),
+      l: Number(row[3]), c: Number(row[4]), q: Number(row[6]) * Number(row[5]),
+    }));
+  }
+
+  if (provider === 'okx') {
+    const json = await fetchJSON(
+      `https://www.okx.com/api/v5/market/candles?instId=${encodeURIComponent(symbol)}&bar=1W&limit=300`,
+      { timeout: 15_000, retries: 0 },
+    );
+    if (json.code !== '0') throw new Error(json.msg || `OKX ${json.code}`);
+    return (json.data || []).map((row) => ({
+      t: Number(row[0]), o: Number(row[1]), h: Number(row[2]),
+      l: Number(row[3]), c: Number(row[4]), q: Number(row[7]),
+    })).reverse();
+  }
+
+  throw new Error(`Unsupported provider ${provider}`);
+}
+
+async function loadCaseWeekly(id) {
+  const definition = CASE_WEEKLY[id];
+  if (!definition) throw new Error(`Unknown curated case ${id}`);
+  const failed = [];
+  for (const provider of definition.providers) {
+    const symbol = definition.symbols[provider];
+    if (!symbol) continue;
+    try {
+      const rows = (await exchangeWeekly(provider, symbol)).filter((row) =>
+        [row.t, row.o, row.h, row.l, row.c].every(Number.isFinite) && row.c > 0);
+      if (rows.length < 8) throw new Error('history is too short');
+      return {
+        ok: true,
+        fetchedAt: Date.now(),
+        provider: provider === 'okx' ? 'OKX' : provider === 'kraken' ? 'Kraken' : 'Binance',
+        rows,
+        failed,
+      };
+    } catch (error) {
+      failed.push(`${provider}: ${error.message}`);
+    }
+  }
+  throw new Error(`All weekly candle sources failed — ${failed.join('; ')}`);
 }
 
 function downsample(rows, maximum = 1200) {
@@ -562,6 +789,14 @@ export async function getMarketPayload(urlLike) {
   }
   if (resource === 'sentiment') {
     return cached('sentiment', TTL.sentiment, loadSentiment);
+  }
+  if (resource === 'meme2026') {
+    return cached('meme2026', TTL.meme2026, loadMeme2026);
+  }
+  if (resource === 'caseweekly') {
+    const id = url.searchParams.get('id');
+    if (!id) return { ok: false, status: 400, error: 'id is required' };
+    return cached(`caseweekly:${id}`, TTL.caseWeekly, () => loadCaseWeekly(id));
   }
   return cached('overview', TTL.overview, loadOverview);
 }

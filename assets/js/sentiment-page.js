@@ -10,7 +10,7 @@ function setStatus(text, kind = 'busy') {
 }
 
 function metricValue(metric) {
-  return Number.isFinite(metric?.total24h) ? fmtUsd(metric.total24h) : 'Belum tersedia';
+  return Number.isFinite(metric?.total24h) ? fmtUsd(metric.total24h) : 'Unavailable';
 }
 
 function metricChange(metric) {
@@ -31,13 +31,13 @@ function renderSummary(data) {
   const revenueCoverage = data.platforms.filter((platform) => Number.isFinite(platform.revenue?.total24h)).length;
 
   $('totalVolume').textContent = fmtUsd(totalVolume);
-  $('totalVolumeSub').textContent = `${volumeCoverage}/${data.platforms.length} platform terindeks`;
+  $('totalVolumeSub').textContent = `${volumeCoverage}/${data.platforms.length} platforms indexed`;
   $('totalRevenue').textContent = fmtUsd(totalRevenue);
-  $('totalRevenueSub').textContent = `${revenueCoverage}/${data.platforms.length} platform terindeks`;
+  $('totalRevenueSub').textContent = `${revenueCoverage}/${data.platforms.length} platforms indexed`;
   $('hotChain').textContent = data.hottestChain?.name || '—';
   $('hotChainSub').textContent = data.hottestChain
-    ? `${fmtUsd(data.hottestChain.volume24h)} volume terlacak`
-    : 'Belum ada breakdown chain';
+    ? `${fmtUsd(data.hottestChain.volume24h)} tracked volume`
+    : 'Chain breakdown unavailable';
   $('coverage').textContent = `${volumeCoverage} volume · ${revenueCoverage} revenue`;
 }
 
@@ -59,7 +59,7 @@ function renderPlatforms(data) {
       el('div', { class: 'platform-card-head' },
         el('div', { class: 'platform-ident' },
           platform.logo
-            ? el('img', { class: 'platform-logo', src: platform.logo, alt: `Logo ${platform.name}`, loading: 'lazy', width: '38', height: '38' })
+            ? el('img', { class: 'platform-logo', src: platform.logo, alt: `${platform.name} logo`, loading: 'lazy', width: '38', height: '38' })
             : null,
           el('div', {},
             el('span', { class: 'platform-kicker' }, platform.category || 'Platform'),
@@ -69,15 +69,15 @@ function renderPlatforms(data) {
         el('span', { class: `pulse-badge ${platform.momentum.key}` }, platform.momentum.label),
       ),
       el('div', { class: 'platform-metrics' },
-        metricBlock('Volume 24j', metricValue(platform.volume), metricChange(platform.volume), platform.volumeNote),
-        metricBlock('Revenue 24j', metricValue(platform.revenue), metricChange(platform.revenue), platform.revenueNote),
+        metricBlock('Volume · 24h', metricValue(platform.volume), metricChange(platform.volume), platform.volumeNote),
+        metricBlock('Revenue · 24h', metricValue(platform.revenue), metricChange(platform.revenue), platform.revenueNote),
       ),
-      el('div', { class: 'metric-bars', 'aria-label': `Perbandingan relatif ${platform.name}` },
+      el('div', { class: 'metric-bars', 'aria-label': `${platform.name} relative comparison` },
         barRow('Volume', volumeWidth, platform.accent),
         barRow('Revenue', revenueWidth, 'var(--warn)'),
       ),
       el('p', { class: 'platform-chains' },
-        chains.length ? `Chain: ${chains.join(' · ')}` : 'Breakdown chain belum tersedia',
+        chains.length ? `Chains: ${chains.join(' · ')}` : 'Chain breakdown unavailable',
       ),
     );
     grid.append(card);
@@ -89,7 +89,7 @@ function metricBlock(label, value, change, note) {
   return el('div', { class: 'platform-metric', title: note },
     el('span', { class: 'metric-label' }, label),
     el('strong', { class: 'metric-value num' }, value),
-    el('span', { class: `metric-change ${trendClass(changeValue)}` }, `${change} vs 24j sebelumnya`),
+    el('span', { class: `metric-change ${trendClass(changeValue)}` }, `${change} vs previous 24h`),
   );
 }
 
@@ -107,15 +107,25 @@ function renderChains(data) {
   table.append(el('thead', {}, el('tr', {},
     el('th', {}, '#'),
     el('th', {}, 'Chain'),
-    el('th', { class: 'r' }, 'Volume 24j'),
-    el('th', { class: 'r' }, 'Revenue 24j'),
-    el('th', {}, 'Platform tercakup'),
+    el('th', { class: 'r' }, '24h volume'),
+    el('th', { class: 'r' }, '24h revenue'),
+    el('th', {}, 'Covered platforms'),
   )));
   const body = el('tbody');
   data.chains.forEach((chain, index) => {
     body.append(el('tr', { class: index === 0 ? 'is-peak' : '' },
       el('td', { class: 'muted' }, String(index + 1)),
-      el('td', {}, el('strong', {}, chain.name), index === 0 ? el('span', { class: 'pill chain-hot' }, '#1 volume') : ''),
+      el('td', {},
+        el('span', { class: 'chain-cell' },
+          chain.logo
+            ? el('img', { class: 'chain-logo', src: chain.logo, alt: '', width: '24', height: '24', loading: 'lazy' })
+            : null,
+          chain.sourceUrl
+            ? el('a', { class: 'table-link', href: chain.sourceUrl, target: '_blank', rel: 'noreferrer' }, chain.name)
+            : el('strong', {}, chain.name),
+          index === 0 ? el('span', { class: 'pill chain-hot' }, '#1 volume') : null,
+        ),
+      ),
       el('td', { class: 'r num' }, fmtUsd(chain.volume24h)),
       el('td', { class: 'r num' }, fmtUsd(chain.revenue24h)),
       el('td', { class: 'muted chain-platforms' }, chain.platforms.join(', ')),
@@ -133,20 +143,20 @@ function renderCoverage(data) {
     return items;
   });
   $('coverageNote').textContent = unavailable.length
-    ? `Tidak diestimasi karena sumber belum mengindeks: ${unavailable.join('; ')}.`
-    : 'Semua metrik yang diminta tersedia dari sumber.';
+    ? `Not estimated because the source has not indexed: ${unavailable.join('; ')}.`
+    : 'All requested metrics are available from the source.';
 }
 
 async function load({ force = false } = {}) {
-  setStatus('Mengambil volume dan revenue platform…', 'busy');
+  setStatus('Loading platform volume and revenue…', 'busy');
   const data = await fetchPlatformPulse({ force });
   renderSummary(data);
   renderPlatforms(data);
   renderChains(data);
   renderCoverage(data);
   $('updatedAt').textContent = fmtClock(data.fetchedAt);
-  $('cacheState').textContent = data.cached ? 'cache backend' : 'data baru';
-  setStatus('Metrik platform siap', 'ok');
+  $('cacheState').textContent = data.cached ? 'backend cache' : 'fresh response';
+  setStatus('Platform metrics ready', 'ok');
 }
 
 function init() {
@@ -164,7 +174,7 @@ function init() {
         renderChains(data);
         renderCoverage(data);
         $('updatedAt').textContent = fmtClock(data.fetchedAt);
-        $('cacheState').textContent = 'data baru';
+        $('cacheState').textContent = 'fresh response';
       },
     },
   ]);
@@ -172,8 +182,8 @@ function init() {
 
 function showError(error) {
   console.error(error);
-  setStatus('Data platform gagal dimuat', 'err');
-  $('platformGrid').innerHTML = `<p class="error">Sumber data tidak dapat dihubungi: ${error.message}</p>`;
+  setStatus('Platform data could not load', 'err');
+  $('platformGrid').innerHTML = `<p class="error">The data source could not be reached: ${error.message}</p>`;
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

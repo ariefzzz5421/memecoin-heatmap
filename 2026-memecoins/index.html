@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2026 Memecoins Above $100M — Verified Breakouts</title>
+<meta name="description" content="A sourced record of memecoins verified to have crossed $100 million market cap between January 1, 2026 and today.">
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="icon" type="image/png" href="/assets/img/brand/heatmap-volume-mark.png">
+</head>
+<body>
+<a class="skip" href="#breakouts">Skip to verified breakouts</a>
+<header class="site-head">
+  <div class="wrap head-inner">
+    <a class="brand brand-link" href="/"><img class="brand-mark" src="/assets/img/brand/heatmap-volume-mark.png" alt="" width="38" height="38"><div><h1>Crypto Heatmap Volume</h1><p class="brand-sub">2026 threshold-event research</p></div></a>
+    <nav class="primary-nav" aria-label="Primary navigation">
+      <a href="/">Overview</a><a href="/maps/">Maps</a><a href="/sentiment/">Sentiment</a><a href="/cases/">Cases</a><a class="is-active" href="/2026-memecoins/" aria-current="page">2026</a>
+    </nav>
+    <div class="head-actions"><button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch theme"><span class="theme-icon theme-icon-sun" aria-hidden="true">☀</span><span class="theme-icon theme-icon-moon" aria-hidden="true">☾</span></button></div>
+  </div>
+  <div class="status-bar wrap"><span class="dot busy" id="statusDot"></span><span id="statusText">Loading verified records…</span></div>
+</header>
+<main class="wrap">
+  <section class="route-hero">
+    <div>
+      <p class="eyebrow">January 1 — July 29, 2026</p>
+      <h2>Memecoin $100M breakouts in 2026</h2>
+      <p>A threshold-event record: the crossing must occur in 2026. Launch date can be earlier and is labelled separately. Each inclusion requires market-history evidence plus a second public source or explorer record.</p>
+    </div>
+    <div class="hero-kpis">
+      <article><span>Verified events</span><strong id="verifiedCount">—</strong><small>strict public-source set</small></article>
+      <article><span>Research cutoff</span><strong>29 Jul</strong><small>2026 · Asia/Jakarta</small></article>
+    </div>
+  </section>
+  <p class="verified-line"><span class="dot"></span><span id="researchState">Checking live CoinGecko snapshots while preserving documented threshold evidence.</span></p>
+  <section class="panel" id="breakouts">
+    <div class="panel-head"><div><p class="eyebrow">Evidence register</p><h2>Confirmed $100M crossings</h2><p class="panel-sub">Current price and market cap can move below the threshold after the historical event. The event stays in this register.</p></div></div>
+    <div class="breakout-list" id="breakoutList"><div class="panel-loading"><span class="spinner"></span> Loading research data…</div></div>
+  </section>
+  <section class="panel research-method">
+    <div><p class="eyebrow">Method</p><h2>What qualifies</h2><p>This is the full set we could verify from public records at the cutoff—not a claim of perfect coverage across every on-chain launch.</p></div>
+    <ol>
+      <li>The token's market cap is documented above $100M on or after January 1, 2026.</li>
+      <li>CoinGecko or equivalent market history supports the period, with a separate publication, listing, or explorer source.</li>
+      <li>Contract and creator/issuer fields distinguish verified attribution from anonymous or community-led creation.</li>
+      <li>Conflicting or single-source claims remain excluded until corroborated.</li>
+    </ol>
+  </section>
+  <p class="risk-line">⚠ A historical $100M market cap is not proof of liquidity, distribution quality, or future returns. Avoid leverage and predefine a small position size.</p>
+</main>
+<footer class="site-foot wrap"><p>Live snapshots: CoinGecko · threshold evidence is linked per token · <span id="updatedAt">—</span></p></footer>
+<script type="module" src="/assets/js/theme.js"></script>
+<script type="module" src="/assets/js/memecoins-2026.js"></script>
+</body>
+</html>

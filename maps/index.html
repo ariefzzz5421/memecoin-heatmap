@@ -1,105 +1,77 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Maps — Lokasi Volume Kripto Terbesar</title>
-<meta name="description" content="Peta khusus untuk melihat yurisdiksi bursa dengan volume kripto 24 jam terbesar, lengkap dengan marker peringkat dan detail bursa.">
+<title>Maps — Global Crypto Volume Jurisdictions</title>
+<meta name="description" content="Map reported 24-hour exchange volume by legal jurisdiction, with ranked markers, country flags, and exchange detail.">
 <link rel="stylesheet" href="/assets/css/style.css">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='12' fill='%232a78d6'/></svg>">
+<link rel="icon" type="image/png" href="/assets/img/brand/heatmap-volume-mark.png">
 </head>
 <body>
-
-<a class="skip" href="#peta">Lompat ke peta</a>
-
+<a class="skip" href="#map">Skip to the map</a>
 <header class="site-head">
   <div class="wrap head-inner">
     <a class="brand brand-link" href="/">
-      <span class="brand-mark" aria-hidden="true"></span>
-      <div>
-        <h1>Crypto Heatmap Volume</h1>
-        <p class="brand-sub">Peta khusus konsentrasi volume 24 jam</p>
-      </div>
+      <img class="brand-mark" src="/assets/img/brand/heatmap-volume-mark.png" alt="" width="38" height="38">
+      <div><h1>Crypto Heatmap Volume</h1><p class="brand-sub">Exchange-jurisdiction concentration</p></div>
     </a>
-    <nav class="primary-nav" aria-label="Navigasi utama">
-      <a href="/">Overview</a>
-      <a class="is-active" href="/maps/" aria-current="page">Maps</a>
-      <a href="/sentiment/">Sentiment</a>
-      <a href="/cases/">Cases</a>
+    <nav class="primary-nav" aria-label="Primary navigation">
+      <a href="/">Overview</a><a class="is-active" href="/maps/" aria-current="page">Maps</a><a href="/sentiment/">Sentiment</a><a href="/cases/">Cases</a><a href="/2026-memecoins/">2026</a>
     </nav>
+    <div class="head-actions">
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch theme"><span class="theme-icon theme-icon-sun" aria-hidden="true">☀</span><span class="theme-icon theme-icon-moon" aria-hidden="true">☾</span></button>
+    </div>
   </div>
-  <div class="status-bar wrap">
-    <span class="dot busy" id="statusDot"></span>
-    <span id="statusText">Menyiapkan peta…</span>
-  </div>
+  <div class="status-bar wrap"><span class="dot busy" id="statusDot"></span><span id="statusText">Preparing map data…</span></div>
 </header>
-
 <main class="wrap">
   <section class="route-hero maps-hero">
     <div>
-      <p class="eyebrow">Peta yurisdiksi bursa</p>
-      <h2>Di mana volume kripto terbesar tercatat?</h2>
-      <p>Marker kuning <strong>#1</strong> menunjukkan yurisdiksi dengan volume 24 jam terbesar dari 200 bursa teratas yang dilacak.</p>
+      <p class="eyebrow">Exchange legal jurisdictions</p>
+      <h2>Where is reported crypto volume concentrated?</h2>
+      <p>The yellow <strong>#1</strong> marker identifies the largest mapped jurisdiction across the tracked exchange set.</p>
     </div>
     <div class="hero-kpis">
-      <article>
-        <span>Lokasi terbesar</span>
-        <strong id="topLocation">—</strong>
-        <small id="topShare">—</small>
-      </article>
-      <article>
-        <span>Volume 24 jam</span>
-        <strong id="topVolume">—</strong>
-        <small id="mapCoverage">—</small>
-      </article>
+      <article><span>Largest jurisdiction</span><strong id="topLocation">—</strong><small id="topShare">—</small></article>
+      <article><span>Mapped 24h volume</span><strong id="topVolume">—</strong><small id="mapCoverage">—</small></article>
     </div>
   </section>
-
-  <section class="panel map-route-panel" id="peta">
+  <section class="panel map-route-panel" id="map">
     <div class="panel-head">
-      <div>
-        <h2>Peta volume per yurisdiksi bursa</h2>
-        <p class="panel-sub">Klik marker untuk melihat bursa penyumbang volume. Ukuran marker menunjukkan besar volume; marker kuning menunjukkan peringkat pertama.</p>
-      </div>
+      <div><h2>Exchange volume by jurisdiction</h2><p class="panel-sub">Select a marker to inspect contributing exchanges. Marker area represents volume; yellow identifies rank one.</p></div>
       <div class="panel-tools">
-        <button class="btn sm" id="btnZoomIn" type="button" aria-label="Perbesar">+</button>
-        <button class="btn sm" id="btnZoomOut" type="button" aria-label="Perkecil">−</button>
+        <button class="btn sm" id="btnZoomIn" type="button" aria-label="Zoom in">+</button>
+        <button class="btn sm" id="btnZoomOut" type="button" aria-label="Zoom out">−</button>
         <button class="btn sm" id="btnMapReset" type="button">Reset</button>
-        <label class="chk"><input type="checkbox" id="chkLabels" checked> Label</label>
+        <label class="chk"><input type="checkbox" id="chkLabels" checked> Labels</label>
       </div>
     </div>
-
     <div class="map-layout">
       <div class="map-holder">
-        <canvas id="mapCanvas" aria-label="Peta dunia volume kripto per yurisdiksi" role="img"></canvas>
-        <div class="tooltip" id="mapTip" hidden></div>
-        <div class="map-legend" id="mapLegend"></div>
-        <div class="top-marker-legend"><span>#1</span> volume terbesar</div>
-        <div class="map-loading" id="mapLoading"><span class="spinner"></span> Memuat geometri peta…</div>
+        <canvas id="mapCanvas" aria-label="World map of crypto exchange volume by jurisdiction" role="img"></canvas>
+        <div class="tooltip" id="mapTip" hidden></div><div class="map-legend" id="mapLegend"></div>
+        <div class="top-marker-legend"><span>#1</span> largest volume</div>
+        <div class="map-loading" id="mapLoading"><span class="spinner"></span> Loading map geometry…</div>
       </div>
-      <aside class="map-side">
-        <div class="side-block">
-          <h3>Peringkat yurisdiksi</h3>
-          <ol class="rank-list" id="rankList"></ol>
-        </div>
-      </aside>
+      <aside class="map-side"><div class="side-block"><h3>Jurisdiction ranking</h3><ol class="rank-list" id="rankList"></ol></div></aside>
     </div>
-
     <div class="detail-card" id="detailCard" hidden></div>
-
-    <details class="disclosure">
-      <summary>Tabel lengkap yurisdiksi</summary>
-      <div class="table-scroll" id="jurTable"></div>
-    </details>
-
-    <p class="note"><strong>Batas data:</strong> lokasi menunjukkan yurisdiksi badan hukum bursa, bukan domisili trader.</p>
+    <details class="disclosure"><summary>Full jurisdiction table</summary><div class="table-scroll" id="jurTable"></div></details>
+    <p class="caveat"><strong>Data boundary:</strong> these locations are exchange legal jurisdictions, not trader residences. CoinGecko's exchange country field is primary; CoinPaprika volume plus a disclosed exchange-country mapping is fallback. Missing country metadata is excluded.</p>
+  </section>
+  <section class="panel source-panel">
+    <div><p class="eyebrow">Provenance</p><h2>Map sources</h2></div>
+    <div class="source-links">
+      <a class="source-link" href="https://www.coingecko.com/en/exchanges" target="_blank" rel="noreferrer"><strong>CoinGecko Exchanges</strong><span>volume + country metadata</span></a>
+      <a class="source-link" href="https://api.coinpaprika.com/#tag/Exchanges" target="_blank" rel="noreferrer"><strong>CoinPaprika API</strong><span>fallback volume</span></a>
+      <a class="source-link" href="https://www.naturalearthdata.com/" target="_blank" rel="noreferrer"><strong>Natural Earth</strong><span>map geometry</span></a>
+      <a class="source-link" href="https://flagpedia.net/download/api" target="_blank" rel="noreferrer"><strong>FlagCDN / Flagpedia</strong><span>country flags</span></a>
+    </div>
   </section>
 </main>
-
-<footer class="site-foot wrap">
-  <p>CoinGecko Exchanges · CoinPaprika volume fallback · Yahoo Finance BTC fallback · Natural Earth · <span id="updatedAt">—</span></p>
-</footer>
-
+<footer class="site-foot wrap"><p>Source state and fallback are shown in the live status · <span id="updatedAt">—</span></p></footer>
+<script type="module" src="/assets/js/theme.js"></script>
 <script type="module" src="/assets/js/maps-page.js"></script>
 </body>
 </html>

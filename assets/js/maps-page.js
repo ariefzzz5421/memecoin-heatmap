@@ -4,6 +4,7 @@ import { WorldMap } from './worldmap.js';
 import { renderSeqLegend } from './hours.js';
 import { fmtUsd, fmtUsdShort, fmtNum, fmtClock, el, seqColor, perceptual } from './utils.js';
 import { startAutoRefresh } from './autorefresh.js';
+import { flagImage } from './country-flags.js';
 
 const $ = (id) => document.getElementById(id);
 let map;
@@ -25,16 +26,17 @@ function renderDetail(row) {
   const rank = aggregate.rows.indexOf(row) + 1;
   card.replaceChildren(
     el('div', { class: 'detail-head' },
+      flagImage(row.name),
       el('h3', {}, row.name),
-      el('span', { class: 'pill' }, `Peringkat #${rank}`),
+      el('span', { class: 'pill' }, `Rank #${rank}`),
       el('span', { class: 'pill ghost' }, row.region),
-      el('button', { class: 'btn sm ghost', type: 'button', onclick: () => map.reset() }, 'Tutup'),
+      el('button', { class: 'btn sm ghost', type: 'button', onclick: () => map.reset() }, 'Close'),
     ),
     el('div', { class: 'detail-stats' },
-      stat('Volume 24 jam', fmtUsd(row.volUsd)),
-      stat('Pangsa terpetakan', `${(row.share * 100).toFixed(2)}%`),
-      stat('Jumlah bursa', fmtNum(row.count)),
-      stat('Rata-rata / bursa', fmtUsd(row.avgUsd)),
+      stat('24h volume', fmtUsd(row.volUsd)),
+      stat('Mapped share', `${(row.share * 100).toFixed(2)}%`),
+      stat('Exchanges', fmtNum(row.count)),
+      stat('Average / exchange', fmtUsd(row.avgUsd)),
     ),
     exchangeTable(row),
   );
@@ -51,8 +53,8 @@ function stat(label, value) {
 function exchangeTable(row) {
   const table = el('table', { class: 'data-table compact' });
   table.append(el('thead', {}, el('tr', {},
-    el('th', {}, 'Bursa'),
-    el('th', { class: 'r' }, 'Volume 24j'),
+    el('th', {}, 'Exchange'),
+    el('th', { class: 'r' }, '24h volume'),
     el('th', { class: 'r' }, 'Trust score'),
   )));
   const body = el('tbody');
@@ -71,16 +73,15 @@ function renderRankings() {
   const top = aggregate.rows.find((row) => row.lat != null && row.lon != null) || aggregate.rows[0];
   $('topLocation').textContent = top?.name || '—';
   $('topVolume').textContent = top ? fmtUsd(top.volUsd) : '—';
-  $('topShare').textContent = top ? `${(top.share * 100).toFixed(1)}% dari volume terpetakan` : '—';
-  $('mapCoverage').textContent = `${fmtNum(aggregate.exchangeCount)} bursa · ${aggregate.rows.length} yurisdiksi`;
+  $('topShare').textContent = top ? `${(top.share * 100).toFixed(1)}% of mapped volume` : '—';
+  $('mapCoverage').textContent = `${fmtNum(aggregate.exchangeCount)} exchanges · ${aggregate.rows.length} jurisdictions`;
 
   const list = $('rankList');
   list.replaceChildren();
   aggregate.rows.slice(0, 15).forEach((row, index) => {
-    const intensity = perceptual(row.volUsd, top.volUsd);
     const item = el('li', { class: 'rank-item', tabindex: '0', role: 'button' },
       el('span', { class: 'rank-n' }, String(index + 1)),
-      el('span', { class: 'rank-dot', style: { background: index === 0 ? 'var(--warn)' : seqColor(0.25 + intensity * 0.75) } }),
+      flagImage(row.name) || el('span', { class: 'rank-dot', style: { background: index === 0 ? 'var(--warn)' : seqColor(0.55) } }),
       el('span', { class: 'rank-name' }, row.name),
       el('span', { class: 'rank-val num' }, fmtUsd(row.volUsd, 1)),
       el('span', { class: 'rank-share num' }, `${(row.share * 100).toFixed(1)}%`),
@@ -101,17 +102,17 @@ function renderTable() {
   const table = el('table', { class: 'data-table' });
   table.append(el('thead', {}, el('tr', {},
     el('th', {}, '#'),
-    el('th', {}, 'Yurisdiksi'),
-    el('th', {}, 'Kawasan'),
-    el('th', { class: 'r' }, 'Volume 24j'),
-    el('th', { class: 'r' }, 'Pangsa'),
-    el('th', { class: 'r' }, 'Bursa'),
+    el('th', {}, 'Jurisdiction'),
+    el('th', {}, 'Region'),
+    el('th', { class: 'r' }, '24h volume'),
+    el('th', { class: 'r' }, 'Share'),
+    el('th', { class: 'r' }, 'Exchanges'),
   )));
   const body = el('tbody');
   aggregate.rows.forEach((row, index) => {
     const tr = el('tr', { class: 'clickable', tabindex: '0' },
       el('td', { class: 'muted' }, String(index + 1)),
-      el('td', {}, el('strong', {}, row.name)),
+      el('td', {}, el('span', { class: 'country-cell' }, flagImage(row.name), el('strong', {}, row.name))),
       el('td', { class: 'muted' }, row.region),
       el('td', { class: 'r num' }, fmtUsd(row.volUsd)),
       el('td', { class: 'r num' }, `${(row.share * 100).toFixed(2)}%`),
@@ -129,7 +130,7 @@ function renderTable() {
 }
 
 async function load({ force = false } = {}) {
-  setStatus('Memuat peta dan volume bursa…', 'busy');
+  setStatus('Loading map and exchange volume…', 'busy');
   $('mapLoading').hidden = false;
 
   /* Geometri dan data pasar dimuat terpisah: kegagalan CoinGecko (mis. 429)
@@ -149,7 +150,7 @@ async function load({ force = false } = {}) {
     ]);
   } catch (err) {
     console.error(err);
-    setStatus(`Data volume belum tersedia (${err.message})`, 'err');
+    setStatus(`Volume data unavailable (${err.message})`, 'err');
     return;
   }
   btcPrice = btc;
@@ -158,13 +159,13 @@ async function load({ force = false } = {}) {
   renderSeqLegend($('mapLegend'), {
     min: 0,
     max: aggregate.rows[0]?.volUsd || 0,
-    label: 'Volume 24 jam',
+    label: '24h volume',
     fmt: fmtUsdShort,
   });
   renderRankings();
   renderTable();
   $('updatedAt').textContent = fmtClock(Date.now());
-  setStatus('Peta volume siap', 'ok');
+  setStatus('Volume map ready', 'ok');
 }
 
 function init() {
@@ -178,8 +179,8 @@ function init() {
   });
   load().catch((error) => {
     console.error(error);
-    $('mapLoading').innerHTML = `<span class="error">Peta gagal dimuat: ${error.message}</span>`;
-    setStatus('Sebagian data gagal dimuat', 'err');
+    $('mapLoading').innerHTML = `<span class="error">Map could not load: ${error.message}</span>`;
+    setStatus('Some map data could not load', 'err');
   });
 
   /* Volume bursa berubah lambat — 5 menit sudah cukup dan aman untuk

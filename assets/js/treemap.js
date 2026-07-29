@@ -14,9 +14,9 @@ import { positionTip } from './hours.js';
 import { escapeHtml } from './worldmap.js';
 
 export const CHANGE_FIELDS = {
-  '1h': { key: 'ch1h', label: '1 jam', cap: 8 },
-  '24h': { key: 'ch24h', label: '24 jam', cap: 20 },
-  '7d': { key: 'ch7d', label: '7 hari', cap: 40 },
+  '1h': { key: 'ch1h', label: '1 hour', cap: 8 },
+  '24h': { key: 'ch24h', label: '24 hours', cap: 20 },
+  '7d': { key: 'ch7d', label: '7 days', cap: 40 },
 };
 
 export function renderTreemap(container, coins, {
@@ -57,7 +57,7 @@ export function renderTreemap(container, coins, {
       },
       tabindex: '0',
       role: 'listitem',
-      'aria-label': `${c.name}, volume ${fmtUsd(c.vol)}, perubahan ${field.label} ${fmtPct(pct)}`,
+      'aria-label': `${c.name}, volume ${fmtUsd(c.vol)}, ${field.label} change ${fmtPct(pct)}`,
     });
 
     const big = t.w > 78 && t.h > 52;
@@ -87,14 +87,14 @@ export function renderTreemap(container, coins, {
           <span class="tip-rank">${escapeHtml(c.sym)}</span>
         </div>
         <dl class="tip-grid">
-          <dt>Harga</dt><dd class="num">${fmtPrice(c.price)}</dd>
-          <dt>Volume 24 jam</dt><dd class="num">${fmtUsd(c.vol)}</dd>
-          <dt>Pangsa keranjang</dt><dd class="num">${(share * 100).toFixed(2)}%</dd>
-          <dt>Kapitalisasi</dt><dd class="num">${fmtUsd(c.mcap)}</dd>
+          <dt>Price</dt><dd class="num">${fmtPrice(c.price)}</dd>
+          <dt>24h volume</dt><dd class="num">${fmtUsd(c.vol)}</dd>
+          <dt>Basket share</dt><dd class="num">${(share * 100).toFixed(2)}%</dd>
+          <dt>Market cap</dt><dd class="num">${fmtUsd(c.mcap)}</dd>
           <dt>Vol / Kap</dt><dd class="num">${c.mcap ? (c.vol / c.mcap).toFixed(3) : '—'}</dd>
-          <dt>Ubah 1 jam</dt><dd class="num ${sign(c.ch1h)}">${fmtPct(c.ch1h)}</dd>
-          <dt>Ubah 24 jam</dt><dd class="num ${sign(c.ch24h)}">${fmtPct(c.ch24h)}</dd>
-          <dt>Ubah 7 hari</dt><dd class="num ${sign(c.ch7d)}">${fmtPct(c.ch7d)}</dd>
+          <dt>1h change</dt><dd class="num ${sign(c.ch1h)}">${fmtPct(c.ch1h)}</dd>
+          <dt>24h change</dt><dd class="num ${sign(c.ch24h)}">${fmtPct(c.ch24h)}</dd>
+          <dt>7d change</dt><dd class="num ${sign(c.ch7d)}">${fmtPct(c.ch7d)}</dd>
         </dl>`;
       tooltip.hidden = false;
       positionTip(tooltip, container, evt);
@@ -123,11 +123,11 @@ export function renderDivLegend(container, changeField = '24h') {
   for (const c of PALETTE.divUp) bar.append(el('span', { style: { background: c } }));
 
   container.append(
-    el('span', { class: 'legend-title' }, `Perubahan ${field.label}`),
+    el('span', { class: 'legend-title' }, `${field.label} change`),
     el('span', { class: 'legend-end' }, `≤ −${field.cap}%`),
     bar,
     el('span', { class: 'legend-end' }, `≥ +${field.cap}%`),
-    el('span', { class: 'legend-note' }, 'biru = naik · merah = turun'),
+    el('span', { class: 'legend-note' }, 'blue = up · red = down'),
   );
 }
 
@@ -139,14 +139,14 @@ export function renderCoinTable(container, coins, limit = 40) {
   const total = rows.reduce((s, c) => s + c.vol, 0);
 
   const table = el('table', { class: 'data-table' });
-  table.append(el('caption', {}, `Volume ${rows.length} memecoin teratas (24 jam)`));
+  table.append(el('caption', {}, `Top ${rows.length} memecoins by 24h volume`));
   const thead = el('thead', {}, el('tr', {},
     el('th', { scope: 'col' }, '#'),
     el('th', { scope: 'col' }, 'Koin'),
-    el('th', { scope: 'col', class: 'r' }, 'Harga'),
+    el('th', { scope: 'col', class: 'r' }, 'Price'),
     el('th', { scope: 'col', class: 'r' }, 'Volume 24j'),
-    el('th', { scope: 'col', class: 'r' }, 'Pangsa'),
-    el('th', { scope: 'col', class: 'r' }, 'Kapitalisasi'),
+    el('th', { scope: 'col', class: 'r' }, 'Share'),
+    el('th', { scope: 'col', class: 'r' }, 'Market cap'),
     el('th', { scope: 'col', class: 'r' }, '1j'),
     el('th', { scope: 'col', class: 'r' }, '24j'),
     el('th', { scope: 'col', class: 'r' }, '7h'),

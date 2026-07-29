@@ -26,18 +26,18 @@ export const MAJOR_BASKET = [
 
 /* ---------- Timeframe untuk analisa jam aktif ---------- */
 export const TIMEFRAMES = [
-  { key: '24h', label: '24 Jam',  hours: 24,   deep: false },
-  { key: '7d',  label: '7 Hari',  hours: 168,  deep: false },
-  { key: '30d', label: '30 Hari', hours: 720,  deep: false },
-  { key: '90d', label: '90 Hari', hours: 2160, deep: true  },
+  { key: '24h', label: '24 Hours',  hours: 24,   deep: false },
+  { key: '7d',  label: '7 Days',    hours: 168,  deep: false },
+  { key: '30d', label: '30 Days',   hours: 720,  deep: false },
+  { key: '90d', label: '90 Days',   hours: 2160, deep: true  },
 ];
 
 /* ---------- Sesi pasar global (jam UTC) ----------
    Dipakai sebagai overlay pada heatmap jam.                */
 export const SESSIONS = [
-  { key: 'asia',   label: 'Sesi Asia',   utcStart: 0,  utcEnd: 8,  color: 'var(--warn)' },
-  { key: 'europe', label: 'Sesi Eropa',  utcStart: 7,  utcEnd: 16, color: 'var(--up)' },
-  { key: 'us',     label: 'Sesi AS',     utcStart: 13, utcEnd: 21, color: 'var(--down)' },
+  { key: 'asia',   label: 'Asia session',   utcStart: 0,  utcEnd: 8,  color: 'var(--warn)' },
+  { key: 'europe', label: 'Europe session', utcStart: 7,  utcEnd: 16, color: 'var(--up)' },
+  { key: 'us',     label: 'US session',     utcStart: 13, utcEnd: 21, color: 'var(--down)' },
 ];
 
 /* ---------- Alias nama negara: CoinGecko -> world-atlas ---------- */
@@ -57,12 +57,12 @@ export const GEO_NAME_ALIAS = {
 
 /* ---------- Region untuk breakdown ---------- */
 const REGION = {
-  OFFSHORE: 'Offshore / Kepulauan',
-  ASIA: 'Asia-Pasifik',
-  EUROPE: 'Eropa',
-  NAM: 'Amerika Utara',
-  LATAM: 'Amerika Latin',
-  MEA: 'Timur Tengah & Afrika',
+  OFFSHORE: 'Offshore / islands',
+  ASIA: 'Asia-Pacific',
+  EUROPE: 'Europe',
+  NAM: 'North America',
+  LATAM: 'Latin America',
+  MEA: 'Middle East & Africa',
 };
 export const REGIONS = REGION;
 

@@ -16,6 +16,7 @@ import {
   pad2, hourRange, DOW_ID, el, debounce, seqColor, perceptual,
 } from './utils.js';
 import { startAutoRefresh } from './autorefresh.js';
+import { flagImage } from './country-flags.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -82,7 +83,7 @@ function renderMapSection() {
   renderSeqLegend($('mapLegend'), {
     min: 0,
     max: agg.rows[0]?.volUsd || 0,
-    label: 'Volume 24 jam',
+    label: '24h volume',
     fmt: fmtUsdShort,
   });
 
@@ -90,10 +91,9 @@ function renderMapSection() {
   const list = $('rankList');
   list.innerHTML = '';
   agg.rows.slice(0, 12).forEach((r, i) => {
-    const t = perceptual(r.volUsd, agg.rows[0].volUsd);
     const li = el('li', { class: 'rank-item', tabindex: '0', role: 'button' },
       el('span', { class: 'rank-n' }, String(i + 1)),
-      el('span', { class: 'rank-dot', style: { background: seqColor(0.25 + 0.75 * t) } }),
+      flagImage(r.name) || el('span', { class: 'rank-dot', style: { background: seqColor(0.55) } }),
       el('span', { class: 'rank-name' }, r.name),
       el('span', { class: 'rank-val num' }, fmtUsd(r.volUsd, 1)),
       el('span', { class: 'rank-share num' }, `${(r.share * 100).toFixed(1)}%`),
@@ -118,7 +118,7 @@ function renderMapSection() {
         el('span', { style: { width: `${(g.volUsd / rmax) * 100}%`, background: seqColor(0.25 + 0.6 * perceptual(g.volUsd, rmax)) } }),
       ),
       el('div', { class: 'region-meta muted' },
-        `${fmtUsd(g.volUsd, 1)} · ${g.places} yurisdiksi · ${fmtNum(g.count)} bursa`),
+        `${fmtUsd(g.volUsd, 1)} · ${g.places} jurisdictions · ${fmtNum(g.count)} exchanges`),
     ));
   }
 
@@ -130,23 +130,23 @@ function renderJurisdictionTable(agg) {
   const holder = $('jurTable');
   holder.innerHTML = '';
   const table = el('table', { class: 'data-table' });
-  table.append(el('caption', {}, `${agg.rows.length} yurisdiksi dari ${fmtNum(agg.exchangeCount)} bursa teratas`));
+  table.append(el('caption', {}, `${agg.rows.length} jurisdictions across ${fmtNum(agg.exchangeCount)} tracked exchanges`));
   table.append(el('thead', {}, el('tr', {},
     el('th', { scope: 'col' }, '#'),
-    el('th', { scope: 'col' }, 'Yurisdiksi'),
-    el('th', { scope: 'col' }, 'Kawasan'),
-    el('th', { scope: 'col', class: 'r' }, 'Volume 24j'),
-    el('th', { scope: 'col', class: 'r' }, 'Pangsa'),
-    el('th', { scope: 'col', class: 'r' }, 'Bursa'),
-    el('th', { scope: 'col', class: 'r' }, 'Rata-rata'),
+    el('th', { scope: 'col' }, 'Jurisdiction'),
+    el('th', { scope: 'col' }, 'Region'),
+    el('th', { scope: 'col', class: 'r' }, '24h volume'),
+    el('th', { scope: 'col', class: 'r' }, 'Share'),
+    el('th', { scope: 'col', class: 'r' }, 'Exchanges'),
+    el('th', { scope: 'col', class: 'r' }, 'Average'),
     el('th', { scope: 'col', class: 'r' }, 'Median'),
-    el('th', { scope: 'col' }, 'Bursa terbesar'),
+    el('th', { scope: 'col' }, 'Largest exchange'),
   )));
   const tb = el('tbody');
   agg.rows.forEach((r, i) => {
     const tr = el('tr', { class: 'clickable', tabindex: '0' },
       el('td', { class: 'muted' }, String(i + 1)),
-      el('td', {}, el('strong', {}, r.name)),
+      el('td', {}, el('span', { class: 'country-cell' }, flagImage(r.name), el('strong', {}, r.name))),
       el('td', { class: 'muted' }, r.region),
       el('td', { class: 'r num' }, fmtUsd(r.volUsd)),
       el('td', { class: 'r num' }, `${(r.share * 100).toFixed(2)}%`),
@@ -155,7 +155,7 @@ function renderJurisdictionTable(agg) {
       el('td', { class: 'r num' }, fmtUsd(r.medianUsd)),
       el('td', { class: 'muted' }, r.top?.name || '—'),
     );
-    const go = () => { map.focus(r.name); document.getElementById('peta').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+    const go = () => { map.focus(r.name); document.getElementById('map').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
     tr.addEventListener('click', go);
     tr.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
     tb.append(tr);
@@ -165,7 +165,7 @@ function renderJurisdictionTable(agg) {
   if (agg.unknownUsd > 0) {
     table.append(el('tfoot', {}, el('tr', {},
       el('td', {}, ''),
-      el('td', { colspan: '2' }, 'Tidak terdaftar / tidak diketahui'),
+      el('td', { colspan: '2' }, 'Unregistered / unknown'),
       el('td', { class: 'r num' }, fmtUsd(agg.unknownUsd)),
       el('td', { class: 'r num' }, `${((agg.unknownUsd / agg.grandTotal) * 100).toFixed(2)}%`),
       el('td', { class: 'r num' }, fmtNum(agg.unknownCount)),
@@ -184,20 +184,21 @@ function renderDetail(row) {
   card.innerHTML = '';
   card.append(
     el('div', { class: 'detail-head' },
+      flagImage(row.name),
       el('h3', {}, row.name),
-      el('span', { class: 'pill' }, `Peringkat #${rank}`),
+      el('span', { class: 'pill' }, `Rank #${rank}`),
       el('span', { class: 'pill ghost' }, row.region),
-      el('button', { class: 'btn sm ghost', type: 'button', onclick: () => map.reset() }, 'Tutup'),
+      el('button', { class: 'btn sm ghost', type: 'button', onclick: () => map.reset() }, 'Close'),
     ),
     el('div', { class: 'detail-stats' },
-      stat('Volume 24 jam', fmtUsd(row.volUsd)),
-      stat('Pangsa global', `${(row.share * 100).toFixed(2)}%`),
-      stat('Jumlah bursa', fmtNum(row.count)),
-      stat('Rata-rata / bursa', fmtUsd(row.avgUsd)),
-      stat('Median / bursa', fmtUsd(row.medianUsd)),
-      stat('Zona waktu', row.tz != null ? `UTC${row.tz >= 0 ? '+' : '−'}${Math.abs(row.tz)}` : '—'),
+      stat('24h volume', fmtUsd(row.volUsd)),
+      stat('Mapped share', `${(row.share * 100).toFixed(2)}%`),
+      stat('Exchanges', fmtNum(row.count)),
+      stat('Average / exchange', fmtUsd(row.avgUsd)),
+      stat('Median / exchange', fmtUsd(row.medianUsd)),
+      stat('Time zone', row.tz != null ? `UTC${row.tz >= 0 ? '+' : '−'}${Math.abs(row.tz)}` : '—'),
     ),
-    el('h4', {}, `Bursa terdaftar di ${row.name}`),
+    el('h4', {}, `Exchanges registered in ${row.name}`),
     exchangeTable(row),
   );
   card.hidden = false;
@@ -214,11 +215,11 @@ function exchangeTable(row) {
   const btc = state.btcPrice || 0;
   const table = el('table', { class: 'data-table compact' });
   table.append(el('thead', {}, el('tr', {},
-    el('th', { scope: 'col' }, 'Bursa'),
-    el('th', { scope: 'col', class: 'r' }, 'Volume 24j'),
-    el('th', { scope: 'col', class: 'r' }, 'Pangsa lokal'),
+    el('th', { scope: 'col' }, 'Exchange'),
+    el('th', { scope: 'col', class: 'r' }, '24h volume'),
+    el('th', { scope: 'col', class: 'r' }, 'Local share'),
     el('th', { scope: 'col', class: 'r' }, 'Trust'),
-    el('th', { scope: 'col', class: 'r' }, 'Berdiri'),
+    el('th', { scope: 'col', class: 'r' }, 'Founded'),
   )));
   const tb = el('tbody');
   for (const ex of row.exchanges.slice(0, 15)) {
@@ -264,13 +265,13 @@ async function loadHours({ force = false } = {}) {
   const basket = state.basket === 'meme' ? MEME_BASKET : MAJOR_BASKET;
   const tf = TIMEFRAMES.find((t) => t.key === state.timeframe) || TIMEFRAMES[2];
 
-  $('hourProfile').innerHTML = '<div class="chart-loading"><span class="spinner"></span> Mengambil candle 1 jam…</div>';
-  status(`Mengambil candle ${tf.label.toLowerCase()}…`, 'busy');
+  $('hourProfile').innerHTML = '<div class="chart-loading"><span class="spinner"></span> Loading 1-hour candles…</div>';
+  status(`Loading ${tf.label.toLowerCase()} of candles…`, 'busy');
 
   try {
     const { provider, series, failed, cached } = await fetchCandleSet(basket, tf.hours, {
       force,
-      onProgress: (done, total, label) => status(`Candle dari ${label}: ${done}/${total} koin…`, 'busy'),
+      onProgress: (done, total, label) => status(`${label} candles: ${done}/${total} coins…`, 'busy'),
     });
 
     state.candleProvider = provider;
@@ -279,19 +280,19 @@ async function loadHours({ force = false } = {}) {
     state.analysis = analyzeHours(state.hourly, tf.hours);
 
     renderHourSection();
-    status('Data siap', 'ok',
-      `candle: ${provider}${cached ? ' (cache)' : ''}${failed.length ? ` · ${failed.length} koin dilewati` : ''}`);
+    status('Data ready', 'ok',
+      `candles: ${provider}${cached ? ' (cache)' : ''}${failed.length ? ` · ${failed.length} coins skipped` : ''}`);
     if (failed.length) {
-      toast(`Dilewati: ${failed.map((f) => f.key).join(', ')} — tidak tersedia di ${provider}.`, 'warn');
+      toast(`Skipped: ${failed.map((f) => f.key).join(', ')} — unavailable on ${provider}.`, 'warn');
     }
   } catch (err) {
     console.error(err);
     $('hourProfile').innerHTML = '';
     $('hourProfile').append(el('p', { class: 'error' },
-      `Gagal mengambil data candle: ${err.message}. Binance/OKX/Kraken mungkin diblokir jaringan atau ISP. Coba lagi, atau gunakan VPN.`));
+      `Could not load candle data: ${err.message}. Binance, OKX, or Kraken may be blocked by the network or ISP.`));
     $('hourMatrix').innerHTML = '';
     $('hourInsights').innerHTML = '';
-    status('Data candle gagal dimuat', 'err');
+    status('Candle data could not load', 'err');
   } finally {
     state.loadingHours = false;
   }
@@ -306,13 +307,13 @@ function renderHourSection() {
   renderCoverageNote(an);
 
   renderSeqLegend($('matrixLegend'), {
-    min: 0, max: an.matrixMax, label: 'Rata-rata volume', fmt: fmtUsdShort,
+    min: 0, max: an.matrixMax, label: 'Average volume', fmt: fmtUsdShort,
   });
 
   /* Legenda sesi */
   const ls = $('hourLegendSessions');
   ls.innerHTML = '';
-  ls.append(el('span', { class: 'legend-title' }, 'Sesi pasar'));
+  ls.append(el('span', { class: 'legend-title' }, 'Market sessions'));
   for (const s of an.sessions) {
     ls.append(el('span', { class: 'legend-item' },
       el('span', { class: 'legend-swatch', style: { background: s.color } }),
@@ -340,11 +341,11 @@ function renderCoverageNote(an) {
   const short = gotDays < wantDays * 0.95;
 
   const text = short
-    ? `Diminta ${tf.label.toLowerCase()}, tersedia ${Math.round(gotDays)} hari. `
-      + `${state.candleProvider} membatasi kedalaman histori candle 1 jam — seluruh angka di bawah `
-      + `dihitung dari ${Math.round(gotDays)} hari (${an.hours} jam) yang benar-benar terambil.`
-    : `Jendela analisa: ${Math.round(gotDays)} hari (${an.hours} jam candle 1 jam dari ${state.candleProvider}), `
-      + `berakhir ${fmtClock(an.to)}.`;
+    ? `Requested ${tf.label.toLowerCase()}, but ${Math.round(gotDays)} days are available. `
+      + `${state.candleProvider} limits 1-hour candle depth; all values below use the returned `
+      + `${Math.round(gotDays)} days (${an.hours} hourly observations).`
+    : `Analysis window: ${Math.round(gotDays)} days (${an.hours} 1-hour observations from ${state.candleProvider}), `
+      + `ending ${fmtClock(an.to)}.`;
 
   holder.append(el('p', { class: `note coverage-note${short ? ' warn' : ''}` }, text));
 }
@@ -363,43 +364,43 @@ function renderHourInsights(an) {
 
   const cards = [
     {
-      tag: 'Jam puncak',
+      tag: 'Peak hour',
       big: `${peakWibRange} WIB`,
       sub: `${peakUtcRange} UTC`,
-      body: `Rata-rata ${fmtUsd(an.peak.avg)} per jam — ${fmtPct(an.peak.vsAvg * 100, 0)} di atas rata-rata harian.`,
+      body: `Average ${fmtUsd(an.peak.avg)} per hour — ${fmtPct(an.peak.vsAvg * 100, 0)} versus the daily average.`,
       accent: true,
     },
     {
-      tag: 'Blok 3 jam tertinggi',
+      tag: 'Highest 3-hour block',
       big: `${blockWib} WIB`,
       sub: `${blockUtc} UTC`,
-      body: `Rata-rata ${fmtUsd(an.bestBlock.avg)} per jam selama 3 jam berturut-turut.`,
+      body: `Average ${fmtUsd(an.bestBlock.avg)} per hour across three consecutive hours.`,
     },
     {
-      tag: 'Rata-rata volume',
+      tag: 'Average volume',
       big: `${fmtUsd(an.avgPerHour)}`,
-      sub: 'per jam',
-      body: `Total ${fmtUsd(an.totalVol)} dalam ${Math.round(an.days)} hari — setara ${fmtUsd(an.avgPerHour * 24)} per hari.`,
+      sub: 'per hour',
+      body: `${fmtUsd(an.totalVol)} total across ${Math.round(an.days)} days — equivalent to ${fmtUsd(an.avgPerHour * 24)} per day.`,
     },
     {
-      tag: 'Jam volume terendah',
+      tag: 'Lowest-volume hour',
       big: `${quietWib} WIB`,
       sub: `${hourRange(an.quiet.utc)} UTC`,
-      body: `${fmtUsd(an.quiet.avg)} per jam. Rasio jam tertinggi : terendah = ${an.peakRatio.toFixed(1)}×.`,
+      body: `${fmtUsd(an.quiet.avg)} per hour. Peak-to-quiet ratio: ${an.peakRatio.toFixed(1)}×.`,
     },
     {
-      tag: 'Sesi volume tertinggi',
-      big: topSession.label.replace('Sesi ', ''),
+      tag: 'Highest-volume session',
+      big: topSession.label.replace(' session', ''),
       sub: `${pad2(topSession.wibStart)}:00–${pad2(topSession.wibEnd)}:00 WIB`,
-      body: `${(topSession.share * 100).toFixed(0)}% volume harian, rata-rata ${fmtUsd(topSession.avg)} per jam.`,
+      body: `${(topSession.share * 100).toFixed(0)}% of daily volume, averaging ${fmtUsd(topSession.avg)} per hour.`,
     },
     {
-      tag: 'Hari volume tertinggi',
+      tag: 'Highest-volume day',
       big: DOW_ID[an.bestDay.dow],
-      sub: `${fmtUsd(an.bestDay.avg)} / jam`,
+      sub: `${fmtUsd(an.bestDay.avg)} / hour`,
       body: wkDelta >= 0
-        ? `Rata-rata hari kerja ${fmtPct(wkDelta, 0)} vs akhir pekan.`
-        : `Rata-rata akhir pekan ${fmtPct(-wkDelta, 0)} vs hari kerja.`,
+        ? `Weekdays average ${fmtPct(wkDelta, 0)} versus weekends.`
+        : `Weekends average ${fmtPct(-wkDelta, 0)} versus weekdays.`,
     },
   ];
 
@@ -418,11 +419,11 @@ function renderSessionTable(an) {
   h.innerHTML = '';
   const t = el('table', { class: 'data-table compact' });
   t.append(el('thead', {}, el('tr', {},
-    el('th', { scope: 'col' }, 'Sesi'),
+    el('th', { scope: 'col' }, 'Session'),
     el('th', { scope: 'col' }, 'WIB'),
     el('th', { scope: 'col' }, 'UTC'),
-    el('th', { scope: 'col', class: 'r' }, 'Rata-rata/jam'),
-    el('th', { scope: 'col', class: 'r' }, 'Pangsa'),
+    el('th', { scope: 'col', class: 'r' }, 'Average/hour'),
+    el('th', { scope: 'col', class: 'r' }, 'Share'),
   )));
   const tb = el('tbody');
   for (const s of an.sessions) {
@@ -439,8 +440,7 @@ function renderSessionTable(an) {
   t.append(tb);
   h.append(t,
     el('p', { class: 'note' },
-      'Rentang sesi saling beririsan (Eropa 14:00–23:00 WIB, AS 20:00–04:00 WIB), '
-      + 'sehingga total pangsa melebihi 100%.'));
+      'Session windows overlap (Europe 14:00–23:00 WIB, US 20:00–04:00 WIB), so their shares can sum above 100%.'));
 }
 
 function renderCoinHourTable(an) {
@@ -448,10 +448,10 @@ function renderCoinHourTable(an) {
   h.innerHTML = '';
   const t = el('table', { class: 'data-table compact' });
   t.append(el('thead', {}, el('tr', {},
-    el('th', { scope: 'col' }, 'Koin'),
-    el('th', { scope: 'col' }, 'Jam puncak WIB'),
+    el('th', { scope: 'col' }, 'Coin'),
+    el('th', { scope: 'col' }, 'Peak hour · WIB'),
     el('th', { scope: 'col' }, 'UTC'),
-    el('th', { scope: 'col', class: 'r' }, 'Rata-rata/jam'),
+    el('th', { scope: 'col', class: 'r' }, 'Average/hour'),
     el('th', { scope: 'col', class: 'r' }, 'Total'),
   )));
   const tb = el('tbody');
@@ -469,7 +469,7 @@ function renderCoinHourTable(an) {
 
   if (state.candleFailed.length) {
     h.append(el('p', { class: 'note' },
-      `Tidak tersedia di ${state.candleProvider}: ${state.candleFailed.map((f) => f.key).join(', ')}.`));
+      `Unavailable on ${state.candleProvider}: ${state.candleFailed.map((f) => f.key).join(', ')}.`));
   }
 }
 
@@ -477,15 +477,15 @@ function renderHourTable(an) {
   const h = $('hourTable');
   h.innerHTML = '';
   const t = el('table', { class: 'data-table compact' });
-  t.append(el('caption', {}, 'Rata-rata volume per jam, diurutkan menurut jam WIB'));
+  t.append(el('caption', {}, 'Average volume by hour, ordered by WIB'));
   t.append(el('thead', {}, el('tr', {},
     el('th', { scope: 'col' }, 'WIB'),
     el('th', { scope: 'col' }, 'UTC'),
-    el('th', { scope: 'col', class: 'r' }, 'Rata-rata'),
+    el('th', { scope: 'col', class: 'r' }, 'Average'),
     el('th', { scope: 'col', class: 'r' }, 'Median'),
-    el('th', { scope: 'col', class: 'r' }, 'Tertinggi'),
-    el('th', { scope: 'col', class: 'r' }, 'vs rata-rata'),
-    el('th', { scope: 'col', class: 'r' }, 'Pangsa'),
+    el('th', { scope: 'col', class: 'r' }, 'High'),
+    el('th', { scope: 'col', class: 'r' }, 'vs average'),
+    el('th', { scope: 'col', class: 'r' }, 'Share'),
   )));
   const tb = el('tbody');
   for (let wib = 0; wib < 24; wib++) {
@@ -508,7 +508,7 @@ function renderHourTable(an) {
 function updateHourKpi(an) {
   $('kpiPeakHour').textContent = `${hourRange(an.peak.wib)} WIB`;
   $('kpiPeakSub').textContent =
-    `${hourRange(an.peak.utc)} UTC · ${fmtUsd(an.peak.avg)}/jam · ${fmtPct(an.peak.vsAvg * 100, 0)} vs rata-rata`;
+    `${hourRange(an.peak.utc)} UTC · ${fmtUsd(an.peak.avg)}/hour · ${fmtPct(an.peak.vsAvg * 100, 0)} vs average`;
 }
 
 /* ============================================================
@@ -580,16 +580,16 @@ function renderMemeInsights(coins) {
   const top3Share = totalVol > 0 ? top.slice(0, 3).reduce((s, c) => s + c.vol, 0) / totalVol : 0;
 
   const cards = [
-    { tag: 'Volume memecoin 24 jam', big: fmtUsd(totalVol), sub: `${top.length} koin teratas`,
-      body: `Rasio volume/kapitalisasi 24 jam: ${(turnover * 100).toFixed(1)}% dari ${fmtUsd(totalMcap)}.` },
-    { tag: 'Volume terbesar', big: leader.sym, sub: fmtUsd(leader.vol),
-      body: `${leader.name}: ${((leader.vol / totalVol) * 100).toFixed(1)}% volume keranjang. Tiga teratas: ${(top3Share * 100).toFixed(0)}%.` },
-    { tag: `Naik terkuat ${field.label}`, big: best ? best.sym : '—', sub: best ? fmtPct(best[field.key]) : '—',
-      body: best ? `${best.name} di ${fmtPrice(best.price)}, volume ${fmtUsd(best.vol)}.` : 'Data perubahan tidak tersedia.' },
-    { tag: `Turun terdalam ${field.label}`, big: worst ? worst.sym : '—', sub: worst ? fmtPct(worst[field.key]) : '—',
-      body: worst ? `${worst.name} di ${fmtPrice(worst.price)}, volume ${fmtUsd(worst.vol)}.` : 'Data perubahan tidak tersedia.' },
-    { tag: 'Koin naik', big: `${gainers}/${withCh.length}`, sub: `dalam ${field.label}`,
-      body: `${gainers} dari ${withCh.length} koin mencatat perubahan positif ${field.label}.` },
+    { tag: 'Memecoin volume · 24h', big: fmtUsd(totalVol), sub: `top ${top.length} coins`,
+      body: `24h volume-to-market-cap ratio: ${(turnover * 100).toFixed(1)}% of ${fmtUsd(totalMcap)}.` },
+    { tag: 'Largest volume', big: leader.sym, sub: fmtUsd(leader.vol),
+      body: `${leader.name}: ${((leader.vol / totalVol) * 100).toFixed(1)}% of basket volume. Top three: ${(top3Share * 100).toFixed(0)}%.` },
+    { tag: `Strongest gain · ${field.label}`, big: best ? best.sym : '—', sub: best ? fmtPct(best[field.key]) : '—',
+      body: best ? `${best.name} at ${fmtPrice(best.price)}, volume ${fmtUsd(best.vol)}.` : 'Change data unavailable.' },
+    { tag: `Deepest drop · ${field.label}`, big: worst ? worst.sym : '—', sub: worst ? fmtPct(worst[field.key]) : '—',
+      body: worst ? `${worst.name} at ${fmtPrice(worst.price)}, volume ${fmtUsd(worst.vol)}.` : 'Change data unavailable.' },
+    { tag: 'Coins up', big: `${gainers}/${withCh.length}`, sub: `over ${field.label}`,
+      body: `${gainers} of ${withCh.length} coins recorded a positive ${field.label} change.` },
   ];
 
   for (const c of cards) {
@@ -611,16 +611,16 @@ function updateTopKpi() {
   if (g) {
     $('kpiGlobalVol').textContent = fmtUsd(g.volUsd);
     $('kpiGlobalSub').textContent =
-      `Kapitalisasi ${fmtUsd(g.mcapUsd)} (${fmtPct(g.mcapChange24h, 1)} 24j) · dominasi BTC ${g.btcDom.toFixed(1)}%`;
+      `Market cap ${fmtUsd(g.mcapUsd)} (${fmtPct(g.mcapChange24h, 1)} · 24h) · BTC dominance ${g.btcDom.toFixed(1)}%`;
   }
   if (agg) {
     const t = agg.rows[0];
     $('kpiTopPlace').textContent = t.name;
     $('kpiTopSub').textContent =
-      `${fmtUsd(t.volUsd)} · ${(t.share * 100).toFixed(1)}% volume terpetakan · ${t.count} bursa`;
+      `${fmtUsd(t.volUsd)} · ${(t.share * 100).toFixed(1)}% of mapped volume · ${t.count} exchanges`;
     $('kpiAvgEx').textContent = fmtUsd(agg.avgPerExchange);
     $('kpiAvgExSub').textContent =
-      `${fmtNum(agg.exchangeCount)} bursa · ${agg.rows.length} yurisdiksi · ${agg.top80} teratas = 80% volume`;
+      `${fmtNum(agg.exchangeCount)} exchanges · ${agg.rows.length} jurisdictions · top ${agg.top80} = 80% of volume`;
   }
 }
 
@@ -629,13 +629,13 @@ function updateTopKpi() {
    ============================================================ */
 
 async function boot({ force = false } = {}) {
-  status('Memuat data pasar…', 'busy');
+  status('Loading market data…', 'busy');
 
   /* Peta bisa digambar segera setelah geometri siap */
   const geoP = fetchWorldTopo()
     .then((topo) => { map.setTopology(topo); })
     .catch((e) => {
-      $('mapLoading').innerHTML = `<span class="error">Gagal memuat geometri peta: ${escapeHtml(e.message)}</span>`;
+      $('mapLoading').innerHTML = `<span class="error">Map geometry could not load: ${escapeHtml(e.message)}</span>`;
       throw e;
     });
 
@@ -650,7 +650,7 @@ async function boot({ force = false } = {}) {
 
   const coinsP = fetchMemecoins({ limit: 100, force })
     .then((c) => { state.coins = c; })
-    .catch((e) => { console.warn('memecoin gagal', e); state.coins = []; });
+    .catch((e) => { console.warn('memecoin request failed', e); state.coins = []; });
 
   const globalP = fetchGlobal({ force })
     .then((g) => { state.global = g; })
@@ -661,16 +661,16 @@ async function boot({ force = false } = {}) {
     renderMapSection();
   } catch (e) {
     console.error(e);
-    status(`Sebagian data gagal dimuat: ${e.message}`, 'err');
+    status(`Some market data could not load: ${e.message}`, 'err');
   }
 
   await Promise.allSettled([coinsP, globalP]);
   updateTopKpi();
   if (state.coins.length) renderMemeSection();
-  else $('treemap').innerHTML = '<p class="error">Data memecoin tidak tersedia (batas rate CoinGecko?). Coba muat ulang beberapa saat lagi.</p>';
+  else $('treemap').innerHTML = '<p class="error">Memecoin data is temporarily unavailable. The source may be rate limited.</p>';
 
   $('footUpdated').textContent = fmtClock(Date.now());
-  status('Data pasar siap', 'ok', `BTC ${fmtPrice(state.btcPrice)}`);
+  status('Market data ready', 'ok', `BTC ${fmtPrice(state.btcPrice)}`);
 
   await loadHours({ force });
 }
@@ -767,7 +767,7 @@ function init() {
   setInterval(tickClock, 1000);
   boot().catch((e) => {
     console.error(e);
-    status(`Gagal memuat: ${e.message}`, 'err');
+    status(`Could not load: ${e.message}`, 'err');
   });
 
   /* Pembaruan senyap di latar. Jarak tiap sumber dipisah agar batas rate

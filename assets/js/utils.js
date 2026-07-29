@@ -57,6 +57,42 @@ export const PALETTE = {
   },
 };
 
+export function refreshPalette() {
+  PALETTE.surface = cssVar('--surface');
+  PALETTE.plane = cssVar('--plane');
+  PALETTE.ink = cssVar('--ink');
+  PALETTE.ink2 = cssVar('--ink-2');
+  PALETTE.muted = cssVar('--muted');
+  PALETTE.grid = cssVar('--grid');
+  PALETTE.axis = cssVar('--axis');
+  PALETTE.border = cssVar('--border');
+  PALETTE.font = cssVar('--font');
+  PALETTE.seq.splice(0, PALETTE.seq.length, ...[
+    '--seq-01', '--seq-02', '--seq-03', '--seq-04', '--seq-05',
+    '--seq-06', '--seq-07', '--seq-08', '--seq-09', '--seq-10',
+    '--seq-11', '--seq-12', '--seq-13',
+  ].map(cssVar));
+  PALETTE.divMid = cssVar('--axis');
+  PALETTE.divUp.splice(0, PALETTE.divUp.length, ...[
+    '--div-up-1', '--div-up-2', '--div-up-3', '--div-up-4',
+  ].map(cssVar));
+  PALETTE.divDown.splice(0, PALETTE.divDown.length, ...[
+    '--div-down-1', '--div-down-2', '--div-down-3', '--div-down-4',
+  ].map(cssVar));
+  PALETTE.status.good = cssVar('--good');
+  PALETTE.status.warning = cssVar('--warn');
+  PALETTE.status.serious = cssVar('--serious');
+  PALETTE.status.critical = cssVar('--crit');
+  PALETTE.map.land = cssVar('--map-land');
+  PALETTE.map.stroke = cssVar('--map-stroke');
+  PALETTE.map.grid = cssVar('--map-grid-line');
+  PALETTE.map.glow = cssVar('--map-glow');
+  PALETTE.map.glowClear = cssVar('--map-glow-clear');
+  PALETTE.map.strokeStrong = cssVar('--map-stroke-strong');
+  PALETTE.map.labelBg = cssVar('--map-label-bg');
+  return PALETTE;
+}
+
 /* Skala sequential: t di [0,1] -> hex */
 export function seqColor(t) {
   if (!Number.isFinite(t)) return PALETTE.seq[0];
@@ -132,7 +168,7 @@ export function fmtPct(v, digits = 2) {
 
 export function fmtNum(v) {
   if (!Number.isFinite(v)) return '—';
-  return v.toLocaleString('id-ID', { maximumFractionDigits: 0 });
+  return v.toLocaleString('en-US', { maximumFractionDigits: 0 });
 }
 
 /* ---------------- Waktu: WIB & UTC ---------------- */
@@ -162,15 +198,15 @@ export function wibParts(ms) {
   };
 }
 
-export const DOW_ID = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-export const DOW_SHORT = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+export const DOW_ID = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+export const DOW_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 /** Urutan tampilan Senin..Minggu */
 export const DOW_ORDER = [1, 2, 3, 4, 5, 6, 0];
 
 /** "27 Jul 2026, 18:42 WIB" */
 export function fmtClock(ms) {
   const p = wibParts(ms);
-  const mon = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+  const mon = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const d = new Date(ms + WIB_OFFSET * 3600 * 1000);
   return `${p.date} ${mon[p.month]} ${p.year}, ${pad2(d.getUTCHours())}:${pad2(d.getUTCMinutes())} WIB`;
 }
@@ -178,10 +214,10 @@ export function fmtClock(ms) {
 export function fmtAgo(ms) {
   if (ms == null) return '—';
   const s = Math.round(ms / 1000);
-  if (s < 60) return `${s} detik lalu`;
+  if (s < 60) return `${s}s ago`;
   const m = Math.round(s / 60);
-  if (m < 60) return `${m} menit lalu`;
-  return `${Math.round(m / 60)} jam lalu`;
+  if (m < 60) return `${m}m ago`;
+  return `${Math.round(m / 60)}h ago`;
 }
 
 /* ---------------- DOM kecil ---------------- */

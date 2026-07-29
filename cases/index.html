@@ -1,107 +1,53 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Memecoin ≥ $100M — Market-Cap Research</title>
-<meta name="description" content="Daftar real-time memecoin dengan kapitalisasi pasar minimal $100 juta, leaderboard 24 jam, dan detail riwayat harga launch sampai ATH.">
+<title>Memecoins Above $100M — Research Cases</title>
+<meta name="description" content="Current memecoins above $100 million market cap, a live percentage leaderboard, and sourced long-form case studies.">
 <link rel="stylesheet" href="/assets/css/style.css">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='12' fill='%232a78d6'/></svg>">
+<link rel="icon" type="image/png" href="/assets/img/brand/heatmap-volume-mark.png">
 </head>
 <body>
-<a class="skip" href="#universe">Lompat ke leaderboard</a>
-
+<a class="skip" href="#universe">Skip to leaderboard</a>
 <header class="site-head">
   <div class="wrap head-inner">
-    <a class="brand brand-link" href="/">
-      <span class="brand-mark" aria-hidden="true"></span>
-      <div>
-        <h1>Crypto Heatmap Volume</h1>
-        <p class="brand-sub">Memecoin market-cap research</p>
-      </div>
-    </a>
-    <nav class="primary-nav" aria-label="Navigasi utama">
-      <a href="/">Overview</a>
-      <a href="/maps/">Maps</a>
-      <a href="/sentiment/">Sentiment</a>
-      <a class="is-active" href="/cases/" aria-current="page">Cases</a>
+    <a class="brand brand-link" href="/"><img class="brand-mark" src="/assets/img/brand/heatmap-volume-mark.png" alt="" width="38" height="38"><div><h1>Crypto Heatmap Volume</h1><p class="brand-sub">Memecoin market-cap research</p></div></a>
+    <nav class="primary-nav" aria-label="Primary navigation">
+      <a href="/">Overview</a><a href="/maps/">Maps</a><a href="/sentiment/">Sentiment</a><a class="is-active" href="/cases/" aria-current="page">Cases</a><a href="/2026-memecoins/">2026</a>
     </nav>
+    <div class="head-actions"><button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch theme"><span class="theme-icon theme-icon-sun" aria-hidden="true">☀</span><span class="theme-icon theme-icon-moon" aria-hidden="true">☾</span></button></div>
   </div>
-  <div class="status-bar wrap">
-    <span class="dot busy" id="statusDot"></span>
-    <span id="statusText">Mengambil pasar memecoin…</span>
-  </div>
+  <div class="status-bar wrap"><span class="dot busy" id="statusDot"></span><span id="statusText">Loading memecoin markets…</span></div>
 </header>
-
 <main class="wrap">
   <section class="route-hero cases-hero">
-    <div>
-      <p class="eyebrow">Live universe · 2026</p>
-      <h2>Memecoin di atas $100M</h2>
-      <p>Daftar memakai CoinGecko dengan Yahoo Finance sebagai fallback. Setiap baris membuka chart harga sejak data pertama, minggu pertama, bulan pertama, dan ATH.</p>
-    </div>
+    <div><p class="eyebrow">Live market universe</p><h2>Memecoins above $100M</h2><p>Current CoinGecko market data with Yahoo Finance as history fallback. Each row opens first-observation, day-seven, day-30, ATH, and available market-cap history.</p></div>
     <div class="hero-kpis">
-      <article>
-        <span>Koin terdeteksi</span>
-        <strong id="kpiCount">—</strong>
-        <small>mcap saat ini ≥ $100M</small>
-      </article>
-      <article>
-        <span>Total market cap</span>
-        <strong id="kpiTotal">—</strong>
-        <small id="kpiUpdated">Menunggu data</small>
-      </article>
+      <article><span>Coins detected</span><strong id="kpiCount">—</strong><small>current market cap ≥ $100M</small></article>
+      <article><span>Total market cap</span><strong id="kpiTotal">—</strong><small id="kpiUpdated">Waiting for data</small></article>
     </div>
   </section>
-
+  <p class="verified-line"><span class="dot"></span>For tokens that crossed $100M during 2026, use the separate evidence-led <a href="/2026-memecoins/">2026 Memecoins route</a>.</p>
   <section class="panel" id="universe">
     <div class="panel-head">
-      <div>
-        <p class="eyebrow">Ranked by market cap</p>
-        <h2>Leaderboard $100M+</h2>
-        <p class="panel-sub">Urutkan kapitalisasi atau perubahan 24 jam. Wrapped duplicate ditandai, bukan disembunyikan.</p>
-      </div>
-      <div class="seg" role="group" aria-label="Urutkan leaderboard">
-        <button class="seg-btn is-on" data-sort="mcap" type="button">Market cap</button>
-        <button class="seg-btn" data-sort="change" type="button">% 24 jam</button>
-      </div>
+      <div><p class="eyebrow">Current market cap</p><h2>$100M+ leaderboard</h2><p class="panel-sub">Sort by current market cap or 24h percentage change. Wrapped duplicates remain visible and are labelled.</p></div>
+      <div class="seg" role="group" aria-label="Sort leaderboard"><button class="seg-btn is-on" data-sort="mcap" type="button">Market cap</button><button class="seg-btn" data-sort="change" type="button">% · 24h</button></div>
     </div>
-    <div class="table-scroll" id="over100Table">
-      <div class="panel-loading"><span class="spinner"></span> Memuat pasar…</div>
-    </div>
+    <div class="table-scroll" id="over100Table"><div class="panel-loading"><span class="spinner"></span> Loading markets…</div></div>
   </section>
-
   <section class="panel">
-    <div class="panel-head">
-      <div>
-        <p class="eyebrow">Curated research</p>
-        <h2>Studi kasus terverifikasi</h2>
-        <p class="panel-sub">Konteks launch, katalis publik, dan timeline untuk delapan memecoin lintas siklus.</p>
-      </div>
-    </div>
+    <div class="panel-head"><div><p class="eyebrow">Curated research</p><h2>Sourced case studies</h2><p class="panel-sub">Launch context, public catalysts, creator or issuer attribution, contracts, official X accounts, and CoinGecko sources.</p></div></div>
     <div class="case-grid" id="caseGrid"></div>
   </section>
-
   <section class="panel">
-    <div class="panel-head">
-      <div>
-        <p class="eyebrow">Protocol activity</p>
-        <h2>Launchpad 24 jam</h2>
-        <p class="panel-sub">Volume dan revenue DeFiLlama; nilai yang belum diindeks dibiarkan kosong.</p>
-      </div>
-      <a class="text-link" href="/sentiment/">Buka Sentiment →</a>
-    </div>
-    <div class="table-scroll" id="launchpadTable">
-      <div class="panel-loading"><span class="spinner"></span> Memuat metrik…</div>
-    </div>
+    <div class="panel-head"><div><p class="eyebrow">Protocol activity</p><h2>Launchpads · 24h</h2><p class="panel-sub">DeFiLlama volume and revenue; unindexed values remain unavailable.</p></div><a class="text-link" href="/sentiment/">Open Sentiment →</a></div>
+    <div class="table-scroll" id="launchpadTable"><div class="panel-loading"><span class="spinner"></span> Loading metrics…</div></div>
   </section>
-
-  <p class="risk-line">⚠️ Survivorship bias: mayoritas memecoin gagal mencapai $100M. Hindari leverage dan gunakan ukuran posisi kecil.</p>
+  <p class="risk-line">⚠ Survivorship bias is material: most memecoins never reach $100M. Avoid leverage and use small, predefined position sizes.</p>
 </main>
-
-<footer class="site-foot wrap">
-  <p>CoinGecko · Yahoo Finance fallback · DeFiLlama · <span id="updatedAt">—</span></p>
-</footer>
+<footer class="site-foot wrap"><p><a href="https://www.coingecko.com/en/categories/meme-token" target="_blank" rel="noreferrer">CoinGecko</a> · Yahoo Finance fallback · <a href="https://defillama.com/" target="_blank" rel="noreferrer">DeFiLlama</a> · <span id="updatedAt">—</span></p></footer>
+<script type="module" src="/assets/js/theme.js"></script>
 <script type="module" src="/assets/js/cases-page.js"></script>
 </body>
 </html>

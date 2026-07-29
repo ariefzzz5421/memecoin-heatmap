@@ -54,7 +54,7 @@ async function withStaleFallback(key, fetcher) {
   } catch (err) {
     const stale = cacheGetStale(key);
     if (stale) {
-      console.warn(`sumber gagal (${err.message}) — memakai cache lama untuk ${key}`);
+      console.warn(`source failed (${err.message}) — using stale cache for ${key}`);
       return stale;
     }
     throw err;
@@ -152,47 +152,6 @@ export async function fetchCaseMarkets({ force = false } = {}) {
 
 /* ---------------- 2. Kline mingguan ---------------- */
 
-const WEEKLY_PROVIDERS = {
-  binance: {
-    label: 'Binance',
-    async fetch(symbol) {
-      const bases = ['https://api.binance.com', 'https://api-gcp.binance.com', 'https://api1.binance.com'];
-      let err;
-      for (const b of bases) {
-        try {
-          const rows = await getJSON(`${b}/api/v3/klines?symbol=${symbol}&interval=1w&limit=1000`, { timeout: 12000 });
-          // [openTime, o, h, l, c, vol, closeTime, quoteVol, ...]
-          return rows.map((r) => ({ t: +r[0], o: +r[1], h: +r[2], l: +r[3], c: +r[4], q: +r[7] }));
-        } catch (e) { err = e; }
-      }
-      throw err;
-    },
-  },
-  kraken: {
-    label: 'Kraken',
-    async fetch(symbol) {
-      const j = await getJSON(`https://api.kraken.com/0/public/OHLC?pair=${symbol}&interval=10080`, { timeout: 15000 });
-      if (j.error?.length) throw new Error(j.error.join(', '));
-      const arrKey = Object.keys(j.result || {}).find((k) => k !== 'last');
-      // [time(s), o, h, l, c, vwap, vol, count]
-      return (j.result?.[arrKey] || []).map((r) => ({
-        t: +r[0] * 1000, o: +r[1], h: +r[2], l: +r[3], c: +r[4], q: +r[6] * +r[5],
-      }));
-    },
-  },
-  okx: {
-    label: 'OKX',
-    async fetch(symbol) {
-      const j = await getJSON(`https://www.okx.com/api/v5/market/candles?instId=${symbol}&bar=1W&limit=300`, { timeout: 15000 });
-      if (j.code !== '0') throw new Error(j.msg || `OKX ${j.code}`);
-      // [ts, o, h, l, c, vol, volCcy, volCcyQuote, confirm] — terbaru dulu
-      return (j.data || [])
-        .map((r) => ({ t: +r[0], o: +r[1], h: +r[2], l: +r[3], c: +r[4], q: +r[7] }))
-        .reverse();
-    },
-  },
-};
-
 /**
  * Ambil kline mingguan untuk satu kasus.
  * Provider dicoba sesuai urutan kurasi (listing paling awal dulu).
@@ -204,25 +163,20 @@ export async function fetchWeekly(caseDef, { force = false } = {}) {
     const hit = cacheGet(key, TTL_KLINES);
     if (hit) return { ...hit, cached: true };
   }
-
-  const failed = [];
-  for (const pid of caseDef.providers) {
-    const provider = WEEKLY_PROVIDERS[pid];
-    const symbol = caseDef.symbols[pid];
-    if (!provider || !symbol) continue;
-    try {
-      const rows = (await provider.fetch(symbol)).filter(
-        (r) => [r.t, r.o, r.h, r.l, r.c].every(Number.isFinite) && r.c > 0,
-      );
-      if (rows.length < 8) throw new Error('data terlalu pendek');
-      const value = { provider: provider.label, rows, failed };
-      cacheSet(key, value);
-      return { ...value, cached: false };
-    } catch (e) {
-      failed.push(`${provider.label}: ${e.message}`);
-    }
+  const payload = await getJSON(
+    `/api/market?resource=caseweekly&id=${encodeURIComponent(caseDef.id)}&t=${Math.floor(Date.now() / 10_000)}`,
+    { timeout: 30_000 },
+  );
+  if (!payload?.ok || !Array.isArray(payload.rows)) {
+    throw new Error(payload?.error || 'Weekly candle data is unavailable');
   }
-  throw new Error(`Semua sumber kline gagal — ${failed.join('; ')}`);
+  const value = {
+    provider: payload.provider,
+    rows: payload.rows,
+    failed: payload.failed || [],
+  };
+  cacheSet(key, value);
+  return { ...value, cached: payload.cache === 'hit' };
 }
 
 /* ---------------- 3. Metrik launchpad ---------------- */

@@ -12,7 +12,7 @@ const svg = (tag, attrs = {}) => {
   return n;
 };
 
-export const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+export const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 export const fmtDate = (ms) => {
   const d = new Date(ms);
   return `${d.getUTCDate()} ${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
@@ -22,10 +22,10 @@ export const DAY = 86400000;
 
 export function fmtDuration(days) {
   if (!Number.isFinite(days)) return '—';
-  if (days < 1) return '< 1 hari (hari launch)';
-  if (days < 60) return `${Math.round(days)} hari`;
-  if (days < 365) return `${Math.round(days)} hari (${(days / 30.44).toFixed(1)} bulan)`;
-  return `${fmtNum(Math.round(days))} hari (${(days / 365.25).toFixed(1)} tahun)`;
+  if (days < 1) return '< 1 day (launch day)';
+  if (days < 60) return `${Math.round(days)} days`;
+  if (days < 365) return `${Math.round(days)} days (${(days / 30.44).toFixed(1)} months)`;
+  return `${fmtNum(Math.round(days))} days (${(days / 365.25).toFixed(1)} years)`;
 }
 
 /**
@@ -59,7 +59,7 @@ export function renderCaseChart(holder, caseDef, m, weekly, tip) {
 
   const root = svg('svg', {
     viewBox: `0 0 ${W} ${H}`, width: '100%', height: H, role: 'img',
-    'aria-label': `Harga mingguan ${caseDef.sym} skala log, ${fmtDate(t0)} sampai ${fmtDate(t1)}`,
+    'aria-label': `${caseDef.sym} weekly price on a log scale, ${fmtDate(t0)} to ${fmtDate(t1)}`,
   });
 
   /* grid Y: tiap dekade; subtick 2x/5x bila dekade sedikit */
@@ -128,7 +128,7 @@ export function renderCaseChart(holder, caseDef, m, weekly, tip) {
     && Date.parse(m.athDate) >= t0 - 7 * DAY && Date.parse(m.athDate) <= t1 + 7 * DAY;
   const athLabel = cgAthInRange
     ? `ATH ${fmtPrice(m.ath)} · ${fmtDate(Date.parse(m.athDate))}`
-    : `Tertinggi di chart ${fmtPrice(athRow.h)} · ${fmtDate(athRow.t)}`;
+    : `Chart high ${fmtPrice(athRow.h)} · ${fmtDate(athRow.t)}`;
 
   root.append(svg('circle', { cx: athX, cy: athY, r: 4.5, fill: PALETTE.seq[12], stroke: PALETTE.plane, 'stroke-width': 2 }));
   const anchorEnd = athX > M.left + iw * 0.6;
@@ -163,11 +163,11 @@ export function renderCaseChart(holder, caseDef, m, weekly, tip) {
 
     if (!tip) return;
     tip.innerHTML = `
-      <div class="tip-head"><strong>Minggu ${fmtDate(best.t)}</strong></div>
+      <div class="tip-head"><strong>Week of ${fmtDate(best.t)}</strong></div>
       <dl class="tip-grid">
         <dt>Close</dt><dd class="num">${fmtPrice(best.c)}</dd>
-        <dt>Tertinggi</dt><dd class="num">${fmtPrice(best.h)}</dd>
-        <dt>Terendah</dt><dd class="num">${fmtPrice(best.l)}</dd>
+        <dt>High</dt><dd class="num">${fmtPrice(best.h)}</dd>
+        <dt>Low</dt><dd class="num">${fmtPrice(best.l)}</dd>
         ${Number.isFinite(best.q) && best.q > 0 ? `<dt>Volume</dt><dd class="num">${fmtUsd(best.q)}</dd>` : ''}
       </dl>`;
     tip.hidden = false;
@@ -191,21 +191,21 @@ export function renderCaseChart(holder, caseDef, m, weekly, tip) {
   /* catatan cakupan */
   const launchMs = Date.parse(caseDef.launch);
   const gapDays = (t0 - launchMs) / DAY;
-  const notes = [`Sumber: ${weekly.provider}, kline mingguan sejak ${fmtDate(t0)} (skala log).`];
+  const notes = [`Source: ${weekly.provider}, weekly candles since ${fmtDate(t0)} (log scale).`];
   if (gapDays > 14) {
-    notes.push(`Launch ${fmtDate(launchMs)} — ${fmtDuration(gapDays)} sebelum data listing tersedia; periode awal tidak tampil di chart.`);
+    notes.push(`Launch was ${fmtDate(launchMs)} — ${fmtDuration(gapDays)} before supported listing data; that early period is not shown.`);
   }
   if (m?.athDate && !cgAthInRange) {
-    notes.push(`ATH CoinGecko (${fmtPrice(m.ath)}, ${fmtDate(Date.parse(m.athDate))}) berada di luar rentang data sumber ini.`);
+    notes.push(`The CoinGecko ATH (${fmtPrice(m.ath)}, ${fmtDate(Date.parse(m.athDate))}) is outside this source's available range.`);
   }
   holder.append(el('p', { class: 'note' }, notes.join(' ')));
 }
 
 export function renderWeeklyTable(holder, caseDef, weekly) {
   const t = el('table', { class: 'data-table compact' });
-  t.append(el('caption', {}, `Data mingguan ${caseDef.sym} (${weekly.provider})`));
+  t.append(el('caption', {}, `${caseDef.sym} weekly data (${weekly.provider})`));
   t.append(el('thead', {}, el('tr', {},
-    el('th', { scope: 'col' }, 'Minggu'),
+    el('th', { scope: 'col' }, 'Week'),
     el('th', { scope: 'col', class: 'r' }, 'Open'),
     el('th', { scope: 'col', class: 'r' }, 'High'),
     el('th', { scope: 'col', class: 'r' }, 'Low'),

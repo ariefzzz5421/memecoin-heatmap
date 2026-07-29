@@ -29,7 +29,7 @@ export async function fetchPlatformPulse({ force = false } = {}) {
   });
   if (!response.ok) throw new Error(`Backend HTTP ${response.status}`);
   const value = await response.json();
-  if (!value?.ok) throw new Error(value?.error || 'Data platform tidak tersedia');
+  if (!value?.ok) throw new Error(value?.error || 'Platform data is unavailable');
   writeCache(value);
   return { ...value, cached: value.cache === 'hit' };
 }
