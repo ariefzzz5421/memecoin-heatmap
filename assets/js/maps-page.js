@@ -1,4 +1,9 @@
-import { fetchExchanges, fetchBtcPrice, fetchWorldTopo } from './datasource.js';
+import {
+  fetchExchanges,
+  fetchBtcPrice,
+  fetchWorldTopo,
+  getExchangeSourceState,
+} from './datasource.js';
 import { aggregateJurisdictions } from './analytics.js';
 import { WorldMap } from './worldmap.js';
 import { renderSeqLegend } from './hours.js';
@@ -14,6 +19,31 @@ let btcPrice = 0;
 function setStatus(text, kind = 'busy') {
   $('statusText').textContent = text;
   $('statusDot').className = `dot ${kind}`;
+}
+
+function renderSourceState() {
+  const state = getExchangeSourceState();
+  const source = state.source || 'exchange source';
+  const text = state.preserved
+    ? `Volume map ready · retained broader cached coverage (${state.coverage.countries} jurisdictions)`
+    : `Volume map ready · ${source}`;
+  setStatus(text, 'ok');
+  $('updatedAt').textContent = fmtClock(state.fetchedAt || Date.now());
+}
+
+function renderMapData(exchanges, btc) {
+  btcPrice = btc;
+  aggregate = aggregateJurisdictions(exchanges, btc);
+  map.setData(aggregate);
+  renderSeqLegend($('mapLegend'), {
+    min: 0,
+    max: aggregate.rows[0]?.volUsd || 0,
+    label: '24h volume',
+    fmt: fmtUsdShort,
+  });
+  renderRankings();
+  renderTable();
+  renderSourceState();
 }
 
 function renderDetail(row) {
@@ -153,19 +183,7 @@ async function load({ force = false } = {}) {
     setStatus(`Volume data unavailable (${err.message})`, 'err');
     return;
   }
-  btcPrice = btc;
-  aggregate = aggregateJurisdictions(exchanges, btc);
-  map.setData(aggregate);
-  renderSeqLegend($('mapLegend'), {
-    min: 0,
-    max: aggregate.rows[0]?.volUsd || 0,
-    label: '24h volume',
-    fmt: fmtUsdShort,
-  });
-  renderRankings();
-  renderTable();
-  $('updatedAt').textContent = fmtClock(Date.now());
-  setStatus('Volume map ready', 'ok');
+  renderMapData(exchanges, btc);
 }
 
 function init() {
@@ -183,8 +201,10 @@ function init() {
     setStatus('Some map data could not load', 'err');
   });
 
-  /* Volume bursa berubah lambat — 5 menit sudah cukup dan aman untuk
-     batas rate CoinGecko gratis. Geometri peta tidak perlu diambil ulang. */
+  /* The browser checks the same-origin backend every ten seconds. The backend
+     controls upstream cadence, and datasource retains a broader recent
+     jurisdiction set when a serverless refresh returns partial fallback
+     coverage. Map geometry is not fetched again. */
   startAutoRefresh([
     {
       every: 10 * 1000,
@@ -193,12 +213,7 @@ function init() {
           fetchBtcPrice({ force: true }),
           fetchExchanges({ pages: 2, force: true }),
         ]);
-        btcPrice = btc;
-        aggregate = aggregateJurisdictions(exchanges, btc);
-        map.setData(aggregate);
-        renderRankings();
-        renderTable();
-        $('updatedAt').textContent = fmtClock(Date.now());
+        renderMapData(exchanges, btc);
       },
     },
   ]);

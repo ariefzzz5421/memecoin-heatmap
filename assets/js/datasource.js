@@ -11,6 +11,15 @@ const CACHE_PREFIX = 'chv:v2:';
 let backendSnapshot = null;
 let backendSavedAt = 0;
 let backendPromise = null;
+let lastExchangeState = {
+  source: null,
+  attemptedSource: null,
+  preserved: false,
+  cache: null,
+  ageMs: null,
+  fetchedAt: null,
+  coverage: { countries: 0, mappedRows: 0, totalRows: 0 },
+};
 
 async function fetchBackendSnapshot({ force = false } = {}) {
   if (!force && backendSnapshot && Date.now() - backendSavedAt < 8_000) {
@@ -105,6 +114,38 @@ export function clearCache() {
   }
 }
 
+export function exchangeCoverage(rows = []) {
+  const countries = new Set();
+  let mappedRows = 0;
+  for (const row of rows) {
+    const country = String(row?.country || '').trim();
+    if (!country) continue;
+    countries.add(country);
+    mappedRows++;
+  }
+  return { countries: countries.size, mappedRows, totalRows: rows.length };
+}
+
+export function shouldKeepBroaderExchangeCache(previousRows, candidateRows, previousAgeMs) {
+  if (!Array.isArray(previousRows) || !previousRows.length) return false;
+  if (!Number.isFinite(previousAgeMs) || previousAgeMs > TTL.exchanges * 3) return false;
+  const previous = exchangeCoverage(previousRows);
+  const candidate = exchangeCoverage(candidateRows);
+  const countryDrop = previous.countries >= Math.max(
+    candidate.countries + 5,
+    Math.ceil(candidate.countries * 1.25),
+  );
+  const rowDrop = previous.mappedRows > candidate.mappedRows;
+  return countryDrop && rowDrop;
+}
+
+export function getExchangeSourceState() {
+  return {
+    ...lastExchangeState,
+    coverage: { ...lastExchangeState.coverage },
+  };
+}
+
 /* ---------------- fetch helper ---------------- */
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -139,19 +180,72 @@ async function getJSON(url, { retries = 2, timeout = 20000 } = {}) {
 
 export async function fetchExchanges({ pages = 2, force = false } = {}) {
   const key = `exchanges:${pages}`;
+  const metaKey = `${key}:meta`;
   if (!force) {
     const hit = cacheGet(key, TTL.exchanges);
-    if (hit) return hit;
+    if (hit) {
+      const ageMs = cacheAge(key) || 0;
+      const meta = cacheGet(metaKey, TTL.exchanges) || {};
+      lastExchangeState = {
+        source: meta.source || 'Cached exchange data',
+        attemptedSource: null,
+        preserved: false,
+        cache: 'hit',
+        ageMs,
+        fetchedAt: meta.fetchedAt || Date.now() - ageMs,
+        coverage: exchangeCoverage(hit),
+      };
+      return hit;
+    }
   }
-  return withStaleFallback(key, async () => {
+  try {
     const snapshot = await fetchBackendSnapshot({ force });
     if (snapshot.exchanges?.length) {
       const rows = snapshot.exchanges.slice(0, pages * 100);
+      const source = snapshot.source?.exchanges || 'Exchange data';
+      const previous = cacheGetStale(key);
+      const previousMeta = cacheGetStale(metaKey)?.value || {};
+      if (previous && shouldKeepBroaderExchangeCache(previous.value, rows, previous.ageMs)) {
+        lastExchangeState = {
+          source: previousMeta.source || 'Broader cached exchange data',
+          attemptedSource: source,
+          preserved: true,
+          cache: 'preserved',
+          ageMs: previous.ageMs,
+          fetchedAt: previousMeta.fetchedAt || Date.now() - previous.ageMs,
+          coverage: exchangeCoverage(previous.value),
+        };
+        return previous.value;
+      }
       cacheSet(key, rows);
+      cacheSet(metaKey, { source, fetchedAt: snapshot.fetchedAt || Date.now() });
+      lastExchangeState = {
+        source,
+        attemptedSource: null,
+        preserved: false,
+        cache: snapshot.cache || 'miss',
+        ageMs: 0,
+        fetchedAt: snapshot.fetchedAt || Date.now(),
+        coverage: exchangeCoverage(rows),
+      };
       return rows;
     }
     throw new Error('backend exchange data unavailable');
-  });
+  } catch (error) {
+    const stale = cacheGetStale(key);
+    if (!stale) throw error;
+    const previousMeta = cacheGetStale(metaKey)?.value || {};
+    lastExchangeState = {
+      source: previousMeta.source || 'Cached exchange data',
+      attemptedSource: `Refresh unavailable: ${error.message}`,
+      preserved: true,
+      cache: 'stale',
+      ageMs: stale.ageMs,
+      fetchedAt: previousMeta.fetchedAt || Date.now() - stale.ageMs,
+      coverage: exchangeCoverage(stale.value),
+    };
+    return stale.value;
+  }
 }
 
 /* Harga BTC untuk konversi volume BTC -> USD */
