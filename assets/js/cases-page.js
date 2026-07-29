@@ -80,7 +80,7 @@ function renderCurated() {
       el('div', { class: 'case-card-body' },
         el('div', { class: 'case-card-head' },
           el('strong', {}, item.sym),
-          el('span', { class: 'case-card-year num' }, item.launch.slice(0, 4)),
+          el('span', { class: 'case-card-year num' }, `Launch ${item.launch}`),
         ),
         el('span', { class: 'case-card-name' }, item.name),
         el('p', { class: 'research-summary' }, item.thesis),
@@ -88,6 +88,7 @@ function renderCurated() {
           el('span', {}, live ? fmtUsd(live.mcap) : 'Market cap —'),
           el('span', { class: live?.ch24h >= 0 ? 'up' : 'down' }, live ? fmtPct(live.ch24h, 1) : '—'),
         ),
+        el('span', { class: 'case-card-cta' }, 'Open dossier →'),
       ),
     ));
   });

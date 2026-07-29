@@ -29,7 +29,13 @@ export const CASES = [
       { d: '2021-02', t: 'Repeated Elon Musk posts and broad retail access amplified attention.' },
       { d: '2021-05', t: 'ATH immediately before Musk’s Saturday Night Live appearance.' },
     ],
+    narrative: 'The original internet-meme coin: a joke became a tipping currency, then a long-lived community asset.',
+    crossingReason: 'DOGE combined unusually broad name recognition, years of holder retention, easy retail access, and repeated public attention. The threshold was a distribution outcome, not evidence of intrinsic valuation.',
     thesis: 'A durable community, mass-distribution channels, and repeated attention from globally visible figures.',
+    researchSources: [
+      { label: 'Dogecoin history', url: 'https://dogecoin.com/dogepedia/articles/history-of-dogecoin/', note: 'official launch and community history' },
+    ],
+    dexScreener: null,
   },
   {
     id: 'shiba-inu',
@@ -57,7 +63,17 @@ export const CASES = [
       { d: '2021-09', t: 'Coinbase listing.' },
       { d: '2021-10', t: 'Large Robinhood petition and peak retail attention; ATH on October 27–28.' },
     ],
+    narrative: 'An Ethereum-native “Dogecoin killer” that turned a meme token into a multi-product community ecosystem.',
+    crossingReason: 'A very large community, ERC-20 wallet compatibility, the externally initiated supply burn, and rapid major-exchange distribution created the liquidity and attention needed to move beyond $100M.',
     thesis: 'ERC-20 accessibility, a very large externally initiated burn, and successive large-exchange listings.',
+    researchSources: [
+      { label: 'Shibarium foundation', url: 'https://blog.shib.io/shibarium-the-foundational-blog/', note: 'official ecosystem history' },
+    ],
+    dexScreener: {
+      chain: 'ethereum', pairAddress: '0xCF6dAAB95c476106ECa715D48DE4b13287ffDEAa',
+      dexName: 'ShibaSwap', base: 'SHIB', quote: 'WETH',
+      url: 'https://dexscreener.com/ethereum/0xcf6daab95c476106eca715d48de4b13287ffdeaa',
+    },
   },
   {
     id: 'pepe',
@@ -84,7 +100,15 @@ export const CASES = [
       { d: '2023-05', t: 'Approximately $1B market cap and Binance listing within three weeks of deployment.' },
       { d: '2024-11', t: 'Coinbase listing and renewed memecoin-cycle attention.' },
     ],
+    narrative: 'A deliberately minimal Ethereum meme token built around one of the internet’s most recognizable characters.',
+    crossingReason: 'PEPE reached $100M through fast social distribution, a familiar visual identity, low-friction ERC-20 trading, and quick access to centralized exchanges. These are correlated distribution factors, not a single proven cause.',
     thesis: 'A globally familiar meme, very low unit price, and fast distribution through major exchanges.',
+    researchSources: [],
+    dexScreener: {
+      chain: 'ethereum', pairAddress: '0xA43fe16908251ee70EF74718545e4FE6C5cCEc9f',
+      dexName: 'Uniswap', base: 'PEPE', quote: 'WETH',
+      url: 'https://dexscreener.com/ethereum/0xa43fe16908251ee70ef74718545e4fe6c5ccec9f',
+    },
   },
   {
     id: 'dogwifcoin',
@@ -97,7 +121,7 @@ export const CASES = [
     providers: ['kraken', 'binance', 'okx'],
     symbols: { binance: 'WIFUSDT', kraken: 'WIFUSD', okx: 'WIF-USDT' },
     creator: 'Anonymous deployer; community-led project',
-    contracts: [{ network: 'Solana', address: 'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzL4kzu5y56pump', explorer: 'https://solscan.io/token/EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzL4kzu5y56pump' }],
+    contracts: [{ network: 'Solana', address: 'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm', explorer: 'https://solscan.io/token/EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm' }],
     officialX: 'https://x.com/dogwifcoin',
     officialSite: 'https://dogwifcoin.org/',
     coingecko: 'https://www.coingecko.com/en/coins/dogwifhat',
@@ -110,7 +134,15 @@ export const CASES = [
       { d: '2024-01', t: 'Solana memecoin rotation; roughly $100M market cap around two months after launch.' },
       { d: '2024-03', t: 'Community Sphere fundraiser, Binance listing, and a late-March ATH.' },
     ],
+    narrative: 'A single-image Solana meme that explicitly avoided a utility story and relied on cultural repetition.',
+    crossingReason: 'WIF crossed $100M as Solana activity recovered, liquidity rotated into native memecoins, and the image spread across crypto social channels. Later exchange access and the Sphere fundraiser extended that distribution.',
     thesis: 'A visually simple meme, Solana ecosystem momentum, and a media-visible community campaign.',
+    researchSources: [],
+    dexScreener: {
+      chain: 'solana', pairAddress: 'EP2ib6dYdEeqD8MfE2ezHCxX3kP3K2eLKkirfPm5eyMx',
+      dexName: 'Raydium', base: '$WIF', quote: 'SOL',
+      url: 'https://dexscreener.com/solana/ep2ib6dydeeqd8mfe2ezhcxx3kp3k2elkkirfpm5eymx',
+    },
   },
   {
     id: 'bonk',
@@ -123,7 +155,7 @@ export const CASES = [
     providers: ['kraken', 'binance', 'okx'],
     symbols: { binance: 'BONKUSDT', kraken: 'BONKUSD', okx: 'BONK-USDT' },
     creator: 'BONK contributors; individual deployer identity not publicly verified',
-    contracts: [{ network: 'Solana', address: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6RLXPwT5cvKm7cn', explorer: 'https://solscan.io/token/DezXAZ8z7PnrnRJjz3wXBoRgixCa6RLXPwT5cvKm7cn' }],
+    contracts: [{ network: 'Solana', address: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263', explorer: 'https://solscan.io/token/DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263' }],
     officialX: 'https://x.com/bonk_inu',
     officialSite: 'https://bonkcoin.com/',
     coingecko: 'https://www.coingecko.com/en/coins/bonk',
@@ -137,7 +169,18 @@ export const CASES = [
       { d: '2023-12', t: 'Coinbase listing and Saga-phone incentives widened distribution.' },
       { d: '2024-11', t: 'Post-election memecoin cycle and new ATH.' },
     ],
+    narrative: 'A Solana “community coin” distributed as a post-FTX ecosystem gift rather than a conventional token sale.',
+    crossingReason: 'The broad airdrop seeded many holders at once, while Solana’s recovery, wallet integrations, Saga incentives, and large-exchange listings expanded the market beyond its initial community.',
     thesis: 'Very broad initial distribution tied to the recovery of the Solana ecosystem.',
+    researchSources: [
+      { label: 'About BONK', url: 'https://www.bonkcoin.com/about', note: 'official launch and distribution history' },
+      { label: 'BONK paper', url: 'https://www.bonkcoin.com/BONK-Paper.pdf', note: 'official allocation document' },
+    ],
+    dexScreener: {
+      chain: 'solana', pairAddress: '3UwfrdLTpAjxTRni1boc5HUWe6hzc4HgE5yLdvEp2Noc',
+      dexName: 'Raydium', base: 'BONK', quote: 'USDC',
+      url: 'https://dexscreener.com/solana/3uwfrdltpajxtrni1boc5huwe6hzc4hge5yldvep2noc',
+    },
   },
   {
     id: 'official-trump',
@@ -164,7 +207,17 @@ export const CASES = [
       { d: '2025-01-18', t: 'Large-exchange listings within the first two days.' },
       { d: '2025-01-19', t: 'ATH immediately before the inauguration.' },
     ],
+    narrative: 'A political-celebrity memecoin launched into a fixed global media event with unusually concentrated initial supply.',
+    crossingReason: 'The issuer’s worldwide recognition, inauguration timing, rapid exchange listings, and limited initial float produced exceptional first-day demand. Concentrated supply also magnified both the move and the subsequent risk.',
     thesis: 'Maximum-reach public identity, a scheduled political moment, and a small initial circulating share.',
+    researchSources: [
+      { label: 'Official disclosures', url: 'https://gettrumpmemes.com/', note: 'issuer and allocation disclosures' },
+    ],
+    dexScreener: {
+      chain: 'solana', pairAddress: '9d9mb8kooFfaD3SctgZtkxQypkshx6ezhbKio89ixyy2',
+      dexName: 'Meteora', base: 'TRUMP', quote: 'USDC',
+      url: 'https://dexscreener.com/solana/9d9mb8kooffad3sctgztkxqypkshx6ezhbkio89ixyy2',
+    },
   },
   {
     id: 'floki',
@@ -194,7 +247,17 @@ export const CASES = [
       { d: '2021-10', t: 'Large transit-advertising and sports-sponsorship campaigns.' },
       { d: '2024-06', t: 'New ATH during the 2024 memecoin rally.' },
     ],
+    narrative: 'A multi-chain meme brand that converted viral naming into sustained mainstream advertising and a broader product ecosystem.',
+    crossingReason: 'FLOKI paired meme recognition with unusually persistent offline marketing, sports visibility, multi-chain liquidity, and later product launches. The $100M threshold reflected accumulated distribution rather than one event.',
     thesis: 'Viral naming plus unusually large off-crypto marketing distribution.',
+    researchSources: [
+      { label: 'Floki timeline', url: 'https://floki.com/timeline', note: 'official dated project history' },
+    ],
+    dexScreener: {
+      chain: 'ethereum', pairAddress: '0xca7c2771D248dCBe09EABE0CE57A62e18dA178c0',
+      dexName: 'Uniswap', base: 'FLOKI', quote: 'WETH',
+      url: 'https://dexscreener.com/ethereum/0xca7c2771d248dcbe09eabe0ce57a62e18da178c0',
+    },
   },
   {
     id: 'pudgy-penguins',
@@ -221,7 +284,15 @@ export const CASES = [
       { d: '2024-12-17', t: 'Launch and community airdrop; market cap exceeded $2B on day one.' },
       { d: '2025-03', t: 'Canary PENGU ETF filing.' },
     ],
+    narrative: 'A token extension of an established NFT and consumer-products brand rather than a meme launched from zero audience.',
+    crossingReason: 'PENGU began with pre-existing brand reach, retail distribution, a large NFT-holder base, and a broad airdrop. That installed audience and immediate exchange access enabled a first-day market cap far above $100M.',
     thesis: 'A consumer brand with pre-token retail distribution and a broad first-day airdrop.',
+    researchSources: [],
+    dexScreener: {
+      chain: 'solana', pairAddress: 'DdMA1cHcHEqYfttc1z1sJEY978CcU1pyjNuTWTNmdvzU',
+      dexName: 'Meteora', base: 'PENGU', quote: 'USDC',
+      url: 'https://dexscreener.com/solana/ddma1chcheqyfttc1z1sjey978ccu1pyjnutwtnmdvzu',
+    },
   },
 ];
 

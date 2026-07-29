@@ -224,8 +224,42 @@ function exchangeTable(row) {
   const tb = el('tbody');
   for (const ex of row.exchanges.slice(0, 15)) {
     const v = ex.volBtc * btc;
+    const image = /^https?:\/\//i.test(ex.image || '') ? ex.image : '';
+    const logoFallback = el(
+      'span',
+      { class: 'exchange-logo-fallback', 'aria-hidden': 'true' },
+      (ex.name || '?').slice(0, 1).toUpperCase(),
+    );
+    const exchangeLogo = image
+      ? el('img', {
+        class: 'exchange-logo',
+        src: image,
+        alt: '',
+        width: '28',
+        height: '28',
+        loading: 'lazy',
+        onerror: (event) => {
+          event.currentTarget.hidden = true;
+          logoFallback.hidden = false;
+        },
+      })
+      : null;
+    logoFallback.hidden = Boolean(exchangeLogo);
+    const exchangeName = ex.url
+      ? el('a', {
+        class: 'exchange-name-link',
+        href: ex.url,
+        target: '_blank',
+        rel: 'noreferrer',
+        title: `Open ${ex.name}`,
+      }, ex.name)
+      : el('strong', {}, ex.name);
     tb.append(el('tr', {},
-      el('td', {}, ex.name),
+      el('td', {}, el('span', { class: 'exchange-cell' },
+        exchangeLogo,
+        logoFallback,
+        exchangeName,
+      )),
       el('td', { class: 'r num' }, fmtUsd(v)),
       el('td', { class: 'r num' }, `${((v / row.volUsd) * 100).toFixed(1)}%`),
       el('td', { class: 'r num' }, ex.trust != null ? String(ex.trust) : '—'),

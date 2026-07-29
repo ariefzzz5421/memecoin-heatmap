@@ -9,6 +9,7 @@ import { CASE_BY_SLUG } from './cases-config.js';
 import { fetchCaseMarkets, fetchHistory, fetchWeekly } from './cases-data.js';
 import { renderWeeklyTable, fmtDate, fmtDuration, DAY } from './cases-chart.js';
 import { renderMarketHistoryChart } from './market-history-chart.js';
+import { renderDexScreenerChart } from './dexscreener.js';
 import { brandedSourceLink } from './source-brands.js';
 import { fmtUsd, fmtPrice, fmtPct, fmtClock, el } from './utils.js';
 import { startAutoRefresh } from './autorefresh.js';
@@ -80,8 +81,10 @@ function renderFacts() {
 
 function renderArticle() {
   const holder = $('articleBody');
-  holder.replaceChildren();
+  holder.replaceChildren(el('h2', {}, 'Launch and market path'));
   for (const para of caseDef.article) holder.append(el('p', {}, para));
+  $('caseNarrative').textContent = caseDef.narrative;
+  $('caseCrossingReason').textContent = caseDef.crossingReason;
 }
 
 function renderCatalysts() {
@@ -129,6 +132,12 @@ function renderIdentityAndSources() {
       ...source,
       note: source.label.includes('Yahoo') ? 'daily price history' : 'historical market data',
     })),
+    ...(caseDef.researchSources || []),
+    ...(caseDef.dexScreener ? [{
+      label: 'DEX Screener',
+      url: caseDef.dexScreener.url,
+      note: `${caseDef.dexScreener.base}/${caseDef.dexScreener.quote} live pair`,
+    }] : []),
   ].filter((source, index, rows) =>
     source.url && rows.findIndex((item) => item.url === source.url) === index);
   $('caseSources').replaceChildren(...definitions.map((source) => brandedSourceLink(source)));
@@ -155,6 +164,7 @@ function renderChartSection() {
     });
   }
   if (state.weekly) renderWeeklyTable($('caseWeeklyTable'), caseDef, state.weekly);
+  renderDexScreenerChart($('dexScreenerChart'), caseDef.dexScreener, caseDef.name);
 }
 
 async function refreshMarkets({ force = false } = {}) {

@@ -89,8 +89,37 @@ function exchangeTable(row) {
   )));
   const body = el('tbody');
   for (const exchange of row.exchanges.slice(0, 10)) {
+    const image = /^https?:\/\//i.test(exchange.image || '') ? exchange.image : '';
+    const fallback = el(
+      'span',
+      { class: 'exchange-logo-fallback', 'aria-hidden': 'true' },
+      (exchange.name || '?').slice(0, 1).toUpperCase(),
+    );
+    const logo = image
+      ? el('img', {
+        class: 'exchange-logo',
+        src: image,
+        alt: '',
+        width: '28',
+        height: '28',
+        loading: 'lazy',
+        onerror: (event) => {
+          event.currentTarget.hidden = true;
+          fallback.hidden = false;
+        },
+      })
+      : null;
+    fallback.hidden = Boolean(logo);
+    const name = exchange.url
+      ? el('a', {
+        class: 'exchange-name-link',
+        href: exchange.url,
+        target: '_blank',
+        rel: 'noreferrer',
+      }, exchange.name)
+      : el('strong', {}, exchange.name);
     body.append(el('tr', {},
-      el('td', {}, exchange.name),
+      el('td', {}, el('span', { class: 'exchange-cell' }, logo, fallback, name)),
       el('td', { class: 'r num' }, fmtUsd(exchange.volBtc * btcPrice)),
       el('td', { class: 'r num' }, exchange.trust ?? '—'),
     ));

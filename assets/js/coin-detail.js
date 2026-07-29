@@ -2,6 +2,7 @@ import { fmtUsd, fmtPrice, fmtPct, fmtClock, el } from './utils.js';
 import { startAutoRefresh } from './autorefresh.js';
 import { CASES } from './cases-config.js';
 import { renderMarketHistoryChart } from './market-history-chart.js';
+import { renderDexScreenerChart } from './dexscreener.js';
 import { brandedSourceLink } from './source-brands.js';
 
 const $ = (id) => document.getElementById(id);
@@ -154,6 +155,7 @@ function render() {
     launchAt: curated?.launch || payload.launchAt,
     symbol,
   });
+  renderDexScreenerChart($('dexScreenerChart'), curated?.dexScreener || null, displayName);
   const curatedSources = curated ? [
     { label: 'Official X', url: curated.officialX, note: new URL(curated.officialX).pathname },
     {
@@ -168,6 +170,12 @@ function render() {
       url: contract.explorer,
       note: contract.address ? 'verified contract' : 'native chain',
     })),
+    ...(curated.researchSources || []),
+    ...(curated.dexScreener ? [{
+      label: 'DEX Screener',
+      url: curated.dexScreener.url,
+      note: `${curated.dexScreener.base}/${curated.dexScreener.quote} live pair`,
+    }] : []),
   ] : [];
   const allSources = [...curatedSources, ...(payload.sources || []).map((source) => ({
     ...source,

@@ -1,6 +1,7 @@
 import { fetchPlatformPulse } from './sentiment-data.js';
 import { fmtUsd, fmtPct, fmtClock, el } from './utils.js';
 import { startAutoRefresh } from './autorefresh.js';
+import { brandedSourceLink } from './source-brands.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -147,6 +148,35 @@ function renderCoverage(data) {
     : 'All requested metrics are available from the source.';
 }
 
+function renderSources() {
+  const definitions = [
+    {
+      label: 'DeFiLlama',
+      url: 'https://defillama.com/',
+      note: 'protocol volume and revenue',
+    },
+    {
+      label: 'BNB Chain',
+      url: 'https://www.bnbchain.org/en/brand-guidelines',
+      note: 'official brand source',
+      logo: '/assets/img/chains/bnb.svg',
+    },
+    {
+      label: 'Monad',
+      url: 'https://www.monad.xyz/',
+      note: 'official brand source',
+      logo: '/assets/img/chains/monad.svg',
+    },
+    {
+      label: 'MegaETH',
+      url: 'https://www.megaeth.com/brand-kit',
+      note: 'official brand kit',
+      logo: '/assets/img/chains/megaeth.svg',
+    },
+  ];
+  $('sentimentSources').replaceChildren(...definitions.map((source) => brandedSourceLink(source)));
+}
+
 async function load({ force = false } = {}) {
   setStatus('Loading platform volume and revenue…', 'busy');
   const data = await fetchPlatformPulse({ force });
@@ -160,6 +190,7 @@ async function load({ force = false } = {}) {
 }
 
 function init() {
+  renderSources();
   load().catch(showError);
 
   /* Metrik DeFiLlama diperbarui harian di sumbernya; 60 detik sudah lebih

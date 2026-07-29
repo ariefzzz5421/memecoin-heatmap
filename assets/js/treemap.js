@@ -34,7 +34,7 @@ export function renderTreemap(container, coins, {
     .map((c) => ({ value: c.vol, coin: c }));
 
   if (!items.length) {
-    container.append(el('p', { class: 'note' }, 'Tidak ada data volume memecoin.'));
+    container.append(el('p', { class: 'note' }, 'Memecoin volume data is unavailable.'));
     return;
   }
 
@@ -43,6 +43,7 @@ export function renderTreemap(container, coins, {
 
   for (const t of tiles) {
     const c = t.coin;
+    const image = /^https?:\/\//i.test(c.image || '') ? c.image : '';
     const pct = c[field.key];
     const bg = divColor(pct, field.cap);
     const fg = inkOn(bg);
@@ -65,12 +66,30 @@ export function renderTreemap(container, coins, {
 
     if (big) {
       node.append(
+        image ? el('img', {
+          class: 'tile-logo',
+          src: image,
+          alt: '',
+          width: '30',
+          height: '30',
+          loading: 'lazy',
+          onerror: (event) => { event.currentTarget.hidden = true; },
+        }) : null,
         el('span', { class: 'tile-sym' }, c.sym),
         el('span', { class: 'tile-pct' }, fmtPct(pct, 1)),
         el('span', { class: 'tile-vol' }, fmtUsd(c.vol, 1)),
       );
     } else if (mid) {
       node.append(
+        image && t.w > 66 && t.h > 42 ? el('img', {
+          class: 'tile-logo sm',
+          src: image,
+          alt: '',
+          width: '18',
+          height: '18',
+          loading: 'lazy',
+          onerror: (event) => { event.currentTarget.hidden = true; },
+        }) : null,
         el('span', { class: 'tile-sym sm' }, c.sym),
         el('span', { class: 'tile-pct sm' }, fmtPct(pct, 0)),
       );
@@ -82,7 +101,9 @@ export function renderTreemap(container, coins, {
       if (!tooltip) return;
       tooltip.innerHTML = `
         <div class="tip-head">
-          <span class="tip-dot" style="background:${bg}"></span>
+          ${image
+    ? `<img class="tip-logo" src="${escapeHtml(image)}" alt="" width="24" height="24">`
+    : `<span class="tip-dot" style="background:${bg}"></span>`}
           <strong>${escapeHtml(c.name)}</strong>
           <span class="tip-rank">${escapeHtml(c.sym)}</span>
         </div>
@@ -142,20 +163,35 @@ export function renderCoinTable(container, coins, limit = 40) {
   table.append(el('caption', {}, `Top ${rows.length} memecoins by 24h volume`));
   const thead = el('thead', {}, el('tr', {},
     el('th', { scope: 'col' }, '#'),
-    el('th', { scope: 'col' }, 'Koin'),
+    el('th', { scope: 'col' }, 'Coin'),
     el('th', { scope: 'col', class: 'r' }, 'Price'),
-    el('th', { scope: 'col', class: 'r' }, 'Volume 24j'),
+    el('th', { scope: 'col', class: 'r' }, '24h volume'),
     el('th', { scope: 'col', class: 'r' }, 'Share'),
     el('th', { scope: 'col', class: 'r' }, 'Market cap'),
-    el('th', { scope: 'col', class: 'r' }, '1j'),
-    el('th', { scope: 'col', class: 'r' }, '24j'),
-    el('th', { scope: 'col', class: 'r' }, '7h'),
+    el('th', { scope: 'col', class: 'r' }, '1h'),
+    el('th', { scope: 'col', class: 'r' }, '24h'),
+    el('th', { scope: 'col', class: 'r' }, '7d'),
   ));
   const tbody = el('tbody');
   rows.forEach((c, i) => {
+    const image = /^https?:\/\//i.test(c.image || '') ? c.image : '';
     tbody.append(el('tr', {},
       el('td', { class: 'muted' }, String(i + 1)),
-      el('td', {}, el('strong', {}, c.sym), ' ', el('span', { class: 'muted' }, c.name)),
+      el('td', {}, el('span', { class: 'coin-cell compact-coin-cell' },
+        image ? el('img', {
+          class: 'row-logo',
+          src: image,
+          alt: '',
+          width: '24',
+          height: '24',
+          loading: 'lazy',
+          onerror: (event) => { event.currentTarget.hidden = true; },
+        }) : null,
+        el('span', {},
+          el('strong', {}, c.sym),
+          el('small', {}, c.name),
+        ),
+      )),
       el('td', { class: 'r num' }, fmtPrice(c.price)),
       el('td', { class: 'r num' }, fmtUsd(c.vol)),
       el('td', { class: 'r num' }, `${((c.vol / total) * 100).toFixed(2)}%`),
