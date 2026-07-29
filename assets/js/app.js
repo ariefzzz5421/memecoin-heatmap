@@ -4,7 +4,7 @@
 
 import { MEME_BASKET, MAJOR_BASKET, TIMEFRAMES } from './config.js';
 import {
-  fetchExchanges, fetchBtcPrice, fetchMemecoins, fetchGlobal,
+  fetchExchanges, fetchBtcPrice, fetchMemecoins, fetchGlobal, fetchMemeMarket,
   fetchCandleSet, fetchWorldTopo,
 } from './datasource.js';
 import { aggregateJurisdictions, mergeHourly, analyzeHours } from './analytics.js';
@@ -24,6 +24,8 @@ const state = {
   agg: null,
   coins: [],
   global: null,
+  memeMarket: null,
+  overviewStamp: '',
   basket: 'meme',
   timeframe: '30d',
   changeField: '24h',
@@ -587,15 +589,72 @@ function renderPerformanceLeaderboard(coins) {
       href: `/cases/detail/?id=${encodeURIComponent(coin.id)}&symbol=${encodeURIComponent(coin.sym)}`,
     },
       el('span', { class: 'leader-rank num' }, String(index + 1).padStart(2, '0')),
-      el('img', { class: 'row-logo', src: coin.image, alt: '', width: '24', height: '24' }),
+      el('img', {
+        class: 'row-logo',
+        src: coin.image,
+        alt: '',
+        width: '24',
+        height: '24',
+        loading: 'lazy',
+        decoding: 'async',
+      }),
       el('span', { class: 'leader-name' },
         el('strong', {}, coin.sym),
         el('small', {}, coin.name),
       ),
-      el('span', { class: 'leader-mcap num' }, fmtUsd(coin.mcap)),
+      el('span', { class: 'leader-mcap' },
+        el('small', {}, 'Market cap'),
+        el('strong', { class: 'num' }, fmtUsd(coin.mcap)),
+      ),
       el('strong', { class: `leader-change num ${coin.ch24h >= 0 ? 'up' : 'down'}` }, fmtPct(coin.ch24h, 1)),
     ));
   });
+}
+
+function renderMemeMarketShare() {
+  const market = state.memeMarket;
+  const holder = $('memeMarketShare');
+  if (!holder || !market) return;
+  const total = market.marketCapUsd;
+  const ranked = [...state.coins]
+    .filter((coin) => Number.isFinite(coin.mcap) && coin.mcap > 0)
+    .sort((a, b) => b.mcap - a.mcap)
+    .slice(0, 6);
+  const covered = ranked.reduce((sum, coin) => sum + coin.mcap, 0);
+  const rest = Number.isFinite(total) ? Math.max(total - covered, 0) : 0;
+  const segments = [
+    ...ranked.map((coin) => ({ label: coin.sym, value: coin.mcap })),
+    ...(rest > 0 ? [{ label: 'Rest', value: rest }] : []),
+  ];
+  const denominator = Number.isFinite(total) && total > 0 ? total : covered;
+
+  $('memeMarketCap').textContent = fmtUsd(total);
+  $('memeMarketChange').textContent = Number.isFinite(market.change24h)
+    ? `${fmtPct(market.change24h, 1)} · 24h`
+    : market.coverage;
+  $('memeMarketDominance').textContent = Number.isFinite(market.shareOfCrypto)
+    ? `${market.shareOfCrypto.toFixed(2)}%`
+    : 'Unavailable';
+  $('memeMarketCoverage').textContent = market.isCategoryTotal
+    ? 'Share of total crypto market cap'
+    : `Partial · ${market.coverage}`;
+
+  holder.replaceChildren(
+    el('div', { class: 'market-share-bar', role: 'img', 'aria-label': 'Memecoin market-cap share by token' },
+      ...segments.map((segment, index) => el('span', {
+        class: `market-share-segment market-share-${Math.min(index + 1, 7)}`,
+        style: `--share:${denominator > 0 ? (segment.value / denominator) * 100 : 0}%`,
+        title: `${segment.label}: ${fmtUsd(segment.value)}`,
+      })),
+    ),
+    el('div', { class: 'market-share-legend' },
+      ...segments.map((segment, index) => el('span', {},
+        el('i', { class: `market-share-key market-share-${Math.min(index + 1, 7)}` }),
+        el('strong', {}, segment.label),
+        el('small', { class: 'num' }, `${denominator > 0 ? ((segment.value / denominator) * 100).toFixed(1) : '0.0'}%`),
+      )),
+    ),
+  );
 }
 
 function renderMemeInsights(coins) {
@@ -689,6 +748,9 @@ async function boot({ force = false } = {}) {
   const globalP = fetchGlobal({ force })
     .then((g) => { state.global = g; })
     .catch(() => { state.global = null; });
+  const memeMarketP = fetchMemeMarket({ force })
+    .then((market) => { state.memeMarket = market; })
+    .catch(() => { state.memeMarket = null; });
 
   try {
     await Promise.all([geoP, marketP]);
@@ -698,9 +760,12 @@ async function boot({ force = false } = {}) {
     status(`Some market data could not load: ${e.message}`, 'err');
   }
 
-  await Promise.allSettled([coinsP, globalP]);
+  await Promise.allSettled([coinsP, globalP, memeMarketP]);
   updateTopKpi();
-  if (state.coins.length) renderMemeSection();
+  if (state.coins.length) {
+    renderMemeSection();
+    renderMemeMarketShare();
+  }
   else $('treemap').innerHTML = '<p class="error">Memecoin data is temporarily unavailable. The source may be rate limited.</p>';
 
   $('footUpdated').textContent = fmtClock(Date.now());
@@ -811,28 +876,26 @@ function init() {
     {
       every: 10 * 1000,
       run: async () => {
-        const [g, coins] = await Promise.all([
+        const [g, coins, market, btc, exchanges] = await Promise.all([
           fetchGlobal({ force: true }),
           fetchMemecoins({ limit: 100, force: true }),
-        ]);
-        state.global = g;
-        state.coins = coins;
-        updateTopKpi();
-        renderMemeSection();
-        $('footUpdated').textContent = fmtClock(Date.now());
-      },
-    },
-    {
-      every: 10 * 1000,
-      run: async () => {
-        const [btc, exchanges] = await Promise.all([
+          fetchMemeMarket({ force: true }),
           fetchBtcPrice({ force: true }),
           fetchExchanges({ pages: 2, force: true }),
         ]);
+        const nextStamp = `${g?.mcapUsd || 0}:${coins[0]?.price || 0}:${market?.marketCapUsd || 0}:${exchanges[0]?.volBtc || 0}`;
+        if (state.overviewStamp === nextStamp) return;
+        state.overviewStamp = nextStamp;
+        state.global = g;
+        state.coins = coins;
+        state.memeMarket = market;
         state.btcPrice = btc;
         state.agg = aggregateJurisdictions(exchanges, btc);
-        renderMapSection();
         updateTopKpi();
+        renderMemeSection();
+        renderMemeMarketShare();
+        renderMapSection();
+        $('footUpdated').textContent = fmtClock(Date.now());
       },
     },
     { every: 10 * 60 * 1000, run: () => loadHours({ force: true }) },

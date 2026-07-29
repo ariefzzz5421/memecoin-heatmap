@@ -3,6 +3,8 @@
 
 const CG = 'https://api.coingecko.com/api/v3';
 const YAHOO = 'https://query1.finance.yahoo.com/v8/finance/chart';
+const DEX = 'https://api.dexscreener.com';
+const GECKO_TERMINAL = 'https://api.geckoterminal.com/api/v2';
 const cache = new Map();
 
 const TTL = {
@@ -11,6 +13,43 @@ const TTL = {
   sentiment: 60_000,
   meme2026: 60_000,
   caseWeekly: 6 * 60 * 60 * 1000,
+  dexLaunch: 24 * 60 * 60 * 1000,
+};
+
+const DEX_PAIRS = {
+  'shiba-inu': { chain: 'ethereum', pairAddress: '0xCF6dAAB95c476106ECa715D48DE4b13287ffDEAa' },
+  pepe: { chain: 'ethereum', pairAddress: '0xA43fe16908251ee70EF74718545e4FE6C5cCEc9f' },
+  dogwifcoin: { chain: 'solana', pairAddress: 'EP2ib6dYdEeqD8MfE2ezHCxX3kP3K2eLKkirfPm5eyMx' },
+  bonk: { chain: 'solana', pairAddress: '3UwfrdLTpAjxTRni1boc5HUWe6hzc4HgE5yLdvEp2Noc' },
+  'official-trump': { chain: 'solana', pairAddress: '9d9mb8kooFfaD3SctgZtkxQypkshx6ezhbKio89ixyy2' },
+  floki: { chain: 'ethereum', pairAddress: '0xca7c2771D248dCBe09EABE0CE57A62e18dA178c0' },
+  'pudgy-penguins': { chain: 'solana', pairAddress: 'DdMA1cHcHEqYfttc1z1sJEY978CcU1pyjNuTWTNmdvzU' },
+  'the-white-whale': { chain: 'solana', pairAddress: '4qxSqMh6iEdbdvtMp8r5MK2psAGKNk57PfGeVo2VhczQ' },
+  'nietzschean-penguin': { chain: 'solana', pairAddress: 'DRAf8QxQY86h7yeHdo9GytXAF6GoTTT8oZjknwXV6dCS' },
+  'the-black-bull': { chain: 'solana', pairAddress: 'FnzKY6x7entQ1eR3D225dQyT7ybfka4PskBMQhb8L3CC' },
+  'cash-cat': { chain: 'robinhood', pairAddress: '0xA70fc67C9F69da90B63a0e4C05D229954574E313' },
+};
+
+const GECKO_NETWORKS = {
+  ethereum: 'eth',
+  solana: 'solana',
+  bsc: 'bsc',
+  base: 'base',
+  arbitrum: 'arbitrum',
+  polygon: 'polygon_pos',
+  avalanche: 'avax',
+  optimism: 'optimism',
+};
+
+const PLATFORM_TO_DEX_CHAIN = {
+  ethereum: 'ethereum',
+  solana: 'solana',
+  'binance-smart-chain': 'bsc',
+  base: 'base',
+  'arbitrum-one': 'arbitrum',
+  'polygon-pos': 'polygon',
+  'avalanche-c-chain': 'avalanche',
+  'optimistic-ethereum': 'optimism',
 };
 
 const PLATFORMS = [
@@ -189,6 +228,17 @@ const CASE_WEEKLY = {
   'pudgy-penguins': { launchAt: '2024-12-17', providers: ['okx', 'kraken', 'binance'], symbols: { binance: 'PENGUUSDT', kraken: 'PENGUUSD', okx: 'PENGU-USDT' } },
 };
 
+const YAHOO_NAME_HINTS = {
+  dogecoin: /dogecoin/i,
+  'shiba-inu': /shiba\s+inu/i,
+  pepe: /^pepe(?:\s|$)/i,
+  dogwifcoin: /dogwifhat/i,
+  bonk: /^bonk(?:\s|$)/i,
+  'official-trump': /official\s+trump/i,
+  floki: /^floki(?:\s|$)/i,
+  'pudgy-penguins': /pudgy\s+penguins/i,
+};
+
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function fetchJSON(url, { timeout = 18_000, retries = 1 } = {}) {
@@ -364,48 +414,84 @@ async function loadOverview() {
     `${CG}/coins/markets?vs_currency=usd&category=meme-token&order=market_cap_desc` +
     '&per_page=100&page=1&sparkline=false&price_change_percentage=1h,24h,7d',
   );
-  const yahooMemesPromise = yahooCryptoScreener();
-  const paprikaExchangesPromise = coinPaprikaExchanges();
+  const categoriesPromise = fetchJSON(`${CG}/coins/categories?order=market_cap_desc`);
 
-  const [globalResult, btcResult, exchangesResult, memesResult, yahooBtcResult, yahooMemesResult, paprikaResult] =
+  const [globalResult, btcResult, exchangesResult, memesResult, categoriesResult] =
     await Promise.allSettled([
       globalPromise,
       btcPromise,
       exchangesPromise,
       memesPromise,
-      yahooPrice('BTC-USD'),
-      yahooMemesPromise,
-      paprikaExchangesPromise,
+      categoriesPromise,
     ]);
 
   const cgGlobal = globalResult.status === 'fulfilled' ? globalResult.value?.data : null;
   const cgBtc = btcResult.status === 'fulfilled' ? btcResult.value?.bitcoin?.usd : null;
-  const yahooBtc = yahooBtcResult.status === 'fulfilled' ? yahooBtcResult.value : null;
+  let yahooBtc = null;
   let exchangeRows = exchangesResult.status === 'fulfilled'
     ? exchangesResult.value.flat().map(slimExchange)
     : [];
-  const yahooMemecoins = yahooMemesResult.status === 'fulfilled' ? yahooMemesResult.value : [];
-  const memecoins = memesResult.status === 'fulfilled' && memesResult.value.length
+  let yahooMemecoins = [];
+  let memecoins = memesResult.status === 'fulfilled' && memesResult.value.length
     ? memesResult.value.map(slimCoin)
-    : yahooMemecoins;
+    : [];
+
+  const fallbackJobs = [];
+  if (!Number.isFinite(cgBtc)) {
+    fallbackJobs.push(yahooPrice('BTC-USD').then((value) => { yahooBtc = value; }).catch(() => {}));
+  }
+  if (!memecoins.length) {
+    fallbackJobs.push(yahooCryptoScreener()
+      .then((value) => {
+        yahooMemecoins = value;
+        memecoins = value;
+      })
+      .catch(() => {}));
+  }
+  if (fallbackJobs.length) await Promise.all(fallbackJobs);
+
   const btcUsd = Number.isFinite(cgBtc) ? cgBtc : yahooBtc?.price ?? null;
-  if (!exchangeRows.length && paprikaResult.status === 'fulfilled' && Number.isFinite(btcUsd)) {
-    exchangeRows = paprikaResult.value.map((row, index) => ({
-      id: row.id,
-      name: row.name,
-      country: fallbackCountry(row),
-      year: null,
-      url: row.links?.website?.[0] || null,
-      image: null,
-      trust: null,
-      rank: index + 1,
-      volBtc: row.quotes.USD.adjusted_volume_24h / btcUsd,
-    }));
+  if (!exchangeRows.length && Number.isFinite(btcUsd)) {
+    try {
+      const paprikaRows = await coinPaprikaExchanges();
+      exchangeRows = paprikaRows.map((row, index) => ({
+        id: row.id,
+        name: row.name,
+        country: fallbackCountry(row),
+        year: null,
+        url: row.links?.website?.[0] || null,
+        image: null,
+        trust: null,
+        rank: index + 1,
+        volBtc: row.quotes.USD.adjusted_volume_24h / btcUsd,
+      }));
+    } catch {
+      exchangeRows = [];
+    }
   }
 
   if (!cgGlobal && !cgBtc && !yahooBtc && !exchangeRows.length && !memecoins.length) {
     throw new Error('CoinGecko and Yahoo Finance unavailable');
   }
+
+  const categoryRow = categoriesResult.status === 'fulfilled'
+    ? categoriesResult.value.find((row) => row.id === 'meme-token')
+    : null;
+  const trackedMcap = memecoins.reduce((sum, coin) => sum + (coin.mcap || 0), 0);
+  const trackedVolume = memecoins.reduce((sum, coin) => sum + (coin.vol || 0), 0);
+  const memeMarket = {
+    marketCapUsd: Number(categoryRow?.market_cap) || trackedMcap || null,
+    volume24hUsd: Number(categoryRow?.volume_24h) || trackedVolume || null,
+    change24h: Number.isFinite(categoryRow?.market_cap_change_24h)
+      ? categoryRow.market_cap_change_24h
+      : null,
+    shareOfCrypto: cgGlobal?.total_market_cap?.usd && (Number(categoryRow?.market_cap) || trackedMcap)
+      ? ((Number(categoryRow?.market_cap) || trackedMcap) / cgGlobal.total_market_cap.usd) * 100
+      : null,
+    coverage: categoryRow ? 'CoinGecko meme-token category' : `tracked top ${memecoins.length} basket`,
+    isCategoryTotal: Boolean(categoryRow),
+    updatedAt: categoryRow?.updated_at ? Date.parse(categoryRow.updated_at) : Date.now(),
+  };
 
   return {
     ok: true,
@@ -419,6 +505,7 @@ async function loadOverview() {
       memecoins: memesResult.status === 'fulfilled' && memesResult.value.length
         ? 'CoinGecko'
         : yahooMemecoins.length ? 'Yahoo Finance' : null,
+      memeMarket: categoryRow ? 'CoinGecko category market data' : 'Tracked basket fallback',
       fallbackReady: Boolean(yahooBtc || yahooMemecoins.length),
     },
     btcUsd,
@@ -432,6 +519,7 @@ async function loadOverview() {
     } : null,
     exchanges: exchangeRows,
     memecoins,
+    memeMarket,
     leaders: memecoins
       .filter((coin) => Number.isFinite(coin.ch24h))
       .sort((a, b) => b.ch24h - a.ch24h)
@@ -705,13 +793,18 @@ function buildPriceMilestones(rows, coin, launchAt, launchSnapshots = {}) {
   };
 }
 
-async function yahooHistory(symbol) {
+async function yahooHistory(symbol, id) {
   const json = await fetchJSON(
     `${YAHOO}/${encodeURIComponent(symbol)}?period1=0&period2=${Math.floor(Date.now() / 1000)}` +
     '&interval=1d&events=history',
     { timeout: 22_000 },
   );
   const result = json?.chart?.result?.[0];
+  const expectedName = YAHOO_NAME_HINTS[id];
+  const yahooName = `${result?.meta?.shortName || ''} ${result?.meta?.longName || ''}`.trim();
+  if (expectedName && !expectedName.test(yahooName)) {
+    throw new Error(`Yahoo ticker collision: ${symbol} resolved to ${yahooName || 'another asset'}`);
+  }
   const timestamps = result?.timestamp || [];
   const closes = result?.indicators?.quote?.[0]?.close || [];
   const rows = timestamps
@@ -803,45 +896,157 @@ async function currentCoin(id) {
   return slimCoin(rows[0]);
 }
 
+function slimDexPair(pair) {
+  if (!pair) return null;
+  return {
+    chain: pair.chainId,
+    dexName: pair.dexId,
+    pairAddress: pair.pairAddress,
+    url: pair.url,
+    base: pair.baseToken?.symbol || null,
+    quote: pair.quoteToken?.symbol || null,
+    baseAddress: pair.baseToken?.address || null,
+    quoteAddress: pair.quoteToken?.address || null,
+    priceUsd: Number(pair.priceUsd) || null,
+    marketCap: Number(pair.marketCap) || null,
+    fdv: Number(pair.fdv) || null,
+    liquidityUsd: Number(pair.liquidity?.usd) || null,
+    volume24h: Number(pair.volume?.h24) || null,
+    change24h: Number(pair.priceChange?.h24),
+    pairCreatedAt: Number(pair.pairCreatedAt) || null,
+  };
+}
+
+async function configuredDexPair(id) {
+  const config = DEX_PAIRS[id];
+  if (!config) return null;
+  const json = await fetchJSON(
+    `${DEX}/latest/dex/pairs/${encodeURIComponent(config.chain)}/${encodeURIComponent(config.pairAddress)}`,
+    { timeout: 12_000, retries: 1 },
+  );
+  return slimDexPair(json?.pair || json?.pairs?.[0]);
+}
+
+async function discoverDexPair(id) {
+  const metadata = await fetchJSON(
+    `${CG}/coins/${encodeURIComponent(id)}?localization=false&tickers=false&market_data=false` +
+    '&community_data=false&developer_data=false&sparkline=false',
+    { timeout: 18_000, retries: 0 },
+  );
+  const platformEntry = Object.entries(metadata?.platforms || {})
+    .find(([platform, address]) => PLATFORM_TO_DEX_CHAIN[platform] && String(address || '').trim());
+  if (!platformEntry) return null;
+  const [platform, address] = platformEntry;
+  const chain = PLATFORM_TO_DEX_CHAIN[platform];
+  const rows = await fetchJSON(
+    `${DEX}/token-pairs/v1/${encodeURIComponent(chain)}/${encodeURIComponent(address)}`,
+    { timeout: 12_000, retries: 1 },
+  );
+  const valid = (Array.isArray(rows) ? rows : [])
+    .filter((pair) => Number(pair.pairCreatedAt) > 0)
+    .sort((a, b) => Number(a.pairCreatedAt) - Number(b.pairCreatedAt));
+  return slimDexPair(valid[0] || rows?.[0]);
+}
+
+async function firstFifteenMinuteCandle(pair) {
+  const network = GECKO_NETWORKS[pair?.chain];
+  if (!network || !pair?.pairAddress || !pair?.pairCreatedAt) return null;
+  const before = Math.floor(pair.pairCreatedAt / 1000) + 6 * 60 * 60;
+  const url = `${GECKO_TERMINAL}/networks/${encodeURIComponent(network)}` +
+    `/pools/${encodeURIComponent(pair.pairAddress)}/ohlcv/minute` +
+    `?aggregate=15&before_timestamp=${before}&limit=100&currency=usd&token=base`;
+  const json = await fetchJSON(url, { timeout: 9_000, retries: 0 });
+  const candles = (json?.data?.attributes?.ohlcv_list || [])
+    .map((row) => ({
+      t: Number(row[0]) * 1000,
+      open: Number(row[1]),
+      high: Number(row[2]),
+      low: Number(row[3]),
+      close: Number(row[4]),
+      volume: Number(row[5]),
+    }))
+    .filter((row) => Number.isFinite(row.t) && row.close > 0)
+    .sort((a, b) => a.t - b.t);
+  const lower = pair.pairCreatedAt - 15 * 60 * 1000;
+  const upper = pair.pairCreatedAt + 24 * 60 * 60 * 1000;
+  return candles.find((row) => row.t >= lower && row.t <= upper) || null;
+}
+
+async function loadDexLaunch(id) {
+  let pair = null;
+  try {
+    pair = await configuredDexPair(id);
+  } catch {
+    pair = null;
+  }
+  if (!pair) pair = await discoverDexPair(id);
+  if (!pair) {
+    return {
+      ok: true,
+      fetchedAt: Date.now(),
+      id,
+      pair: null,
+      launch: null,
+      warning: 'No exact contract-matched DEX pair was found.',
+    };
+  }
+
+  let candle = null;
+  try {
+    candle = await firstFifteenMinuteCandle(pair);
+  } catch {
+    candle = null;
+  }
+  const impliedSupply = pair.priceUsd > 0 && pair.marketCap > 0
+    ? pair.marketCap / pair.priceUsd
+    : pair.priceUsd > 0 && pair.fdv > 0
+      ? pair.fdv / pair.priceUsd
+      : null;
+  const metricKind = pair.marketCap > 0 ? 'market-cap proxy' : pair.fdv > 0 ? 'FDV estimate' : null;
+  const valuation = candle?.close > 0 && impliedSupply > 0 ? candle.close * impliedSupply : null;
+
+  return {
+    ok: true,
+    fetchedAt: Date.now(),
+    id,
+    pair,
+    launch: candle ? {
+      t: candle.t,
+      price: candle.close,
+      valuation,
+      metricKind,
+      candleMinutes: 15,
+      source: 'GeckoTerminal 15m OHLCV + DEX Screener current implied supply',
+      methodology: metricKind
+        ? `First 15m close multiplied by current implied ${pair.marketCap > 0 ? 'circulating' : 'fully diluted'} supply.`
+        : 'First 15m close; valuation unavailable because current implied supply is unavailable.',
+    } : null,
+    warning: candle
+      ? 'Launch valuation is a proxy, not an exact historical circulating-supply snapshot.'
+      : 'The first 15-minute OHLCV candle was not returned by the public source.',
+  };
+}
+
 async function loadHistory(id, symbol) {
   const yahooSymbol = `${String(symbol || '').toUpperCase()}-USD`;
   const eventRecord = MEME_2026_EVENTS.find((event) => event.id === id);
   const launchAt = CASE_WEEKLY[id]?.launchAt || eventRecord?.launchAt || null;
   const overviewCoin = cache.get('overview')?.value?.memecoins?.find((row) => row.id === id) || null;
-  const [coinResult, yahooResult] = await Promise.allSettled([
+  const [coinResult, yahooResult, geckoResult] = await Promise.allSettled([
     overviewCoin ? Promise.resolve(overviewCoin) : currentCoin(id),
-    yahooHistory(yahooSymbol),
+    YAHOO_NAME_HINTS[id]
+      ? yahooHistory(yahooSymbol, id)
+      : Promise.reject(new Error('No verified Yahoo identity mapping')),
+    coingeckoHistory(id),
   ]);
-  await pause(900);
-  let geckoResult;
-  try {
-    geckoResult = { status: 'fulfilled', value: await coingeckoHistory(id) };
-  } catch (reason) {
-    geckoResult = { status: 'rejected', reason };
-  }
-  await pause(900);
-  let launchResult;
-  try {
-    launchResult = {
-      status: 'fulfilled',
-      value: launchAt
-        ? await coingeckoLaunchSnapshots(id, launchAt)
-        : { snapshots: {}, failures: [] },
-    };
-  } catch (reason) {
-    launchResult = { status: 'rejected', reason };
-  }
   const coin = coinResult.status === 'fulfilled' ? coinResult.value : null;
   const yahooRows = yahooResult.status === 'fulfilled' ? yahooResult.value : [];
   const gecko = geckoResult.status === 'fulfilled'
     ? geckoResult.value
     : { prices: [], marketCaps: [], window: null };
-  const launchHistory = launchResult.status === 'fulfilled'
-    ? launchResult.value
-    : { snapshots: {}, failures: [launchResult.reason?.message || 'launch history unavailable'] };
-  const priceRows = yahooRows.length ? yahooRows : gecko.prices;
+  const priceRows = gecko.prices.length ? gecko.prices : yahooRows;
 
-  if (!coin && !priceRows.length && !gecko.marketCaps.length) {
+  if (!coin && !priceRows.length && !gecko.marketCaps.length && !CASE_WEEKLY[id] && !eventRecord) {
     throw new Error('Historical data unavailable');
   }
 
@@ -859,13 +1064,18 @@ async function loadHistory(id, symbol) {
     coin,
     priceHistory: downsample(priceRows),
     marketCapHistory365d: downsample(gecko.marketCaps),
-    milestones: buildPriceMilestones(priceRows, coin, launchAt || new Date(priceRows[0]?.t || Date.now()).toISOString(), launchHistory.snapshots),
-    launchHistoryFailures: launchHistory.failures,
+    milestones: buildPriceMilestones(
+      priceRows,
+      coin,
+      launchAt || new Date(priceRows[0]?.t || Date.now()).toISOString(),
+      {},
+    ),
+    launchHistoryFailures: ['First 15m launch data is loaded separately from the DEX launch endpoint.'],
     marketCapPeak365d,
     source: {
-      priceHistory: yahooRows.length ? 'Yahoo Finance' : gecko.prices.length ? 'CoinGecko' : null,
+      priceHistory: gecko.prices.length ? `CoinGecko (${gecko.window})` : yahooRows.length ? 'Yahoo Finance' : null,
       marketCapHistory: gecko.marketCaps.length ? `CoinGecko (${gecko.window})` : null,
-      launchMilestones: Object.keys(launchHistory.snapshots).length ? 'CoinGecko historical snapshots' : null,
+      launchMilestones: null,
       current: coin ? 'CoinGecko' : null,
     },
     sources: [
@@ -897,6 +1107,11 @@ export async function getMarketPayload(urlLike) {
     const key = `history:${id}:${symbol}`;
     const partial = cache.get(key)?.value?.partial;
     return cached(key, partial ? 10 * 60_000 : TTL.history, () => loadHistory(id, symbol));
+  }
+  if (resource === 'dexlaunch') {
+    const id = url.searchParams.get('id');
+    if (!id) return { ok: false, status: 400, error: 'id is required' };
+    return cached(`dexlaunch:${id}`, TTL.dexLaunch, () => loadDexLaunch(id));
   }
   if (resource === 'sentiment') {
     return cached('sentiment', TTL.sentiment, loadSentiment);

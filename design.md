@@ -122,3 +122,109 @@ Use a four-point scale through named tokens only:
 - Launch price and market cap are displayed only when a historical source
   returns them. The interface never interpolates or visually invents a missing
   launch value.
+
+## DEX evidence and fast-path extension
+
+- DexScreener frames are click-to-load. The page renders its article, internal
+  chart, and cached market snapshot before any third-party iframe is created.
+- The official DexScreener API supplies contract-matched pair identity,
+  creation time, current price, liquidity, volume, FDV, and market cap. It is
+  not treated as an OHLCV history source.
+- “First 15m mcap proxy” means the first public 15-minute GeckoTerminal close
+  multiplied by the current DexScreener-implied circulating supply. If only FDV
+  is available, the label becomes “First 15m FDV estimate.” Neither is labeled
+  as an exact historical market cap.
+- Missing OHLCV, supply, or exact pair identity remains unavailable. Ticker-only
+  pair matching is forbidden.
+- The overview category total comes from CoinGecko’s `meme-token` category.
+  When that category is unavailable, the interface says “tracked basket” and
+  never presents the partial sum as the total category.
+- Map provenance uses one short source label and an external-link arrow. It does
+  not repeat field descriptions already explained by the data-boundary note.
+- Background polling updates changed market sections only. Historical routes and
+  first-launch evidence use longer server caches, and below-fold dossier
+  sections use `content-visibility`.
+
+## Exports
+
+The portable source of truth is `assets/css/tokens.css`.
+
+### Tailwind v4
+
+```css
+@theme {
+  --color-paper: oklch(13% 0.008 255);
+  --color-paper-2: oklch(19% 0.008 255);
+  --color-paper-3: oklch(23% 0.01 255);
+  --color-ink: oklch(98% 0.004 255);
+  --color-ink-2: oklch(79% 0.01 255);
+  --color-muted: oklch(61% 0.012 255);
+  --color-rule: oklch(100% 0 0 / 0.11);
+  --color-accent: oklch(62% 0.17 253);
+  --color-focus: oklch(78% 0.15 252);
+  --font-display: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-outlier: ui-monospace, "SFMono-Regular", monospace;
+  --spacing-3xs: 0.25rem;
+  --spacing-2xs: 0.5rem;
+  --spacing-xs: 0.75rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2rem;
+  --spacing-xl: 3rem;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}
+```
+
+### DTCG
+
+```json
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "color": {
+    "paper": { "$value": "oklch(13% 0.008 255)", "$type": "color" },
+    "paper-2": { "$value": "oklch(19% 0.008 255)", "$type": "color" },
+    "paper-3": { "$value": "oklch(23% 0.01 255)", "$type": "color" },
+    "ink": { "$value": "oklch(98% 0.004 255)", "$type": "color" },
+    "muted": { "$value": "oklch(61% 0.012 255)", "$type": "color" },
+    "accent": { "$value": "oklch(62% 0.17 253)", "$type": "color" }
+  },
+  "font": {
+    "display": { "$value": "Geist, ui-sans-serif, system-ui, sans-serif", "$type": "fontFamily" },
+    "body": { "$value": "Geist, ui-sans-serif, system-ui, sans-serif", "$type": "fontFamily" },
+    "outlier": { "$value": "ui-monospace, SFMono-Regular, monospace", "$type": "fontFamily" }
+  },
+  "duration": {
+    "micro": { "$value": "120ms", "$type": "duration" },
+    "short": { "$value": "220ms", "$type": "duration" },
+    "long": { "$value": "420ms", "$type": "duration" }
+  }
+}
+```
+
+### shadcn/ui
+
+```css
+:root {
+  --background: 13% 0.008 255;
+  --foreground: 98% 0.004 255;
+  --card: 19% 0.008 255;
+  --card-foreground: 98% 0.004 255;
+  --popover: 19% 0.008 255;
+  --popover-foreground: 98% 0.004 255;
+  --primary: 62% 0.17 253;
+  --primary-foreground: 100% 0.004 255;
+  --secondary: 23% 0.01 255;
+  --secondary-foreground: 79% 0.01 255;
+  --muted: 23% 0.01 255;
+  --muted-foreground: 61% 0.012 255;
+  --accent: 62% 0.17 253;
+  --accent-foreground: 100% 0.004 255;
+  --border: 30% 0.022 255;
+  --input: 30% 0.022 255;
+  --ring: 78% 0.15 252;
+  --radius: 0.5rem;
+}
+```

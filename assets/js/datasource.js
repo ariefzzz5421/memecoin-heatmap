@@ -22,11 +22,11 @@ let lastExchangeState = {
 };
 
 async function fetchBackendSnapshot({ force = false } = {}) {
-  if (!force && backendSnapshot && Date.now() - backendSavedAt < 8_000) {
+  if (!force && backendSnapshot && Date.now() - backendSavedAt < 15_000) {
     return backendSnapshot;
   }
   if (backendPromise) return backendPromise;
-  backendPromise = getJSON(`/api/market?resource=overview&t=${Math.floor(Date.now() / 10_000)}`, {
+  backendPromise = getJSON('/api/market?resource=overview', {
     retries: 0,
     timeout: 25_000,
   })
@@ -303,6 +303,11 @@ export async function fetchGlobal({ force = false } = {}) {
     }
     throw new Error('backend global data unavailable');
   });
+}
+
+export async function fetchMemeMarket({ force = false } = {}) {
+  const snapshot = await fetchBackendSnapshot({ force });
+  return snapshot.memeMarket || null;
 }
 
 /* ============================================================

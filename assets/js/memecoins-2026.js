@@ -29,7 +29,7 @@ function setStatus(text, kind = 'busy') {
 }
 
 async function fetchRecords() {
-  const response = await fetch(`/api/market?resource=meme2026&t=${Math.floor(Date.now() / 10_000)}`, {
+  const response = await fetch('/api/market?resource=meme2026', {
     headers: { accept: 'application/json' },
   });
   if (!response.ok) throw new Error(`Backend HTTP ${response.status}`);

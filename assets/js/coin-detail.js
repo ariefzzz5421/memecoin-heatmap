@@ -1,8 +1,7 @@
 import { fmtUsd, fmtPrice, fmtPct, fmtClock, el } from './utils.js';
-import { startAutoRefresh } from './autorefresh.js';
 import { CASES } from './cases-config.js';
 import { renderMarketHistoryChart } from './market-history-chart.js';
-import { renderDexScreenerChart } from './dexscreener.js';
+import { fetchDexLaunch, renderDexScreenerChart } from './dexscreener.js';
 import { brandedSourceLink } from './source-brands.js';
 
 const $ = (id) => document.getElementById(id);
@@ -11,6 +10,7 @@ const id = params.get('id');
 const symbol = params.get('symbol');
 const curated = CASES.find((item) => item.id === id);
 let payload = null;
+let dexLaunchPayload = null;
 
 function setStatus(text, kind = 'busy') {
   $('statusText').textContent = text;
@@ -113,12 +113,35 @@ function fact(label, value, note = '', emphasis = false) {
   );
 }
 
+function historyWithDexLaunch(data) {
+  if (!dexLaunchPayload?.launch) return data;
+  return {
+    ...data,
+    milestones: {
+      ...data.milestones,
+      launch: {
+        t: dexLaunchPayload.launch.t,
+        price: dexLaunchPayload.launch.price,
+        mcap: dexLaunchPayload.launch.metricKind === 'market-cap proxy'
+          ? dexLaunchPayload.launch.valuation
+          : null,
+        source: dexLaunchPayload.launch.source,
+      },
+    },
+    source: { ...data.source, launchMilestones: dexLaunchPayload.launch.source },
+  };
+}
+
 function render() {
   const coin = payload.coin;
   const milestones = payload.milestones || {};
-  const launch = milestones.launch;
+  const launch = dexLaunchPayload?.launch || milestones.launch;
   const lastPrice = payload.priceHistory?.at(-1)?.price;
-  const currentPrice = Number.isFinite(coin?.price) ? coin.price : lastPrice;
+  const currentPrice = Number.isFinite(coin?.price)
+    ? coin.price
+    : Number.isFinite(dexLaunchPayload?.pair?.priceUsd)
+      ? dexLaunchPayload.pair.priceUsd
+      : lastPrice;
   const displayName = coin?.name || curated?.name || symbol;
   const athPrice = Number.isFinite(coin?.ath) ? coin.ath : milestones.ath?.price;
   const athTimestamp = coin?.athDate ? Date.parse(coin.athDate) : milestones.ath?.t;
@@ -130,7 +153,11 @@ function render() {
   $('tokenLogo').alt = `${displayName} logo`;
   const summary = [
     Number.isFinite(currentPrice) ? `Price ${fmtPrice(currentPrice)}` : null,
-    Number.isFinite(coin?.mcap) ? `market cap ${fmtUsd(coin.mcap)}` : null,
+    Number.isFinite(coin?.mcap)
+      ? `market cap ${fmtUsd(coin.mcap)}`
+      : Number.isFinite(dexLaunchPayload?.pair?.marketCap)
+        ? `market cap ${fmtUsd(dexLaunchPayload.pair.marketCap)}`
+        : null,
     Number.isFinite(coin?.ch24h) ? `24h change ${fmtPct(coin.ch24h, 1)}` : null,
   ].filter(Boolean);
   $('tokenSummary').textContent = summary.length
@@ -139,23 +166,36 @@ function render() {
 
   const facts = [
     curated ? fact('Launch date', fmtDate(Date.parse(curated.launch)), curated.launchNote, true) : null,
-    fact('Launch price', Number.isFinite(launch?.price) ? fmtPrice(launch.price) : 'Unavailable',
-      launch?.source || 'No public snapshot returned'),
-    fact('Launch market cap', Number.isFinite(launch?.mcap) ? fmtUsd(launch.mcap) : 'Unavailable',
-      launch?.source || 'No public snapshot returned'),
+    fact('First 15m close', Number.isFinite(launch?.price) ? fmtPrice(launch.price) : 'Unavailable',
+      launch?.source || 'No public 15m candle returned'),
+    fact(
+      launch?.metricKind === 'FDV estimate' ? 'First 15m FDV' : 'First 15m mcap proxy',
+      Number.isFinite(launch?.valuation) ? fmtUsd(launch.valuation) : 'Unavailable',
+      launch?.methodology || 'No value is interpolated',
+    ),
     fact('Current price', Number.isFinite(currentPrice) ? fmtPrice(currentPrice) : 'Unavailable',
       Number.isFinite(coin?.ch24h) ? `${fmtPct(coin.ch24h, 1)} / 24h` : payload.source?.priceHistory || ''),
-    fact('Market cap', Number.isFinite(coin?.mcap) ? fmtUsd(coin.mcap) : 'Unavailable',
-      coin?.rank ? `Rank #${coin.rank}` : payload.source?.marketCapHistory || 'No public series returned'),
+    fact('Market cap', Number.isFinite(coin?.mcap)
+      ? fmtUsd(coin.mcap)
+      : Number.isFinite(dexLaunchPayload?.pair?.marketCap)
+        ? fmtUsd(dexLaunchPayload.pair.marketCap)
+        : 'Unavailable',
+      coin?.rank ? `Rank #${coin.rank}` : dexLaunchPayload?.pair ? 'DEX Screener exact pair' : payload.source?.marketCapHistory || 'No public series returned'),
     fact('Price ATH', fmtPrice(athPrice), Number.isFinite(athTimestamp) ? fmtDate(athTimestamp) : ''),
   ].filter(Boolean);
   $('caseFacts').replaceChildren(...facts);
 
-  renderMarketHistoryChart($('marketHistoryChart'), payload, {
+  const chartPayload = historyWithDexLaunch(payload);
+  renderMarketHistoryChart($('marketHistoryChart'), chartPayload, {
     launchAt: curated?.launch || payload.launchAt,
     symbol,
   });
-  renderDexScreenerChart($('dexScreenerChart'), curated?.dexScreener || null, displayName);
+  renderDexScreenerChart(
+    $('dexScreenerChart'),
+    dexLaunchPayload?.pair || curated?.dexScreener || null,
+    displayName,
+    dexLaunchPayload,
+  );
   const curatedSources = curated ? [
     { label: 'Official X', url: curated.officialX, note: new URL(curated.officialX).pathname },
     {
@@ -190,7 +230,7 @@ function render() {
 async function load() {
   if (!id || !symbol) throw new Error('The id and symbol parameters are required');
   const response = await fetch(
-    `/api/market?resource=history&id=${encodeURIComponent(id)}&symbol=${encodeURIComponent(symbol)}&t=${Math.floor(Date.now() / 10_000)}`,
+    `/api/market?resource=history&id=${encodeURIComponent(id)}&symbol=${encodeURIComponent(symbol)}`,
   );
   if (!response.ok) throw new Error(`Backend HTTP ${response.status}`);
   payload = await response.json();
@@ -198,22 +238,34 @@ async function load() {
   render();
 }
 
+async function loadDex() {
+  dexLaunchPayload = await fetchDexLaunch(id);
+  if (payload) render();
+}
+
 function init() {
-  load().catch((error) => {
+  load().then(() => loadDex().catch((error) => {
+    console.warn('DEX launch:', error.message);
+  })).catch((error) => {
     console.error(error);
     setStatus(error.message, 'err');
     $('marketHistoryChart').replaceChildren(el('p', { class: 'error' }, error.message));
   });
-  startAutoRefresh([{ every: 10_000, run: load }]);
   let resizeTimer;
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
-      if (payload) render();
+      if (payload) renderMarketHistoryChart($('marketHistoryChart'), historyWithDexLaunch(payload), {
+        launchAt: curated?.launch || payload.launchAt,
+        symbol,
+      });
     }, 160);
   });
   window.addEventListener('themechange', () => {
-    if (payload) render();
+    if (payload) renderMarketHistoryChart($('marketHistoryChart'), historyWithDexLaunch(payload), {
+      launchAt: curated?.launch || payload.launchAt,
+      symbol,
+    });
   });
 }
 

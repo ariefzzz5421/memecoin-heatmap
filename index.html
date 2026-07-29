@@ -14,7 +14,7 @@
 <header class="site-head">
   <div class="wrap head-inner">
     <a class="brand brand-link" href="/">
-      <img class="brand-mark" src="/assets/img/brand/memecoin-heatmap-mark.png" alt="" width="44" height="44">
+      <img class="brand-mark" src="/assets/img/brand/memecoin-heatmap-mark.png" alt="" width="44" height="44" decoding="async" fetchpriority="high">
       <div>
         <h1>Memecoin Heatmap</h1>
         <p class="brand-sub">Global volume · memecoin momentum · trading hours</p>
@@ -68,6 +68,19 @@
       <p class="kpi-val" id="kpiPeakHour">—</p>
       <p class="kpi-sub" id="kpiPeakSub">—</p>
     </article>
+  </section>
+
+  <section class="panel meme-market-panel" aria-labelledby="memeMarketTitle">
+    <div class="meme-market-copy">
+      <p class="eyebrow">Memecoin category · 24h</p>
+      <h2 id="memeMarketTitle">Market size and share</h2>
+      <p class="panel-sub">CoinGecko category total with a clearly labeled tracked-basket fallback.</p>
+    </div>
+    <div class="meme-market-metrics">
+      <article><span>Total market cap</span><strong class="num" id="memeMarketCap">—</strong><small id="memeMarketChange">Loading…</small></article>
+      <article><span>Crypto market share</span><strong class="num" id="memeMarketDominance">—</strong><small id="memeMarketCoverage">Loading…</small></article>
+    </div>
+    <div class="meme-market-share" id="memeMarketShare" aria-live="polite"></div>
   </section>
 
   <section class="panel performance-panel" aria-labelledby="leadersTitle">

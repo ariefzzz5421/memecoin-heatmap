@@ -100,7 +100,7 @@ export async function fetchCaseMarkets({ force = false } = {}) {
   }
   return withStaleFallback(key, async () => {
     try {
-      const response = await fetch(`/api/market?resource=overview&t=${Math.floor(Date.now() / 10_000)}`);
+      const response = await fetch('/api/market?resource=overview');
       if (response.ok) {
         const payload = await response.json();
         const selected = (payload.memecoins || []).filter((row) => CASES.some((item) => item.id === row.id));
@@ -190,8 +190,7 @@ export async function fetchHistory(caseDef, { force = false } = {}) {
   }
   return withStaleFallback(key, async () => {
     const payload = await getJSON(
-      `/api/market?resource=history&id=${encodeURIComponent(caseDef.id)}&symbol=${encodeURIComponent(caseDef.sym)}` +
-      `&t=${Math.floor(Date.now() / 10_000)}`,
+      `/api/market?resource=history&id=${encodeURIComponent(caseDef.id)}&symbol=${encodeURIComponent(caseDef.sym)}`,
       { timeout: 40_000, retries: 1 },
     );
     if (!payload?.ok) throw new Error(payload?.error || 'Historical market data is unavailable');

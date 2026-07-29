@@ -1,0 +1,47 @@
+:root {
+  --color-paper: oklch(13% 0.008 255);
+  --color-paper-2: oklch(19% 0.008 255);
+  --color-paper-3: oklch(23% 0.01 255);
+  --color-ink: oklch(98% 0.004 255);
+  --color-ink-2: oklch(79% 0.01 255);
+  --color-muted: oklch(61% 0.012 255);
+  --color-rule: oklch(100% 0 0 / 0.11);
+  --color-rule-2: oklch(100% 0 0 / 0.06);
+  --color-accent: oklch(62% 0.17 253);
+  --color-accent-ink: oklch(100% 0.004 255);
+  --color-focus: oklch(78% 0.15 252);
+  --font-display: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-outlier: ui-monospace, "SFMono-Regular", monospace;
+  --space-3xs: 0.25rem;
+  --space-2xs: 0.5rem;
+  --space-xs: 0.75rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2rem;
+  --space-xl: 3rem;
+  --space-2xl: 4.5rem;
+  --space-3xl: 7rem;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
+  --rule-hair: 1px;
+  --rule-fine: 2px;
+  --radius-card: 8px;
+  --radius-pill: 999px;
+  --radius-input: 6px;
+}
+
+:root[data-theme="light"] {
+  --color-paper: oklch(92.5% 0.012 255);
+  --color-paper-2: oklch(98% 0.004 255);
+  --color-paper-3: oklch(95% 0.008 255);
+  --color-ink: oklch(20% 0.018 255);
+  --color-ink-2: oklch(36% 0.018 255);
+  --color-muted: oklch(49% 0.016 255);
+  --color-rule: oklch(20% 0.018 255 / 0.16);
+  --color-rule-2: oklch(20% 0.018 255 / 0.09);
+}

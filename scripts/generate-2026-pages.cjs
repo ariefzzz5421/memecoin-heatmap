@@ -156,7 +156,7 @@ function template(item) {
 <a class="skip" href="#article">Skip to research</a>
 <header class="site-head">
   <div class="wrap head-inner">
-    <a class="brand brand-link" href="/"><img class="brand-mark" src="/assets/img/brand/memecoin-heatmap-mark.png" alt="" width="44" height="44"><div><h1>Memecoin Heatmap</h1><p class="brand-sub">Sourced market intelligence</p></div></a>
+    <a class="brand brand-link" href="/"><img class="brand-mark" src="/assets/img/brand/memecoin-heatmap-mark.png" alt="" width="44" height="44" decoding="async"><div><h1>Memecoin Heatmap</h1><p class="brand-sub">Sourced market intelligence</p></div></a>
     <nav class="primary-nav" aria-label="Primary navigation">
       <a href="/">Overview</a><a href="/maps/">Maps</a><a href="/sentiment/">Sentiment</a><a href="/cases/">Cases</a><a class="is-active" href="/2026-memecoins/" aria-current="page">2026</a>
     </nav>
@@ -169,7 +169,7 @@ function template(item) {
   <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/2026-memecoins/">2026 memecoins</a><span>/</span><span>${item.symbol}</span></nav>
   <header class="event-hero">
     <div class="event-identity">
-      <img class="event-token-logo" id="eventLogo" src="${item.logo}" alt="${item.name} logo" width="88" height="88">
+      <img class="event-token-logo" id="eventLogo" src="${item.logo}" alt="${item.name} logo" width="88" height="88" decoding="async">
       <div><p class="eyebrow">${item.cohort}</p><h2>${item.name} <span>${item.symbol}</span></h2><p>${item.chain} · sourced threshold-event dossier</p></div>
     </div>
     <div class="event-live-snapshot" id="liveSnapshot" aria-live="polite"><span>Current snapshot</span><strong>Checking…</strong></div>
@@ -197,6 +197,10 @@ function template(item) {
   <section class="panel event-history-panel">
     <div class="panel-head"><div><p class="eyebrow">Market history</p><h2>Launch-to-market chart</h2><p class="panel-sub">Public time-series data loads after the article. Missing data becomes a sourced event timeline; dates are never estimated.</p></div><span class="chart-load-state" id="chartLoadState">Loading chart…</span></div>
     <div class="market-history-chart" id="eventChart"><div class="chart-loading-shell"><span class="spinner"></span><p>Loading public market history…</p></div></div>
+  </section>
+
+  <section class="panel dex-panel" aria-label="On-chain DEX chart">
+    <div id="eventDexChart"><div class="chart-loading-shell"><span class="spinner"></span><p>Checking the exact DEX pair…</p></div></div>
   </section>
 
   <section class="event-bottom-grid">
@@ -227,4 +231,3 @@ for (const event of events) {
   fs.writeFileSync(path.join(directory, 'index.html'), template(event));
   console.log(`2026-memecoins/${event.id}/index.html`);
 }
-
