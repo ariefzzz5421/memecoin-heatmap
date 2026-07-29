@@ -5,7 +5,7 @@
    Semua di-cache di localStorage dengan TTL.
    ============================================================ */
 
-import { TTL } from './config.js';
+import { TTL, UNKNOWN_LABELS } from './config.js';
 
 const CACHE_PREFIX = 'chv:v2:';
 let backendSnapshot = null;
@@ -118,7 +118,9 @@ export function exchangeCoverage(rows = []) {
   const countries = new Set();
   let mappedRows = 0;
   for (const row of rows) {
-    const country = String(row?.country || '').trim();
+    const rawCountry = row?.country;
+    if (UNKNOWN_LABELS.has(rawCountry)) continue;
+    const country = String(rawCountry || '').trim();
     if (!country) continue;
     countries.add(country);
     mappedRows++;
