@@ -11,7 +11,7 @@ function setStatus(text, kind = 'busy') {
 }
 
 async function market(resource) {
-  const response = await fetch(`/api/market?resource=${resource}&t=${Math.floor(Date.now() / 10_000)}`);
+  const response = await fetch(`/api/market/?resource=${resource}&t=${Math.floor(Date.now() / 10_000)}`);
   if (!response.ok) throw new Error(`Backend HTTP ${response.status}`);
   const payload = await response.json();
   if (!payload?.ok) throw new Error(payload?.error || 'Data is unavailable');

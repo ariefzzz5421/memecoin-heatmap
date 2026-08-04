@@ -20,7 +20,7 @@ function pairUrl(pair) {
 }
 
 export async function fetchDexLaunch(id) {
-  const response = await fetch(`/api/market?resource=dexlaunch&id=${encodeURIComponent(id)}`, {
+  const response = await fetch(`/api/market/?resource=dexlaunch&id=${encodeURIComponent(id)}`, {
     headers: { accept: 'application/json' },
   });
   if (!response.ok) throw new Error(`DEX launch HTTP ${response.status}`);

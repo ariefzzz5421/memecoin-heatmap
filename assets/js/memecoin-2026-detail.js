@@ -23,7 +23,7 @@ const fmtDate = (value) => new Intl.DateTimeFormat('en-US', {
 }).format(new Date(`${value}T00:00:00Z`));
 
 async function fetchRecords() {
-  const response = await fetch('/api/market?resource=meme2026', {
+  const response = await fetch('/api/market/?resource=meme2026', {
     headers: { accept: 'application/json' },
   });
   if (!response.ok) throw new Error(`Backend HTTP ${response.status}`);
@@ -103,7 +103,7 @@ function renderEventTimeline(errorMessage = '') {
 async function loadHistory() {
   if (!eventRecord) return;
   const response = await fetch(
-    `/api/market?resource=history&id=${encodeURIComponent(eventRecord.id)}&symbol=${encodeURIComponent(eventRecord.symbol)}`,
+    `/api/market/?resource=history&id=${encodeURIComponent(eventRecord.id)}&symbol=${encodeURIComponent(eventRecord.symbol)}`,
     { headers: { accept: 'application/json' } },
   );
   if (!response.ok) throw new Error(`History HTTP ${response.status}`);

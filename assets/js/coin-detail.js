@@ -236,7 +236,7 @@ async function load() {
   if (!id) throw new Error('The coin id parameter is required');
   const symbolQuery = symbol ? `&symbol=${encodeURIComponent(symbol)}` : '';
   const response = await fetch(
-    `/api/market?resource=history&id=${encodeURIComponent(id)}${symbolQuery}`,
+    `/api/market/?resource=history&id=${encodeURIComponent(id)}${symbolQuery}`,
   );
   if (!response.ok) throw new Error(`Backend HTTP ${response.status}`);
   payload = await response.json();

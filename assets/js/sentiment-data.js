@@ -24,7 +24,7 @@ export async function fetchPlatformPulse({ force = false } = {}) {
     const cached = readCache();
     if (cached) return { ...cached, cached: true };
   }
-  const response = await fetch(`/api/market?resource=sentiment&t=${Math.floor(Date.now() / 10_000)}`, {
+  const response = await fetch(`/api/market/?resource=sentiment&t=${Math.floor(Date.now() / 10_000)}`, {
     headers: { accept: 'application/json' },
   });
   if (!response.ok) throw new Error(`Backend HTTP ${response.status}`);

@@ -44,7 +44,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  if (urlPath === '/api/market') {
+  if (urlPath === '/api/market' || urlPath === '/api/market/') {
     try {
       const { getMarketPayload } = await import('../server/market-service.mjs');
       const payload = await getMarketPayload(new URL(req.url, 'http://localhost'));

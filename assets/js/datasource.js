@@ -27,7 +27,7 @@ async function fetchBackendSnapshot({ force = false } = {}) {
     return backendSnapshot;
   }
   if (backendPromise) return backendPromise;
-  backendPromise = getJSON('/api/market?resource=overview', {
+  backendPromise = getJSON('/api/market/?resource=overview', {
     retries: 0,
     timeout: 25_000,
   })
