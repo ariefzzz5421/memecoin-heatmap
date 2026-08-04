@@ -33,6 +33,11 @@
   --radius-card: 8px;
   --radius-pill: 999px;
   --radius-input: 6px;
+  --nav-rail-width: 15.5rem;
+  --nav-rail-mobile-width: min(20rem, calc(100% - var(--space-xl)));
+  --z-sticky: 200;
+  --z-backdrop: 220;
+  --z-navigation: 240;
 }
 
 :root[data-theme="light"] {

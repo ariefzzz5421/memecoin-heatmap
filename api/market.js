@@ -1,4 +1,4 @@
-module.exports = async function handler(request, response) {
+export default async function handler(request, response) {
   try {
     const { getMarketPayload } = await import('../server/market-service.mjs');
     const origin = `https://${request.headers.host || 'localhost'}`;

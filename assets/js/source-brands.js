@@ -5,8 +5,13 @@ const BRANDS = [
   { test: (host) => host === 'dexscreener.com' || host.endsWith('.dexscreener.com'), name: 'DEX Screener', logo: '/assets/img/sources/dexscreener.ico' },
   { test: (host) => host === 'x.com' || host.endsWith('.x.com'), name: 'X', logo: '/assets/img/sources/x.svg', lightAsset: true },
   { test: (host) => host.includes('coingecko.com'), name: 'CoinGecko', logo: '/assets/img/sources/coingecko.svg' },
+  { test: (host) => host.includes('coinpaprika.com'), name: 'CoinPaprika', logo: '/assets/img/sources/coinpaprika.png' },
+  { test: (host) => host.includes('naturalearthdata.com'), name: 'Natural Earth', logo: '/assets/img/sources/natural-earth.png' },
+  { test: (host) => host.includes('flagpedia.net') || host.includes('flagcdn.com'), name: 'Flagpedia', logo: '/assets/img/sources/flagpedia.png' },
   { test: (host) => host.includes('finance.yahoo.com'), name: 'Yahoo Finance', logo: '/assets/img/sources/yahoo.ico' },
   { test: (host) => host.includes('coinmarketcap.com'), name: 'CoinMarketCap', logo: '/assets/img/sources/coinmarketcap.ico' },
+  { test: (host) => host.includes('cointelegraph.com'), name: 'Cointelegraph', logo: '/assets/img/sources/cointelegraph.svg' },
+  { test: (host) => host.includes('geckoterminal.com'), name: 'GeckoTerminal', logo: '/assets/img/sources/geckoterminal.png' },
   { test: (host) => host.includes('cryptobriefing.com'), name: 'Crypto Briefing', logo: '/assets/img/sources/crypto-briefing.png', wide: true, mono: true },
   { test: (host) => host.includes('cryptotimes.io'), name: 'Crypto Times', logo: '/assets/img/sources/crypto-times.svg', wide: true, mono: true },
   { test: (host) => host.includes('kcex.com'), name: 'KCEX', logo: '/assets/img/sources/kcex.png' },
@@ -79,4 +84,14 @@ export function brandedSourceLink({
     target: '_blank',
     rel: 'noreferrer',
   }, ...content);
+}
+
+export function hydrateSourceLinks(root = document) {
+  root.querySelectorAll('.source-link.source-only[href]').forEach((link) => {
+    if (link.querySelector('.source-logo-wrap')) return;
+    const logo = sourceLogo(link.href);
+    if (!logo) return;
+    link.classList.add('is-branded-source');
+    link.prepend(logo);
+  });
 }

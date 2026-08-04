@@ -974,12 +974,20 @@ async function firstFifteenMinuteCandle(pair) {
 
 async function loadDexLaunch(id) {
   let pair = null;
+  let discoveryWarning = null;
   try {
     pair = await configuredDexPair(id);
   } catch {
     pair = null;
   }
-  if (!pair) pair = await discoverDexPair(id);
+  if (!pair) {
+    try {
+      pair = await discoverDexPair(id);
+    } catch {
+      pair = null;
+      discoveryWarning = 'DEX pair discovery is temporarily unavailable.';
+    }
+  }
   if (!pair) {
     return {
       ok: true,
@@ -987,7 +995,7 @@ async function loadDexLaunch(id) {
       id,
       pair: null,
       launch: null,
-      warning: 'No exact contract-matched DEX pair was found.',
+      warning: discoveryWarning || 'No exact contract-matched DEX pair was found.',
     };
   }
 
@@ -1028,13 +1036,23 @@ async function loadDexLaunch(id) {
 }
 
 async function loadHistory(id, symbol) {
-  const yahooSymbol = `${String(symbol || '').toUpperCase()}-USD`;
   const eventRecord = MEME_2026_EVENTS.find((event) => event.id === id);
   const launchAt = CASE_WEEKLY[id]?.launchAt || eventRecord?.launchAt || null;
   const overviewCoin = cache.get('overview')?.value?.memecoins?.find((row) => row.id === id) || null;
+  let prefetchedCoin = overviewCoin;
+  let resolvedSymbol = String(symbol || overviewCoin?.sym || '').trim().toUpperCase();
+  if (!resolvedSymbol) {
+    try {
+      prefetchedCoin = await currentCoin(id);
+      resolvedSymbol = String(prefetchedCoin?.sym || '').trim().toUpperCase();
+    } catch {
+      prefetchedCoin = null;
+    }
+  }
+  const yahooSymbol = resolvedSymbol ? `${resolvedSymbol}-USD` : '';
   const [coinResult, yahooResult, geckoResult] = await Promise.allSettled([
-    overviewCoin ? Promise.resolve(overviewCoin) : currentCoin(id),
-    YAHOO_NAME_HINTS[id]
+    prefetchedCoin ? Promise.resolve(prefetchedCoin) : currentCoin(id),
+    YAHOO_NAME_HINTS[id] && yahooSymbol
       ? yahooHistory(yahooSymbol, id)
       : Promise.reject(new Error('No verified Yahoo identity mapping')),
     coingeckoHistory(id),
@@ -1059,7 +1077,7 @@ async function loadHistory(id, symbol) {
     partial: !coin?.ath || !gecko.marketCaps.length,
     fetchedAt: Date.now(),
     id,
-    symbol: String(symbol || '').toUpperCase(),
+    symbol: resolvedSymbol,
     launchAt,
     coin,
     priceHistory: downsample(priceRows),
@@ -1085,9 +1103,11 @@ async function loadHistory(id, symbol) {
       },
       {
         label: 'Yahoo Finance price history',
-        url: `https://finance.yahoo.com/quote/${encodeURIComponent(yahooSymbol)}/history/`,
+        url: yahooSymbol
+          ? `https://finance.yahoo.com/quote/${encodeURIComponent(yahooSymbol)}/history/`
+          : null,
       },
-    ],
+    ].filter((source) => source.url),
   };
 }
 
@@ -1101,10 +1121,10 @@ export async function getMarketPayload(urlLike) {
   if (resource === 'history') {
     const id = url.searchParams.get('id');
     const symbol = url.searchParams.get('symbol');
-    if (!id || !symbol) {
-      return { ok: false, status: 400, error: 'id and symbol are required' };
+    if (!id) {
+      return { ok: false, status: 400, error: 'id is required' };
     }
-    const key = `history:${id}:${symbol}`;
+    const key = `history:${id}:${symbol || 'auto'}`;
     const partial = cache.get(key)?.value?.partial;
     return cached(key, partial ? 10 * 60_000 : TTL.history, () => loadHistory(id, symbol));
   }

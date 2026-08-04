@@ -7,8 +7,9 @@ import { brandedSourceLink } from './source-brands.js';
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
 const id = params.get('id');
-const symbol = params.get('symbol');
+let symbol = String(params.get('symbol') || '').trim().toUpperCase();
 const curated = CASES.find((item) => item.id === id);
+if (!symbol && curated?.sym) symbol = curated.sym;
 let payload = null;
 let dexLaunchPayload = null;
 
@@ -196,6 +197,7 @@ function render() {
     displayName,
     dexLaunchPayload,
   );
+  const officialHost = curated?.officialSite ? new URL(curated.officialSite).hostname : '';
   const curatedSources = curated ? [
     { label: 'Official X', url: curated.officialX, note: new URL(curated.officialX).pathname },
     {
@@ -210,7 +212,10 @@ function render() {
       url: contract.explorer,
       note: contract.address ? 'verified contract' : 'native chain',
     })),
-    ...(curated.researchSources || []),
+    ...(curated.researchSources || []).map((source) => ({
+      ...source,
+      logo: source.logo || (officialHost && new URL(source.url).hostname === officialHost ? curated.logo : ''),
+    })),
     ...(curated.dexScreener ? [{
       label: 'DEX Screener',
       url: curated.dexScreener.url,
@@ -228,13 +233,15 @@ function render() {
 }
 
 async function load() {
-  if (!id || !symbol) throw new Error('The id and symbol parameters are required');
+  if (!id) throw new Error('The coin id parameter is required');
+  const symbolQuery = symbol ? `&symbol=${encodeURIComponent(symbol)}` : '';
   const response = await fetch(
-    `/api/market?resource=history&id=${encodeURIComponent(id)}&symbol=${encodeURIComponent(symbol)}`,
+    `/api/market?resource=history&id=${encodeURIComponent(id)}${symbolQuery}`,
   );
   if (!response.ok) throw new Error(`Backend HTTP ${response.status}`);
   payload = await response.json();
   if (!payload?.ok) throw new Error(payload?.error || 'History is unavailable');
+  symbol ||= String(payload.symbol || payload.coin?.sym || id).toUpperCase();
   render();
 }
 

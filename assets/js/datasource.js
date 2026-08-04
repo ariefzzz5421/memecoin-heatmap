@@ -11,6 +11,7 @@ const CACHE_PREFIX = 'chv:v2:';
 let backendSnapshot = null;
 let backendSavedAt = 0;
 let backendPromise = null;
+const fallbackWarningAt = new Map();
 let lastExchangeState = {
   source: null,
   attemptedSource: null,
@@ -91,7 +92,12 @@ async function withStaleFallback(key, fetcher) {
   } catch (err) {
     const stale = cacheGetStale(key);
     if (stale) {
-      console.warn(`source failed (${err.message}) — using ${Math.round(stale.ageMs / 60000)}-minute cache for ${key}`);
+      const now = Date.now();
+      const lastWarning = fallbackWarningAt.get(key) || 0;
+      if (now - lastWarning >= 5 * 60_000) {
+        fallbackWarningAt.set(key, now);
+        console.warn(`source failed (${err.message}) — using ${Math.round(stale.ageMs / 60000)}-minute cache for ${key}`);
+      }
       return stale.value;
     }
     throw err;

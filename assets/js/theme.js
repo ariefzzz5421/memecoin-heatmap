@@ -1,5 +1,7 @@
 import { refreshPalette } from './utils.js';
 import { initMotion } from './motion.js';
+import { initAppShell } from './app-shell.js';
+import { hydrateSourceLinks } from './source-brands.js';
 
 const STORAGE_KEY = 'heatmap-volume-theme';
 const root = document.documentElement;
@@ -46,5 +48,11 @@ media.addEventListener?.('change', (event) => {
   if (!savedTheme()) applyTheme(event.matches ? 'light' : 'dark');
 });
 
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initMotion);
-else initMotion();
+function initSharedUi() {
+  initAppShell();
+  hydrateSourceLinks();
+  initMotion();
+}
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initSharedUi);
+else initSharedUi();

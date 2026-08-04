@@ -1,7 +1,7 @@
 {
-  "scannedAt": "2026-07-28T18:15:00+07:00",
+  "scannedAt": "2026-08-04T15:00:00+07:00",
   "framework": "vanilla-html-js",
-  "fontStack": "system-ui, -apple-system, Segoe UI, Roboto, sans-serif",
+  "fontStack": "locally hosted Geist 400-700 with a system mono outlier",
   "paletteSource": "assets/css/style.css :root",
   "motion": "motion-cut",
   "spacing": "4-point named token scale",

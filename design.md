@@ -145,6 +145,22 @@ Use a four-point scale through named tokens only:
   first-launch evidence use longer server caches, and below-fold dossier
   sections use `content-visibility`.
 
+## Route shell and resilience extension
+
+- Every route uses the same fixed left rail on desktop: product identity, five
+  numbered destinations, market status, WIB/UTC, and the theme control.
+- Below 60rem the rail becomes a dismissible drawer with a 44px menu target.
+  Escape, backdrop click, route selection, and the desktop breakpoint all close
+  it without moving page content.
+- Active navigation uses the existing blue signal and an inset rule. Inactive
+  routes remain neutral; the rail is navigation, not a decorative accent block.
+- Official source marks are stored locally and shown beside source names. A
+  logo never replaces the readable company or project label.
+- Below-fold hourly candles activate near the viewport. Failed background
+  refreshes back off instead of producing a ten-second error loop.
+- Detail routes require only the CoinGecko id. Symbols enrich chart labels and
+  Yahoo mapping when present, but a missing symbol no longer breaks the page.
+
 ## Exports
 
 The portable source of truth is `assets/css/tokens.css`.

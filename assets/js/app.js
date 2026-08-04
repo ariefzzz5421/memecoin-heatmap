@@ -26,6 +26,7 @@ const state = {
   global: null,
   memeMarket: null,
   overviewStamp: '',
+  exchangeStamp: 0,
   basket: 'meme',
   timeframe: '30d',
   changeField: '24h',
@@ -35,6 +36,7 @@ const state = {
   candleProvider: null,
   candleFailed: [],
   loadingHours: false,
+  hoursActivated: false,
 };
 
 let map = null;
@@ -296,6 +298,7 @@ function buildTimeframeButtons() {
 
 async function loadHours({ force = false } = {}) {
   if (state.loadingHours) return;
+  state.hoursActivated = true;
   state.loadingHours = true;
 
   const basket = state.basket === 'meme' ? MEME_BASKET : MAJOR_BASKET;
@@ -717,6 +720,42 @@ function updateTopKpi() {
   }
 }
 
+function overviewStamp() {
+  return [
+    state.global?.mcapUsd || 0,
+    state.coins[0]?.price || 0,
+    state.memeMarket?.marketCapUsd || 0,
+    state.exchangeStamp || 0,
+  ].join(':');
+}
+
+function initHoursWhenVisible() {
+  const holder = $('hourProfile');
+  const section = holder?.closest('.panel');
+  if (!holder || !section) return;
+  holder.replaceChildren(el('p', { class: 'lazy-data-note' },
+    'Hourly candles load when this section approaches the viewport.'));
+
+  const activate = () => {
+    if (state.hoursActivated) return;
+    state.hoursActivated = true;
+    loadHours().catch((error) => console.warn('hourly candles:', error.message));
+  };
+
+  if (!('IntersectionObserver' in window)) {
+    const schedule = window.requestIdleCallback || ((callback) => setTimeout(callback, 800));
+    schedule(activate);
+    return;
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    if (!entries.some((entry) => entry.isIntersecting)) return;
+    observer.disconnect();
+    activate();
+  }, { rootMargin: '480px 0px' });
+  observer.observe(section);
+}
+
 /* ============================================================
    Boot
    ============================================================ */
@@ -738,6 +777,7 @@ async function boot({ force = false } = {}) {
       fetchExchanges({ pages: 2, force }),
     ]);
     state.btcPrice = btc;
+    state.exchangeStamp = exchanges[0]?.volBtc || 0;
     state.agg = aggregateJurisdictions(exchanges, btc);
   })();
 
@@ -769,9 +809,8 @@ async function boot({ force = false } = {}) {
   else $('treemap').innerHTML = '<p class="error">Memecoin data is temporarily unavailable. The source may be rate limited.</p>';
 
   $('footUpdated').textContent = fmtClock(Date.now());
+  state.overviewStamp = overviewStamp();
   status('Market data ready', 'ok', `BTC ${fmtPrice(state.btcPrice)}`);
-
-  await loadHours({ force });
 }
 
 /* ============================================================
@@ -862,6 +901,7 @@ function init() {
   });
   buildTimeframeButtons();
   wireControls();
+  initHoursWhenVisible();
   tickClock();
   setInterval(tickClock, 1000);
   boot().catch((e) => {
@@ -890,6 +930,7 @@ function init() {
         state.coins = coins;
         state.memeMarket = market;
         state.btcPrice = btc;
+        state.exchangeStamp = exchanges[0]?.volBtc || 0;
         state.agg = aggregateJurisdictions(exchanges, btc);
         updateTopKpi();
         renderMemeSection();
@@ -898,7 +939,10 @@ function init() {
         $('footUpdated').textContent = fmtClock(Date.now());
       },
     },
-    { every: 10 * 60 * 1000, run: () => loadHours({ force: true }) },
+    {
+      every: 10 * 60 * 1000,
+      run: () => state.hoursActivated ? loadHours({ force: true }) : Promise.resolve(),
+    },
   ]);
 }
 
