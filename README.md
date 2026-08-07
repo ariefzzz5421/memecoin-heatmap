@@ -23,13 +23,28 @@ npm run build
 
 | Route | Purpose |
 |---|---|
-| `/` | Global overview, active-hour analysis, and live memecoin leaderboard |
+| `/` | Landing page and route index |
+| `/dashboard/` | Global overview, active-hour analysis, and live memecoin leaderboard |
 | `/maps/` | Exchange legal-jurisdiction volume map with ranked markers and country flags |
 | `/sentiment/` | Launchpad/protocol volume and revenue, with chain ranking |
 | `/cases/` | Live `$100M+` memecoin leaderboard and sourced historical studies |
-| `/cases/{slug}/` | Curated launch-to-ATH study with weekly chart, identity, contracts, and sources |
+| `/cases/{slug}/` | Curated launch-to-ATH study with chart, identity, contracts, and sources |
 | `/cases/detail/?id=…&symbol=…` | Dynamic market dossier using CoinGecko/Yahoo data |
 | `/2026-memecoins/` | Tokens publicly verified to have first crossed `$100M` market cap in 2026 |
+| `/nft/` | NFT collections with a documented floor above `0.5 ETH` |
+| `/nft/{slug}/` | Collection case study: launch, mint, peak and live floor, factors, triggers |
+
+Navigation is a drawer opened from the three-line launcher pinned to the
+bottom-left corner. Routes are defined once in `assets/js/routes.js` and rendered
+as topic columns by `assets/js/app-shell.js`, so every page picks up a new route
+without editing its markup.
+
+### Case article format
+
+`/cases/{slug}/`, `/2026-memecoins/{id}/`, and `/nft/{slug}/` share one layout:
+the official logo centred above the headline, then thesis, why it pumped, the
+reasons and factors, the chart, and the dated triggers, followed by identity and
+sources.
 
 ## Data and provenance
 
@@ -41,6 +56,7 @@ npm run build
 | Protocol volume and revenue | DeFiLlama | Explicit unavailable state |
 | Map geometry | Natural Earth | Bundled local geometry |
 | Country flags | FlagCDN | Bundled local images |
+| NFT floor prices | CoinGecko NFT collections API | Sourced peak/mint values shown as documented history |
 | Project identity | Official websites and X accounts | CoinGecko and chain explorers |
 
 The browser polls the same backend endpoint every 10 seconds. The backend applies
@@ -68,24 +84,34 @@ on-chain omniscience.
 
 ## Generated case pages
 
-Case articles are generated from `assets/js/cases-config.js`. After changing the
-curated study definitions, run:
+Case articles are generated from their configuration files. After changing the
+curated definitions, run:
 
 ```bash
-node scripts/generate-case-pages.cjs
+npm run generate
 ```
+
+That runs `scripts/generate-case-pages.cjs` (from `assets/js/cases-config.js`),
+`scripts/generate-2026-pages.cjs` (event data lives in the script), and
+`scripts/generate-nft-pages.cjs` (from `assets/js/nft-config.js`).
+
+NFT collection marks in `assets/img/nft/` are local placeholders. Each article
+replaces them at runtime with the official collection image returned by the
+CoinGecko NFT API, so a blocked or rate-limited upstream still renders a mark.
 
 ## Project structure
 
 ```text
 index.html
-maps/  sentiment/  cases/  2026-memecoins/
+dashboard/  maps/  sentiment/  cases/  2026-memecoins/  nft/
 assets/css/style.css
 assets/js/
 server/market-service.mjs
 scripts/dev-server.cjs
 scripts/build.cjs
 scripts/generate-case-pages.cjs
+scripts/generate-2026-pages.cjs
+scripts/generate-nft-pages.cjs
 vercel.json
 ```
 

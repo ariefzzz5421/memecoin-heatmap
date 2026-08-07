@@ -89,21 +89,64 @@ function renderFacts() {
 
 function renderArticle() {
   const holder = $('articleBody');
-  holder.replaceChildren(el('h2', {}, 'Launch and market path'));
+  holder.replaceChildren();
   for (const para of caseDef.article) holder.append(el('p', {}, para));
   $('caseNarrative').textContent = caseDef.narrative;
   $('caseCrossingReason').textContent = caseDef.crossingReason;
+
+  $('caseFactors').replaceChildren(...(caseDef.factors || []).map((factor) =>
+    el('li', { class: 'doc-factor' },
+      el('strong', {}, factor.label),
+      el('span', {}, factor.detail),
+    )));
+}
+
+/* Masthead facts. Live values are filled in by renderFacts once markets load. */
+function renderMeta() {
+  const m = state.m;
+  const athTimestamp = m?.athDate ? Date.parse(m.athDate) : state.history?.milestones?.ath?.t;
+  $('docMeta').replaceChildren(
+    el('div', {},
+      el('span', {}, 'Launch'),
+      el('strong', { class: 'num' }, fmtDate(Date.parse(caseDef.launch))),
+    ),
+    el('div', {},
+      el('span', {}, 'Chains'),
+      el('strong', {}, caseDef.contracts.map((contract) => contract.network).join(' · ')),
+    ),
+    el('div', {},
+      el('span', {}, 'ATH'),
+      el('strong', { class: 'num' }, Number.isFinite(m?.ath) ? fmtPrice(m.ath)
+        : Number.isFinite(state.history?.milestones?.ath?.price) ? fmtPrice(state.history.milestones.ath.price)
+          : 'Unavailable'),
+    ),
+    el('div', {},
+      el('span', {}, 'ATH date'),
+      el('strong', { class: 'num' }, Number.isFinite(athTimestamp) ? fmtDate(athTimestamp) : 'Unavailable'),
+    ),
+    el('div', { class: 'is-emphasis' },
+      el('span', {}, 'Market cap now'),
+      el('strong', { class: 'num' }, Number.isFinite(m?.mcap) ? fmtUsd(m.mcap) : 'Unavailable'),
+    ),
+  );
+}
+
+/* Catalyst dates are stored at the granularity the source supports
+   (YYYY-MM or YYYY-MM-DD) and are formatted without inventing a day. */
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+function fmtCatalystDate(value) {
+  const [year, month, day] = String(value).split('-');
+  if (!month) return year;
+  const name = MONTHS[Number(month) - 1] || month;
+  return day ? `${name} ${Number(day)}, ${year}` : `${name} ${year}`;
 }
 
 function renderCatalysts() {
-  const list = $('caseCatalysts');
-  list.replaceChildren();
-  for (const cat of caseDef.catalysts) {
-    list.append(el('li', { class: 'catalyst' },
-      el('span', { class: 'catalyst-date num' }, cat.d),
-      el('span', { class: 'catalyst-text' }, cat.t),
-    ));
-  }
+  $('caseCatalysts').replaceChildren(...caseDef.catalysts.map((cat) =>
+    el('li', { class: 'doc-trigger' },
+      el('time', { datetime: cat.d }, fmtCatalystDate(cat.d)),
+      el('p', {}, cat.t),
+    )));
   $('caseThesis').textContent = caseDef.thesis;
 }
 
@@ -201,6 +244,7 @@ async function refreshMarkets({ force = false } = {}) {
   state.m = byId[caseDef.id] || null;
   renderSummary();
   renderFacts();
+  renderMeta();
   $('updatedAt').textContent = fmtClock(Date.now());
 }
 
@@ -210,9 +254,12 @@ async function load() {
   renderIdentityAndSources();
   renderSummary();
   renderFacts();
+  renderMeta();
 
   $('caseChart').replaceChildren(el('div', { class: 'chart-loading' },
     el('span', { class: 'spinner' }), ` Loading ${caseDef.sym} history…`));
+
+  renderMeta();
 
   const marketsP = refreshMarkets()
     .catch((e) => console.warn('market snapshot:', e.message));
@@ -229,6 +276,7 @@ async function load() {
   await marketsP;
   renderChartSection();
   renderFacts();
+  renderMeta();
   renderIdentityAndSources();
   setStatus('Case data ready', 'ok');
 

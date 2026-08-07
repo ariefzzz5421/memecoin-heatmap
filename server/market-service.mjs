@@ -14,7 +14,23 @@ const TTL = {
   meme2026: 60_000,
   caseWeekly: 6 * 60 * 60 * 1000,
   dexLaunch: 24 * 60 * 60 * 1000,
+  nftFloors: 5 * 60_000,
 };
+
+/* Research set for the NFT route. Each entry lists the CoinGecko NFT ids to
+   try in order; a collection that no upstream id resolves is reported as
+   unavailable rather than filled with an estimate. */
+const NFT_COLLECTIONS = [
+  { slug: 'cryptopunks', ids: ['cryptopunks'] },
+  { slug: 'bored-ape-yacht-club', ids: ['bored-ape-yacht-club'] },
+  { slug: 'pudgy-penguins', ids: ['pudgy-penguins'] },
+  { slug: 'azuki', ids: ['azuki'] },
+  { slug: 'moonbirds', ids: ['proof-moonbirds', 'moonbirds'] },
+  { slug: 'fidenza', ids: ['fidenza-by-tyler-hobbs', 'fidenza'] },
+  { slug: 'doodles', ids: ['doodles-official', 'doodles'] },
+  { slug: 'clonex', ids: ['clone-x-x-takashi-murakami', 'clone-x', 'clonex'] },
+  { slug: 'milady-maker', ids: ['milady-maker', 'milady'] },
+];
 
 const DEX_PAIRS = {
   'shiba-inu': { chain: 'ethereum', pairAddress: '0xCF6dAAB95c476106ECa715D48DE4b13287ffDEAa' },
@@ -670,6 +686,70 @@ async function loadMeme2026() {
   };
 }
 
+function slimNft(id, row) {
+  const floorNative = Number(row?.floor_price?.native_currency);
+  const floorUsd = Number(row?.floor_price?.usd);
+  const change = Number(
+    row?.floor_price_24h_percentage_change?.native_currency
+    ?? row?.floor_price_in_usd_24h_percentage_change,
+  );
+  return {
+    id,
+    name: row?.name || null,
+    image: row?.image?.small_2x || row?.image?.small || null,
+    currency: row?.native_currency_symbol?.toUpperCase() || 'ETH',
+    floorNative: Number.isFinite(floorNative) ? floorNative : null,
+    floorUsd: Number.isFinite(floorUsd) ? floorUsd : null,
+    floorChange24h: Number.isFinite(change) ? change : null,
+    marketCapUsd: Number.isFinite(Number(row?.market_cap?.usd)) ? Number(row.market_cap.usd) : null,
+    volume24hNative: Number.isFinite(Number(row?.volume_24h?.native_currency))
+      ? Number(row.volume_24h.native_currency)
+      : null,
+    owners: Number.isFinite(Number(row?.number_of_unique_addresses))
+      ? Number(row.number_of_unique_addresses)
+      : null,
+  };
+}
+
+/* CoinGecko exposes one NFT collection per request, so this is a small
+   sequential fan-out with a short pause to stay inside the public rate limit. */
+async function loadNftFloors() {
+  const collections = {};
+  const warnings = [];
+  for (const collection of NFT_COLLECTIONS) {
+    let resolved = null;
+    let lastError = null;
+    for (const id of collection.ids) {
+      try {
+        const row = await fetchJSON(`${CG}/nfts/${encodeURIComponent(id)}`, {
+          timeout: 15_000,
+          retries: 0,
+        });
+        resolved = slimNft(id, row);
+        break;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    if (resolved) {
+      collections[collection.slug] = resolved;
+    } else {
+      warnings.push(`${collection.slug}: ${lastError?.message || 'no upstream id resolved'}`);
+    }
+    await pause(220);
+  }
+  return {
+    ok: true,
+    partial: warnings.length > 0,
+    fetchedAt: Date.now(),
+    source: 'CoinGecko NFT collections API',
+    thresholdEth: 0.5,
+    warning: warnings.length ? `Live floor unavailable for ${warnings.length} collection(s)` : null,
+    warnings,
+    collections,
+  };
+}
+
 async function exchangeWeekly(provider, symbol) {
   if (provider === 'binance') {
     let lastError;
@@ -1138,6 +1218,9 @@ export async function getMarketPayload(urlLike) {
   }
   if (resource === 'meme2026') {
     return cached('meme2026', TTL.meme2026, loadMeme2026);
+  }
+  if (resource === 'nft') {
+    return cached('nft', TTL.nftFloors, loadNftFloors);
   }
   if (resource === 'caseweekly') {
     const id = url.searchParams.get('id');

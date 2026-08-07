@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Memecoin Heatmap — Global Volume & Trading Hours</title>
+<meta name="description" content="Interactive global crypto volume map, memecoin heatmap, live leaderboard, and active trading-hour analysis in WIB and UTC.">
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="icon" type="image/png" href="/assets/img/brand/memecoin-heatmap-mark.png">
+</head>
+<body>
+<a class="skip" href="#map">Skip to the map</a>
+
+<header class="site-head">
+  <div class="wrap head-inner">
+    <a class="brand brand-link" href="/">
+      <img class="brand-mark" src="/assets/img/brand/memecoin-heatmap-mark.png" alt="" width="44" height="44" decoding="async" fetchpriority="high">
+      <div>
+        <h1>Memecoin Heatmap</h1>
+        <p class="brand-sub">Global volume · memecoin momentum · trading hours</p>
+      </div>
+    </a>
+    <nav class="primary-nav"></nav>
+    <div class="head-actions" aria-label="Market time and appearance">
+      <div class="clock" id="clock" aria-live="off">
+        <span class="clock-wib" id="clockWib">--:-- WIB</span>
+        <span class="clock-utc" id="clockUtc">--:-- UTC</span>
+      </div>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch theme">
+        <span class="theme-icon theme-icon-sun" aria-hidden="true">☀</span>
+        <span class="theme-icon theme-icon-moon" aria-hidden="true">☾</span>
+      </button>
+    </div>
+  </div>
+  <div class="status-bar wrap" id="statusBar">
+    <span class="dot" id="statusDot"></span>
+    <span id="statusText">Preparing market data…</span>
+    <span class="status-sep">·</span>
+    <span id="statusSource" class="muted"></span>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="kpi-strip" aria-label="Market summary">
+    <article class="kpi">
+      <h2>Global crypto volume · 24h</h2>
+      <p class="kpi-val" id="kpiGlobalVol">—</p>
+      <p class="kpi-sub" id="kpiGlobalSub">all spot markets</p>
+    </article>
+    <article class="kpi">
+      <h2>Largest volume hub</h2>
+      <p class="kpi-val" id="kpiTopPlace">—</p>
+      <p class="kpi-sub" id="kpiTopSub">—</p>
+    </article>
+    <article class="kpi">
+      <h2>Average volume per exchange</h2>
+      <p class="kpi-val" id="kpiAvgEx">—</p>
+      <p class="kpi-sub" id="kpiAvgExSub">—</p>
+    </article>
+    <article class="kpi kpi-accent">
+      <h2>Most active hour</h2>
+      <p class="kpi-val" id="kpiPeakHour">—</p>
+      <p class="kpi-sub" id="kpiPeakSub">—</p>
+    </article>
+  </section>
+
+  <section class="panel meme-market-panel" aria-labelledby="memeMarketTitle">
+    <div class="meme-market-copy">
+      <p class="eyebrow">Memecoin category · 24h</p>
+      <h2 id="memeMarketTitle">Market size and share</h2>
+      <p class="panel-sub">CoinGecko category total with a clearly labeled tracked-basket fallback.</p>
+    </div>
+    <div class="meme-market-metrics">
+      <article><span>Total market cap</span><strong class="num" id="memeMarketCap">—</strong><small id="memeMarketChange">Loading…</small></article>
+      <article><span>Crypto market share</span><strong class="num" id="memeMarketDominance">—</strong><small id="memeMarketCoverage">Loading…</small></article>
+    </div>
+    <div class="meme-market-share" id="memeMarketShare" aria-live="polite"></div>
+  </section>
+
+  <section class="panel performance-panel" aria-labelledby="leadersTitle">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">Live movers · 24h</p>
+        <h2 id="leadersTitle">Memecoin leaderboard</h2>
+        <p class="panel-sub">Largest percentage moves in CoinGecko's memecoin category. Open any coin for price and market-cap history.</p>
+      </div>
+      <a class="text-link" href="/cases/">Explore $100M+ coins →</a>
+    </div>
+    <div class="leaderboard-grid" id="memeLeaders">
+      <div class="panel-loading"><span class="spinner"></span> Loading leaderboard…</div>
+    </div>
+  </section>
+
+  <section class="panel" id="map">
+    <div class="panel-head">
+      <div>
+        <h2>Global crypto volume map</h2>
+        <p class="panel-sub">Bubble size and color represent reported 24h exchange volume grouped by legal jurisdiction. Scroll to zoom, drag to pan, and click to lock details.</p>
+      </div>
+      <div class="panel-tools">
+        <button class="btn sm" id="btnZoomIn" type="button" aria-label="Zoom in">+</button>
+        <button class="btn sm" id="btnZoomOut" type="button" aria-label="Zoom out">−</button>
+        <button class="btn sm" id="btnMapReset" type="button">Reset</button>
+        <label class="chk"><input type="checkbox" id="chkLabels" checked> Labels</label>
+      </div>
+    </div>
+    <div class="map-layout">
+      <div class="map-holder">
+        <canvas id="mapCanvas" aria-label="World map of crypto exchange volume by jurisdiction" role="img"></canvas>
+        <div class="tooltip" id="mapTip" hidden></div>
+        <div class="map-legend" id="mapLegend"></div>
+        <div class="map-loading" id="mapLoading"><span class="spinner"></span> Loading map geometry…</div>
+      </div>
+      <aside class="map-side">
+        <div class="side-block">
+          <h3>Jurisdiction ranking</h3>
+          <ol class="rank-list" id="rankList"></ol>
+        </div>
+        <div class="side-block">
+          <h3>Regional distribution</h3>
+          <div id="regionList" class="region-list"></div>
+        </div>
+      </aside>
+    </div>
+    <div class="detail-card" id="detailCard" hidden></div>
+    <details class="disclosure">
+      <summary>Full jurisdiction table</summary>
+      <div class="table-scroll" id="jurTable"></div>
+    </details>
+    <p class="caveat"><strong>Data boundary:</strong> this map uses an exchange's legal-jurisdiction metadata, not trader location. Exchanges without a country field are excluded from jurisdiction totals. Active trading hours below come from real hourly candles.</p>
+  </section>
+
+  <section class="panel" id="hours">
+    <div class="panel-head">
+      <div>
+        <h2>Most active trading hours</h2>
+        <p class="panel-sub">Average quote volume from real 1-hour candles. The primary axis is WIB (UTC+7), with UTC shown for comparison.</p>
+      </div>
+      <div class="panel-tools">
+        <div class="seg" role="group" aria-label="Coin basket">
+          <button class="seg-btn is-on" data-basket="meme" type="button">Memecoin</button>
+          <button class="seg-btn" data-basket="major" type="button">Major</button>
+        </div>
+        <div class="seg" role="group" aria-label="Time range" id="tfGroup"></div>
+      </div>
+    </div>
+    <div class="insight-grid" id="hourInsights"></div>
+    <div class="chart-block">
+      <div class="chart-head"><h3>Average hourly volume profile</h3><div class="legend" id="hourLegendSessions"></div></div>
+      <div class="chart-holder" id="hourProfile"></div>
+    </div>
+    <div class="chart-block">
+      <div class="chart-head"><h3>Day × hour matrix <span class="muted">(WIB)</span></h3><div class="legend" id="matrixLegend"></div></div>
+      <div class="chart-holder" id="hourMatrix"></div>
+    </div>
+    <div class="split">
+      <div class="side-block"><h3>Market-session contribution</h3><div class="table-scroll" id="sessionTable"></div></div>
+      <div class="side-block"><h3>Peak hour by coin</h3><div class="table-scroll" id="coinHourTable"></div></div>
+    </div>
+    <details class="disclosure">
+      <summary>Average volume by hour · 24 rows</summary>
+      <div class="table-scroll" id="hourTable"></div>
+    </details>
+    <div class="tooltip" id="hourTip" hidden></div>
+  </section>
+
+  <section class="panel" id="meme">
+    <div class="panel-head">
+      <div>
+        <h2>Memecoin volume heatmap</h2>
+        <p class="panel-sub">Tile area is 24h volume share. Color is price change (<span class="sw up"></span> blue up, <span class="sw down"></span> red down).</p>
+      </div>
+      <div class="panel-tools">
+        <div class="seg" role="group" aria-label="Change period">
+          <button class="seg-btn" data-change="1h" type="button">1h</button>
+          <button class="seg-btn is-on" data-change="24h" type="button">24h</button>
+          <button class="seg-btn" data-change="7d" type="button">7d</button>
+        </div>
+        <div class="seg" role="group" aria-label="View">
+          <button class="seg-btn is-on" data-view="map" type="button">Tiles</button>
+          <button class="seg-btn" data-view="table" type="button">Table</button>
+        </div>
+      </div>
+    </div>
+    <div class="legend" id="memeLegend"></div>
+    <div class="treemap-holder" id="treemap"></div>
+    <div class="table-scroll" id="memeTable" hidden></div>
+    <div class="tooltip" id="memeTip" hidden></div>
+    <div class="insight-grid" id="memeInsights"></div>
+  </section>
+</main>
+
+<footer class="site-foot wrap">
+  <p><a href="https://www.coingecko.com/" target="_blank" rel="noreferrer">CoinGecko</a> · Yahoo Finance · CoinPaprika fallback · Binance / OKX / Kraken · <a href="https://www.naturalearthdata.com/" target="_blank" rel="noreferrer">Natural Earth</a> · <span id="footUpdated">—</span></p>
+  <p class="muted">⚠ Volume and momentum are not buy signals. Avoid leverage and size positions before entering.</p>
+</footer>
+<div class="toast" id="toast" hidden></div>
+<script type="module" src="/assets/js/theme.js"></script>
+<script type="module" src="/assets/js/app.js"></script>
+</body>
+</html>

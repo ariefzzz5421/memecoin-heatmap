@@ -41,16 +41,26 @@ function renderCurrent(data) {
   const live = $('liveSnapshot');
   if (record.current) {
     live.replaceChildren(
-      el('span', {}, 'Current snapshot'),
-      el('strong', { class: 'num' }, fmtUsd(record.current.mcap)),
-      el('small', { class: Number(record.current.ch24h) >= 0 ? 'up' : 'down' },
-        `${fmtPrice(record.current.price)} · ${fmtPct(record.current.ch24h, 1)} / 24h`),
+      el('div', { class: 'is-emphasis' },
+        el('span', {}, 'Current market cap'),
+        el('strong', { class: 'num' }, fmtUsd(record.current.mcap)),
+      ),
+      el('div', {},
+        el('span', {}, 'Price · 24h'),
+        el('strong', { class: `num ${Number(record.current.ch24h) >= 0 ? 'up' : 'down'}` },
+          `${fmtPrice(record.current.price)} · ${fmtPct(record.current.ch24h, 1)}`),
+      ),
     );
   } else {
     live.replaceChildren(
-      el('span', {}, 'Current snapshot'),
-      el('strong', {}, 'Unavailable'),
-      el('small', {}, 'Historical evidence remains valid'),
+      el('div', {},
+        el('span', {}, 'Current snapshot'),
+        el('strong', {}, 'Unavailable'),
+      ),
+      el('div', {},
+        el('span', {}, 'Record'),
+        el('strong', {}, 'Historical evidence remains valid'),
+      ),
     );
   }
 
@@ -147,12 +157,17 @@ async function loadDex() {
   dexLaunchPayload = data;
   if (!eventRecord?.current && data.pair) {
     $('liveSnapshot').replaceChildren(
-      el('span', {}, 'Current DEX snapshot'),
-      el('strong', { class: 'num' }, Number.isFinite(data.pair.marketCap)
-        ? fmtUsd(data.pair.marketCap)
-        : Number.isFinite(data.pair.fdv) ? `${fmtUsd(data.pair.fdv)} FDV` : fmtPrice(data.pair.priceUsd)),
-      el('small', { class: Number(data.pair.change24h) >= 0 ? 'up' : 'down' },
-        `${fmtPrice(data.pair.priceUsd)} · ${fmtPct(data.pair.change24h, 1)} / 24h`),
+      el('div', { class: 'is-emphasis' },
+        el('span', {}, 'Current DEX snapshot'),
+        el('strong', { class: 'num' }, Number.isFinite(data.pair.marketCap)
+          ? fmtUsd(data.pair.marketCap)
+          : Number.isFinite(data.pair.fdv) ? `${fmtUsd(data.pair.fdv)} FDV` : fmtPrice(data.pair.priceUsd)),
+      ),
+      el('div', {},
+        el('span', {}, 'Price · 24h'),
+        el('strong', { class: `num ${Number(data.pair.change24h) >= 0 ? 'up' : 'down'}` },
+          `${fmtPrice(data.pair.priceUsd)} · ${fmtPct(data.pair.change24h, 1)}`),
+      ),
     );
   }
   renderDexScreenerChart(
@@ -190,7 +205,8 @@ async function init() {
   } catch (error) {
     console.error(error);
     setStatus('Live snapshot unavailable · article remains ready', 'err');
-    $('liveSnapshot').replaceChildren(el('span', {}, 'Current snapshot'), el('strong', {}, 'Unavailable'));
+    $('liveSnapshot').replaceChildren(el('div', {},
+      el('span', {}, 'Current snapshot'), el('strong', {}, 'Unavailable')));
     $('chartLoadState').textContent = 'Waiting for record';
   }
 

@@ -63,8 +63,12 @@ export function brandedSourceLink({
   disabled = false,
 }) {
   const brand = sourceBrand(url, logo ? { logo } : {});
+  const mark = sourceLogo(url, logo ? { logo } : {});
+  /* Without a brand mark the link drops the logo column entirely, otherwise
+     the copy would be laid into the 34px slot and truncate to nothing. */
+  const linkClass = mark ? className : `${className} has-no-logo`;
   const content = [
-    sourceLogo(url, logo ? { logo } : {}),
+    mark,
     el('span', { class: 'source-copy' },
       el('strong', {}, label || brand.name || 'Source'),
       note ? el('small', {}, note) : null,
@@ -73,13 +77,13 @@ export function brandedSourceLink({
   ];
   if (disabled || !url) {
     return el('span', {
-      class: `${className} is-disabled`,
+      class: `${linkClass} is-disabled`,
       'aria-disabled': 'true',
       title: note || 'Source unavailable',
     }, ...content);
   }
   return el('a', {
-    class: className,
+    class: linkClass,
     href: url,
     target: '_blank',
     rel: 'noreferrer',

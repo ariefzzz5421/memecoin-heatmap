@@ -32,6 +32,13 @@ export const CASES = [
     narrative: 'The original internet-meme coin: a joke became a tipping currency, then a long-lived community asset.',
     crossingReason: 'DOGE combined unusually broad name recognition, years of holder retention, easy retail access, and repeated public attention. The threshold was a distribution outcome, not evidence of intrinsic valuation.',
     thesis: 'A durable community, mass-distribution channels, and repeated attention from globally visible figures.',
+    factors: [
+      { label: "A community that outlived the joke", detail: "Donation drives from 2014 onward, starting with Jamaica’s Olympic bobsled team, built holder retention that survived several full cycles." },
+      { label: "Name recognition outside crypto", detail: "DOGE was already known to people who had never bought a token, so demand did not have to be educated first." },
+      { label: "Frictionless retail access", detail: "The 2019 Binance listing and retail brokers put DOGE inside apps ordinary buyers already used." },
+      { label: "Repeated attention from a globally visible figure", detail: "Elon Musk’s posts through 2021 concentrated attention on specific dates, including the days around the May 2021 ATH." },
+      { label: "Uncapped supply is the counterweight", detail: "Roughly five billion DOGE are issued every year, so price has to keep absorbing new supply." },
+    ],
     researchSources: [
       { label: 'Dogecoin history', url: 'https://dogecoin.com/dogepedia/articles/history-of-dogecoin/', note: 'official launch and community history' },
     ],
@@ -66,6 +73,12 @@ export const CASES = [
     narrative: 'An Ethereum-native “Dogecoin killer” that turned a meme token into a multi-product community ecosystem.',
     crossingReason: 'A very large community, ERC-20 wallet compatibility, the externally initiated supply burn, and rapid major-exchange distribution created the liquidity and attention needed to move beyond $100M.',
     thesis: 'ERC-20 accessibility, a very large externally initiated burn, and successive large-exchange listings.',
+    factors: [
+      { label: "ERC-20 accessibility", detail: "Any Ethereum wallet could hold SHIB from day one, which removed the main friction to a very large holder count." },
+      { label: "An externally initiated burn", detail: "Vitalik Buterin burned about 41% of supply in May 2021 — a supply shock the team did not have to engineer or fund." },
+      { label: "Successive large-exchange listings", detail: "Binance in May 2021 and Coinbase in September 2021 each widened the buyer base in steps." },
+      { label: "Organised retail pressure", detail: "The large Robinhood-listing petition in October 2021 turned holders into a visible campaign immediately before the ATH." },
+    ],
     researchSources: [
       { label: 'Shibarium foundation', url: 'https://blog.shib.io/shibarium-the-foundational-blog/', note: 'official ecosystem history' },
     ],
@@ -103,6 +116,12 @@ export const CASES = [
     narrative: 'A deliberately minimal Ethereum meme token built around one of the internet’s most recognizable characters.',
     crossingReason: 'PEPE reached $100M through fast social distribution, a familiar visual identity, low-friction ERC-20 trading, and quick access to centralized exchanges. These are correlated distribution factors, not a single proven cause.',
     thesis: 'A globally familiar meme, very low unit price, and fast distribution through major exchanges.',
+    factors: [
+      { label: "A meme with a decade of prior recognition", detail: "The character needed no introduction, so social distribution started from an audience rather than from zero." },
+      { label: "A deliberately minimal contract", detail: "No transaction tax and a plain ERC-20 design kept the token easy to list, route, and integrate." },
+      { label: "Exceptional distribution speed", detail: "Market cap reached roughly $100M in about two weeks and $1B in about three — the fastest path in this case set." },
+      { label: "Fast centralized-exchange access", detail: "The Binance listing in May 2023 and Coinbase in late 2024 each extended the reachable market." },
+    ],
     researchSources: [],
     dexScreener: {
       chain: 'ethereum', pairAddress: '0xA43fe16908251ee70EF74718545e4FE6C5cCEc9f',
@@ -137,6 +156,12 @@ export const CASES = [
     narrative: 'A single-image Solana meme that explicitly avoided a utility story and relied on cultural repetition.',
     crossingReason: 'WIF crossed $100M as Solana activity recovered, liquidity rotated into native memecoins, and the image spread across crypto social channels. Later exchange access and the Sphere fundraiser extended that distribution.',
     thesis: 'A visually simple meme, Solana ecosystem momentum, and a media-visible community campaign.',
+    factors: [
+      { label: "One image, no utility claim", detail: "Nothing had to be explained or delivered, so the asset could not disappoint on a roadmap it never had." },
+      { label: "Solana ecosystem rotation", detail: "The crossing landed while capital was rotating into Solana-native memecoins as network activity recovered." },
+      { label: "A community-funded media campaign", detail: "About $700,000 raised for the Las Vegas Sphere campaign in March 2024 bought attention outside crypto channels." },
+      { label: "Exchange access at the top of the run", detail: "The Binance listing in March 2024 coincided with the cycle ATH, extending distribution at maximum attention." },
+    ],
     researchSources: [],
     dexScreener: {
       chain: 'solana', pairAddress: 'EP2ib6dYdEeqD8MfE2ezHCxX3kP3K2eLKkirfPm5eyMx',
@@ -172,6 +197,12 @@ export const CASES = [
     narrative: 'A Solana “community coin” distributed as a post-FTX ecosystem gift rather than a conventional token sale.',
     crossingReason: 'The broad airdrop seeded many holders at once, while Solana’s recovery, wallet integrations, Saga incentives, and large-exchange listings expanded the market beyond its initial community.',
     thesis: 'Very broad initial distribution tied to the recovery of the Solana ecosystem.',
+    factors: [
+      { label: "Airdrop-first distribution", detail: "Half the supply was given to Solana users, developers, and NFT collectors, seeding a large holder base before any price existed." },
+      { label: "Timing against sentiment", detail: "Launching days after the FTX collapse tied the token to the ecosystem’s recovery story rather than to a bull market." },
+      { label: "Hardware and wallet integration", detail: "Saga-phone incentives in December 2023 put BONK in front of users through the device, not the exchange." },
+      { label: "Large-exchange listings", detail: "The Coinbase listing widened the market well beyond the original airdrop community." },
+    ],
     researchSources: [
       { label: 'About BONK', url: 'https://www.bonkcoin.com/about', note: 'official launch and distribution history' },
       { label: 'BONK paper', url: 'https://www.bonkcoin.com/BONK-Paper.pdf', note: 'official allocation document' },
@@ -210,6 +241,13 @@ export const CASES = [
     narrative: 'A political-celebrity memecoin launched into a fixed global media event with unusually concentrated initial supply.',
     crossingReason: 'The issuer’s worldwide recognition, inauguration timing, rapid exchange listings, and limited initial float produced exceptional first-day demand. Concentrated supply also magnified both the move and the subsequent risk.',
     thesis: 'Maximum-reach public identity, a scheduled political moment, and a small initial circulating share.',
+    factors: [
+      { label: "Maximum-reach public identity", detail: "The issuer needed no marketing to reach a global audience, which is the rarest input in this entire case set." },
+      { label: "A scheduled political moment", detail: "The launch was fixed to the inauguration, so attention peaked on a date the market could plan around." },
+      { label: "A small initial float", detail: "Public disclosures showed only 20% of supply circulating at launch, which amplified the first-day move." },
+      { label: "Immediate exchange listings", detail: "Major venues listed within about two days, compressing a normal distribution cycle into hours." },
+      { label: "Concentration cuts both ways", detail: "The same limited float that magnified the move also magnified the drawdown that followed the ATH." },
+    ],
     researchSources: [
       { label: 'Official disclosures', url: 'https://gettrumpmemes.com/', note: 'issuer and allocation disclosures' },
     ],
@@ -250,6 +288,12 @@ export const CASES = [
     narrative: 'A multi-chain meme brand that converted viral naming into sustained mainstream advertising and a broader product ecosystem.',
     crossingReason: 'FLOKI paired meme recognition with unusually persistent offline marketing, sports visibility, multi-chain liquidity, and later product launches. The $100M threshold reflected accumulated distribution rather than one event.',
     thesis: 'Viral naming plus unusually large off-crypto marketing distribution.',
+    factors: [
+      { label: "Viral naming origin", detail: "The token took its name from a single widely seen public post, which supplied recognition at zero cost." },
+      { label: "Advertising outside crypto", detail: "Transit advertising and sports sponsorships from late 2021 reached audiences no on-chain campaign could." },
+      { label: "Multi-chain liquidity", detail: "Ethereum and BNB Chain deployments let the token trade wherever liquidity happened to be." },
+      { label: "Accumulated rather than event-driven", detail: "The $100M threshold reflects distribution built up over years; the ATH arrived in 2024, nearly three years after launch." },
+    ],
     researchSources: [
       { label: 'Floki timeline', url: 'https://floki.com/timeline', note: 'official dated project history' },
     ],
@@ -287,6 +331,12 @@ export const CASES = [
     narrative: 'A token extension of an established NFT and consumer-products brand rather than a meme launched from zero audience.',
     crossingReason: 'PENGU began with pre-existing brand reach, retail distribution, a large NFT-holder base, and a broad airdrop. That installed audience and immediate exchange access enabled a first-day market cap far above $100M.',
     thesis: 'A consumer brand with pre-token retail distribution and a broad first-day airdrop.',
+    factors: [
+      { label: "A brand that existed before the token", detail: "Pudgy Penguins had NFT holders and physical retail products before PENGU was issued, so the audience was already installed." },
+      { label: "Retail distribution", detail: "Toys in major US stores from 2023 gave the brand reach that did not depend on crypto market conditions." },
+      { label: "A broad first-day airdrop", detail: "NFT holders and the wider community received tokens at once, producing a first-day market cap above $2B." },
+      { label: "Institutional visibility", detail: "The Canary PENGU ETF filing in March 2025 extended the project into a conversation most memecoins never enter." },
+    ],
     researchSources: [],
     dexScreener: {
       chain: 'solana', pairAddress: 'DdMA1cHcHEqYfttc1z1sJEY978CcU1pyjNuTWTNmdvzU',

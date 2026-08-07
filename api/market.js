@@ -10,9 +10,11 @@ export default async function handler(request, response) {
       ? 'public, s-maxage=86400, stale-while-revalidate=604800'
       : resource === 'history'
         ? 'public, s-maxage=3600, stale-while-revalidate=86400'
-        : resource === 'caseweekly'
-          ? 'public, s-maxage=21600, stale-while-revalidate=86400'
-          : 'public, s-maxage=30, stale-while-revalidate=300';
+          : resource === 'nft'
+          ? 'public, s-maxage=300, stale-while-revalidate=1800'
+          : resource === 'caseweekly'
+            ? 'public, s-maxage=21600, stale-while-revalidate=86400'
+            : 'public, s-maxage=30, stale-while-revalidate=300';
     response.setHeader('Content-Type', 'application/json; charset=utf-8');
     response.setHeader('Cache-Control', cacheControl);
     response.status(status).json(payload);
