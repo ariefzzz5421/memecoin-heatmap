@@ -13,23 +13,49 @@
 <header class="site-head">
   <div class="wrap head-inner">
     <a class="brand brand-link" href="/"><img class="brand-mark" src="/assets/img/brand/memecoin-heatmap-mark.png" alt="" width="44" height="44" decoding="async"><div><h1>Memecoin Heatmap</h1><p class="brand-sub">Sourced memecoin case study</p></div></a>
-    <nav class="primary-nav" aria-label="Primary navigation">
-      <a href="/">Overview</a><a href="/maps/">Maps</a><a href="/sentiment/">Sentiment</a><a class="is-active" href="/cases/" aria-current="page">Cases</a><a href="/2026-memecoins/">2026</a>
-    </nav>
+    <nav class="primary-nav"></nav>
     <div class="head-actions"><button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch theme"><span class="theme-icon theme-icon-sun" aria-hidden="true">☀</span><span class="theme-icon theme-icon-moon" aria-hidden="true">☾</span></button></div>
   </div>
   <div class="status-bar wrap"><span class="dot busy" id="statusDot"></span><span id="statusText">Loading case data…</span></div>
 </header>
 
-<main class="wrap article-wrap" id="article">
+<main class="wrap case-doc" id="article">
   <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/cases/">Cases</a><span>/</span><span>TRUMP</span></nav>
-  <header class="token-hero">
-    <img class="token-logo" id="tokenLogo" src="/assets/img/coins/trump.png" alt="OFFICIAL TRUMP logo" width="96" height="96" decoding="async">
-    <div><p class="eyebrow">Case study · launch <span id="tokenYear">2025</span></p><h2><span id="tokenName">OFFICIAL TRUMP</span> <span class="token-sym" id="tokenSym">TRUMP</span></h2><p class="article-summary" id="articleSummary">Loading summary…</p></div>
+
+  <header class="doc-masthead">
+    <img class="doc-logo" id="tokenLogo" src="/assets/img/coins/trump.png" alt="OFFICIAL TRUMP logo" width="104" height="104" decoding="async">
+    <p class="doc-kicker">Memecoin case study · launch <span id="tokenYear">2025</span></p>
+    <h2 class="doc-title"><span id="tokenName">OFFICIAL TRUMP</span> <span class="doc-sym" id="tokenSym">TRUMP</span></h2>
+    <p class="doc-standfirst" id="articleSummary">Loading summary…</p>
+    <div class="doc-meta" id="docMeta"></div>
   </header>
 
-  <section class="panel market-history-panel">
-    <div class="panel-head"><div><h2>Launch-to-market chart</h2><p class="panel-sub">Switch between price and market cap. Arrows mark sourced launch, first tracked, and peak points; unavailable values stay explicit.</p></div></div>
+  <section class="panel doc-section">
+    <p class="eyebrow">Thesis</p>
+    <h2>What this token actually priced</h2>
+    <div class="doc-callouts">
+      <div class="doc-callout is-accent"><h3>Thesis</h3><p id="caseThesis"></p></div>
+      <div class="doc-callout"><h3>Narrative</h3><p id="caseNarrative"></p></div>
+    </div>
+  </section>
+
+  <section class="panel doc-section">
+    <p class="eyebrow">Why it pumped</p>
+    <h2>The move, and what was behind it</h2>
+    <div class="doc-prose" id="articleBody"></div>
+    <div class="doc-callout"><h3>Why it crossed $100M</h3><p id="caseCrossingReason"></p></div>
+  </section>
+
+  <section class="panel doc-section">
+    <p class="eyebrow">Reasons and factors</p>
+    <h2>What carried the market cap</h2>
+    <ul class="doc-factors" id="caseFactors"></ul>
+  </section>
+
+  <section class="panel doc-section market-history-panel">
+    <p class="eyebrow">Market history</p>
+    <h2>Launch-to-market chart</h2>
+    <p class="panel-sub">Switch between price and market cap. Arrows mark sourced launch, first tracked, and peak points; unavailable values stay explicit.</p>
     <div class="market-history-chart" id="caseChart"></div>
     <div class="detail-stats case-facts" id="caseFacts"></div>
   </section>
@@ -38,25 +64,17 @@
     <div id="dexScreenerChart"></div>
   </section>
 
-  <section class="panel case-story-panel">
-    <div class="case-story-grid">
-      <article class="article-body" id="articleBody"><h2>Launch and market path</h2></article>
-      <aside class="case-analysis">
-        <div><h3>Narrative</h3><p id="caseNarrative"></p></div>
-        <div><h3>Why it crossed $100M</h3><p id="caseCrossingReason"></p></div>
-      </aside>
-    </div>
+  <section class="panel doc-section">
+    <p class="eyebrow">Triggers</p>
+    <h2>What triggered each move</h2>
+    <ol class="doc-triggers" id="caseCatalysts"></ol>
+    <p class="doc-note">Triggers are publicly dated events correlated with price movement — not proof of a single cause.</p>
   </section>
 
-  <section class="panel">
-    <div class="split">
-      <div class="side-block"><h3>Documented catalysts</h3><ul class="catalyst-list" id="caseCatalysts"></ul></div>
-      <div class="side-block"><h3>Observed pattern</h3><p class="thesis" id="caseThesis"></p><p class="note">Catalysts are publicly dated events correlated with price movement—not proof of a single cause.</p></div>
-    </div>
-  </section>
-
-  <section class="panel">
-    <div class="panel-head"><div><p class="eyebrow">Identity</p><h2>Creator, issuer, and contracts</h2><p class="panel-sub">Attribution is deliberately qualified when an individual deployer is anonymous or not publicly verified.</p></div></div>
+  <section class="panel doc-section">
+    <p class="eyebrow">Identity</p>
+    <h2>Creator, issuer, and contracts</h2>
+    <p class="panel-sub">Attribution is deliberately qualified when an individual deployer is anonymous or not publicly verified.</p>
     <div class="identity-grid" id="caseIdentity"></div>
   </section>
 
@@ -64,6 +82,7 @@
     <div><h2>Sources</h2><p class="panel-sub">Official identity, explorer, and market-history links.</p></div>
     <div class="source-links" id="caseSources"></div>
   </section>
+
   <p class="risk-line">⚠ Historical success is not a repeatable setup. Avoid leverage and define position size before entry.</p>
 </main>
 

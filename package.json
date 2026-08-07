@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "node scripts/dev-server.cjs",
-    "generate": "node scripts/generate-case-pages.cjs && node scripts/generate-2026-pages.cjs",
+    "generate": "node scripts/generate-case-pages.cjs && node scripts/generate-2026-pages.cjs && node scripts/generate-nft-pages.cjs",
     "build": "npm run generate && node scripts/build.cjs"
   }
 }

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NFT Collections Above 0.5 ETH — Floor Breakout Research</title>
+<meta name="description" content="Sourced research on the most successful NFT launches ever: launch dates, mint prices, documented peak floors, live floor prices, and what triggered each run. Only collections with a documented floor above 0.5 ETH.">
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="icon" type="image/png" href="/assets/img/brand/memecoin-heatmap-mark.png">
+</head>
+<body>
+<a class="skip" href="#collections">Skip to the collections</a>
+<header class="site-head">
+  <div class="wrap head-inner">
+    <a class="brand brand-link" href="/"><img class="brand-mark" src="/assets/img/brand/memecoin-heatmap-mark.png" alt="" width="44" height="44"><div><h1>Memecoin Heatmap</h1><p class="brand-sub">Sourced NFT floor research</p></div></a>
+    <nav class="primary-nav"></nav>
+    <div class="head-actions"><button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch theme"><span class="theme-icon theme-icon-sun" aria-hidden="true">☀</span><span class="theme-icon theme-icon-moon" aria-hidden="true">☾</span></button></div>
+  </div>
+  <div class="status-bar wrap"><span class="dot busy" id="statusDot"></span><span id="statusText">Loading live floor prices…</span></div>
+</header>
+
+<main class="wrap">
+  <section class="route-hero cases-hero">
+    <div>
+      <p class="eyebrow">NFT research · floor threshold <span id="thresholdValue">0.5 ETH</span></p>
+      <h2>The launches that broke 0.5 ETH</h2>
+      <p>Every collection here has a publicly documented floor price above the threshold. Each case opens as an article: official logo, thesis, why it pumped, the factors behind it, a floor chart, and the dated triggers. Live floors come from the CoinGecko NFT API; sourced history is linked per claim.</p>
+      <p class="hero-meta">Research cutoff <strong id="researchCutoff">—</strong></p>
+    </div>
+    <div class="hero-kpis">
+      <article><span>Collections researched</span><strong id="kpiCollections">—</strong><small>documented floor above the threshold</small></article>
+      <article><span>Above the line now</span><strong id="kpiAbove">—</strong><small id="kpiAboveSub">checking live floors</small></article>
+      <article><span>Live collection cap</span><strong id="kpiMcap">—</strong><small>sum of the resolved collections</small></article>
+    </div>
+  </section>
+
+  <p class="verified-line"><span class="dot"></span>Inclusion rule: a collection qualifies when its floor is publicly documented above <span class="num">0.5 ETH</span>. Peak floors are only stated where a single figure is sourced — otherwise the page says so.</p>
+
+  <section class="panel" id="collections">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">Case set</p>
+        <h2>Collections, sorted by live floor</h2>
+        <p class="panel-sub">Live floor, sourced peak floor, and the 24h floor move. Collections the upstream cannot resolve keep their sourced record and show the live value as unavailable.</p>
+      </div>
+    </div>
+    <div class="nft-grid" id="nftGrid"><div class="panel-loading"><span class="spinner"></span> Loading collections…</div></div>
+  </section>
+
+  <section class="panel doc-section">
+    <p class="eyebrow">Latest</p>
+    <h2>What moved most recently</h2>
+    <ol class="doc-triggers" id="nftUpdates"></ol>
+    <p class="doc-note">Dated market updates with their publication linked. Items are added when a public source documents the move — not when a floor simply ticks.</p>
+  </section>
+
+  <details class="panel method-disclosure">
+    <summary>Inclusion method</summary>
+    <ol>
+      <li>The collection has a publicly documented floor price above 0.5 ETH.</li>
+      <li>Launch date, mint price, and supply are attributable to the project or to a publication, and are shown at the granularity the source supports — a month stays a month.</li>
+      <li>Peak floor is stated only where a single figure is sourced. Where it is not, the page shows the sourced high-water event instead of a number.</li>
+      <li>Live floors come from the CoinGecko NFT collections API and are never mixed with historical figures without a label.</li>
+    </ol>
+  </details>
+
+  <p class="risk-line">⚠ Floor price is the cheapest listing, not a clearing price for the collection. Survivorship bias is severe: almost no NFT launch reaches these floors. Avoid leverage and predefine position size.</p>
+</main>
+
+<footer class="site-foot wrap"><p>Live floors: <a href="https://www.coingecko.com/en/nft" target="_blank" rel="noreferrer">CoinGecko NFT</a> · historical claims are linked per collection · <span id="updatedAt">—</span></p></footer>
+<script type="module" src="/assets/js/theme.js"></script>
+<script type="module" src="/assets/js/nft-page.js"></script>
+</body>
+</html>

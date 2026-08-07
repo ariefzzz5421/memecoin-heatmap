@@ -12,22 +12,24 @@
 <header class="site-head">
   <div class="wrap head-inner">
     <a class="brand brand-link" href="/"><img class="brand-mark" src="/assets/img/brand/memecoin-heatmap-mark.png" alt="" width="44" height="44"><div><h1>Memecoin Heatmap</h1><p class="brand-sub">Token research dossier</p></div></a>
-    <nav class="primary-nav" aria-label="Primary navigation">
-      <a href="/">Overview</a><a href="/maps/">Maps</a><a href="/sentiment/">Sentiment</a><a class="is-active" href="/cases/" aria-current="page">Cases</a><a href="/2026-memecoins/">2026</a>
-    </nav>
+    <nav class="primary-nav"></nav>
     <div class="head-actions"><button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch theme"><span class="theme-icon theme-icon-sun" aria-hidden="true">☀</span><span class="theme-icon theme-icon-moon" aria-hidden="true">☾</span></button></div>
   </div>
   <div class="status-bar wrap"><span class="dot busy" id="statusDot"></span><span id="statusText">Loading market history…</span></div>
 </header>
-<main class="wrap article-wrap detail-dossier">
+<main class="wrap case-doc detail-dossier">
   <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/cases/">Cases</a><span>/</span><span id="crumbToken">Detail</span></nav>
-  <section class="token-hero dynamic-token-hero">
-    <img class="token-logo" id="tokenLogo" alt="" width="96" height="96">
-    <div><p class="eyebrow">Price history · market cap</p><h2><span id="tokenName">Memecoin</span> <span class="token-sym" id="tokenSym">—</span></h2><p class="article-summary" id="tokenSummary">Loading current data…</p></div>
-  </section>
+  <header class="doc-masthead">
+    <img class="doc-logo" id="tokenLogo" alt="" width="104" height="104">
+    <p class="doc-kicker">Price history · market cap</p>
+    <h2 class="doc-title"><span id="tokenName">Memecoin</span> <span class="doc-sym" id="tokenSym">—</span></h2>
+    <p class="doc-standfirst" id="tokenSummary">Loading current data…</p>
+  </header>
   <section class="case-facts dossier-facts" id="caseFacts" aria-label="Market summary"></section>
-  <section class="panel market-history-panel">
-    <div class="panel-head"><div><h2>Launch-to-market chart</h2><p class="panel-sub">Switch between price and market cap. Arrows mark sourced launch, first tracked, and peak points; unavailable values stay explicit.</p></div></div>
+  <section class="panel doc-section market-history-panel">
+    <p class="eyebrow">Market history</p>
+    <h2>Launch-to-market chart</h2>
+    <p class="panel-sub">Switch between price and market cap. Arrows mark sourced launch, first tracked, and peak points; unavailable values stay explicit.</p>
     <div class="market-history-chart" id="marketHistoryChart"><div class="chart-loading"><span class="spinner"></span> Loading market history…</div></div>
   </section>
   <section class="panel dex-panel" aria-label="Live decentralized exchange chart"><div id="dexScreenerChart"></div></section>
