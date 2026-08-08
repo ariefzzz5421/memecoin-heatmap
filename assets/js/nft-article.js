@@ -53,6 +53,10 @@ function renderMeta() {
       Number.isFinite(live.marketCapUsd)
         ? el('span', { class: 'nft-flag' }, `${fmtUsd(live.marketCapUsd)} collection cap`)
         : null,
+      live.stale
+        ? el('span', { class: 'nft-flag' },
+          `last upstream read ${Math.max(1, Math.round(live.ageMs / 60_000))}m ago`)
+        : null,
     );
   } else {
     snapshot.replaceChildren(
