@@ -53,9 +53,11 @@ function renderMeta() {
       Number.isFinite(live.marketCapUsd)
         ? el('span', { class: 'nft-flag' }, `${fmtUsd(live.marketCapUsd)} collection cap`)
         : null,
-      live.stale
+      /* Collections refresh in slices, so a value a few minutes old is normal
+         and not worth flagging. Say so only once it is genuinely lagging. */
+      live.stale && live.ageMs > 10 * 60_000
         ? el('span', { class: 'nft-flag' },
-          `last upstream read ${Math.max(1, Math.round(live.ageMs / 60_000))}m ago`)
+          `floor read ${Math.round(live.ageMs / 60_000)}m ago`)
         : null,
     );
   } else {

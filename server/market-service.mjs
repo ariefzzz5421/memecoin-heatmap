@@ -711,75 +711,90 @@ function slimNft(id, row) {
   };
 }
 
-/* Last good floor per collection, so a rate-limited pass reuses the previous
-   value instead of blanking the card. Entries older than the max age are
-   dropped rather than shown as if they were current. */
+/* Last good floor per collection. CoinGecko's public tier is a per-minute
+   budget and one collection costs one request, so nine in a row is over the
+   line no matter how they are paced — the first few succeed and the rest 429.
+   Instead each pass refreshes only a slice, oldest first, and every other
+   collection is served from this memo. Across a few passes the whole set stays
+   current while the burst never exceeds the budget. */
 const nftFloorMemo = new Map();
-const NFT_MEMO_MAX_AGE = 30 * 60_000;
-/* CoinGecko's public tier is a per-minute budget, and one collection costs one
-   request. Pacing beats retrying: at ~1.1s apart the whole set lands inside the
-   function's 60s ceiling without tripping a 429. */
-const NFT_REQUEST_GAP = 1_100;
+const NFT_MEMO_MAX_AGE = 60 * 60_000;
+const NFT_SLICE = 4;
+const NFT_REQUEST_GAP = 1_500;
 const NFT_TIME_BUDGET = 40_000;
+
+async function fetchNftCollection(collection) {
+  let lastError = null;
+  for (const id of collection.ids) {
+    try {
+      const row = await fetchJSON(`${CG}/nfts/${encodeURIComponent(id)}`, {
+        timeout: 12_000,
+        retries: 0,
+      });
+      return { value: slimNft(id, row) };
+    } catch (error) {
+      lastError = error;
+      /* Only a 404 means this candidate id is wrong and the next is worth a
+         request. Anything else would fail the same way and just burn budget. */
+      if (!/^404\b/.test(error.message || '')) break;
+      await pause(NFT_REQUEST_GAP);
+    }
+  }
+  return { error: lastError };
+}
 
 async function loadNftFloors() {
   const startedAt = Date.now();
-  const collections = {};
+  const now = Date.now();
+
+  /* Never-fetched collections sort first, then the longest-since-refreshed. */
+  const due = [...NFT_COLLECTIONS]
+    .sort((a, b) => {
+      const aAge = now - (nftFloorMemo.get(a.slug)?.savedAt ?? 0);
+      const bAge = now - (nftFloorMemo.get(b.slug)?.savedAt ?? 0);
+      return bAge - aAge;
+    })
+    .slice(0, NFT_SLICE);
+
   const warnings = [];
   let first = true;
-
-  for (const collection of NFT_COLLECTIONS) {
-    let resolved = null;
-    let lastError = null;
-
-    if (Date.now() - startedAt < NFT_TIME_BUDGET) {
-      for (const id of collection.ids) {
-        if (!first) await pause(NFT_REQUEST_GAP);
-        first = false;
-        try {
-          const row = await fetchJSON(`${CG}/nfts/${encodeURIComponent(id)}`, {
-            timeout: 12_000,
-            retries: 0,
-          });
-          resolved = slimNft(id, row);
-          break;
-        } catch (error) {
-          lastError = error;
-          /* A 404 means this candidate id is simply wrong, so move to the next
-             one. Any other failure is upstream trouble that the remaining
-             candidates would hit too. */
-          if (!/^404\b/.test(error.message || '')) break;
-        }
-      }
-    } else {
-      lastError = new Error('upstream time budget exhausted');
-    }
-
-    if (resolved) {
-      nftFloorMemo.set(collection.slug, { value: resolved, savedAt: Date.now() });
-      collections[collection.slug] = resolved;
+  for (const collection of due) {
+    if (Date.now() - startedAt > NFT_TIME_BUDGET) {
+      warnings.push(`${collection.slug}: skipped, upstream time budget exhausted`);
       continue;
     }
+    if (!first) await pause(NFT_REQUEST_GAP);
+    first = false;
 
-    const memo = nftFloorMemo.get(collection.slug);
-    const age = memo ? Date.now() - memo.savedAt : Infinity;
-    if (memo && age < NFT_MEMO_MAX_AGE) {
-      collections[collection.slug] = { ...memo.value, stale: true, ageMs: age };
-      warnings.push(`${collection.slug}: ${lastError?.message || 'unresolved'} — showing value from ${Math.round(age / 60_000)}m ago`);
+    const { value, error } = await fetchNftCollection(collection);
+    if (value) {
+      nftFloorMemo.set(collection.slug, { value, savedAt: Date.now() });
     } else {
-      warnings.push(`${collection.slug}: ${lastError?.message || 'no upstream id resolved'}`);
+      warnings.push(`${collection.slug}: ${error?.message || 'no upstream id resolved'}`);
     }
   }
 
-  const missing = NFT_COLLECTIONS.filter((row) => !collections[row.slug]).length;
+  const collections = {};
+  for (const collection of NFT_COLLECTIONS) {
+    const memo = nftFloorMemo.get(collection.slug);
+    if (!memo) continue;
+    const age = Date.now() - memo.savedAt;
+    if (age > NFT_MEMO_MAX_AGE) continue;
+    collections[collection.slug] = age > 60_000
+      ? { ...memo.value, stale: true, ageMs: age }
+      : memo.value;
+  }
+
+  const missing = NFT_COLLECTIONS.length - Object.keys(collections).length;
   return {
     ok: true,
-    partial: warnings.length > 0,
+    partial: missing > 0,
     fetchedAt: Date.now(),
     source: 'CoinGecko NFT collections API',
     thresholdEth: 0.5,
     memoMaxAgeMs: NFT_MEMO_MAX_AGE,
-    warning: missing ? `Live floor unavailable for ${missing} collection(s)` : null,
+    refreshedThisPass: due.map((row) => row.slug),
+    warning: missing ? `Live floor still filling in for ${missing} collection(s)` : null,
     warnings,
     collections,
   };
